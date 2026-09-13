@@ -1,0 +1,10 @@
+pyproject.toml
+optima/__init__.py
+optima/analyzer.py
+optima/cli.py
+optima/enricher.py
+optima.egg-info/PKG-INFO
+optima.egg-info/SOURCES.txt
+optima.egg-info/dependency_links.txt
+optima.egg-info/entry_points.txt
+optima.egg-info/top_level.txt

@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "optima"
+version = "0.1.0"
+description = "Optima code analysis and LLM enrichment"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+optima = "optima.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["optima"]

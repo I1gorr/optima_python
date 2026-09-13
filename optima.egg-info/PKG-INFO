@@ -1,0 +1,5 @@
+Metadata-Version: 2.4
+Name: optima
+Version: 0.1.0
+Summary: Optima code analysis and LLM enrichment
+Requires-Python: >=3.11

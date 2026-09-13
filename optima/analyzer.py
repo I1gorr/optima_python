@@ -1,0 +1,701 @@
+"""
+Optima analyzer: extracts compiler-derived information from C/C++ projects.
+"""
+import json
+import os
+import subprocess
+import tempfile
+import sys
+import shlex
+import re
+from pathlib import Path
+from typing import List, Dict, Any, Optional, Set
+import clang.cindex
+from clang.cindex import CursorKind, TypeKind, StorageClass
+
+# Configure clang library path
+clang.cindex.Config.set_library_file('/usr/lib/libclang.so.22.1.8')
+
+
+class FunctionInfo:
+    def __init__(
+        self,
+        cursor: clang.cindex.Cursor,
+        file_path: str,
+        project_root: str,
+        include_dirs: Optional[List[str]] = None,
+        compile_cache: Optional[Dict[str, Dict[str, str]]] = None
+    ):
+        self.cursor = cursor
+        cursor_file = cursor.location.file.name if cursor.location.file else file_path
+        self.file_path = str(Path(cursor_file).resolve())
+        self.project_root = str(Path(project_root).resolve())
+        self.include_dirs = include_dirs or _discover_include_dirs(Path(self.project_root))
+        self.compile_cache = compile_cache if compile_cache is not None else {}
+        self.relative_path = os.path.relpath(self.file_path, self.project_root)
+        self.qualified_name = self._get_qualified_name()
+        self.name = cursor.spelling
+        self.mangled_name = getattr(cursor, "mangled_name", "") or ""
+        self.id = self._generate_id()
+        self.return_type = self._get_return_type()
+        self.parameters = self._get_parameters()
+        self.source_location = self._get_source_location()
+        self.source_code = self._get_source_code()
+        self.analysis_status = "pending"
+        self.compiler_error = ""
+        self.llvm_ir = ""
+        self.llvm_function_name = ""
+        self.ast = self._get_ast()
+        self.basic_blocks = []
+        self.cfg = {"entry_node": "", "exit_node": "", "nodes": [], "edges": []}
+        self.llvm_status = "not_attempted"
+        self.calls = []  # List of function IDs called
+        self.called_by = []  # To be filled later
+        self.dependencies = []  # List of dependencies (function, class, global, external)
+
+    def _generate_id(self) -> str:
+        # <relative_path>::<qualified_function_name>::<start_line>
+        start_line = self.cursor.location.line
+        return f"{self.relative_path}::{self.qualified_name}::{start_line}"
+
+    def _get_qualified_name(self) -> str:
+        # Get the qualified name by traversing the semantic parent
+        name_parts = []
+        cursor = self.cursor
+        while cursor:
+            if cursor.kind in (CursorKind.FUNCTION_DECL,
+                               CursorKind.CONSTRUCTOR, CursorKind.DESTRUCTOR,
+                               CursorKind.CLASS_DECL, CursorKind.STRUCT_DECL,
+                               CursorKind.UNION_DECL, CursorKind.NAMESPACE,
+                               CursorKind.TYPEDEF_DECL, CursorKind.ENUM_DECL):
+                if cursor.spelling:
+                    name_parts.insert(0, cursor.spelling)
+            cursor = cursor.semantic_parent
+        return "::".join(name_parts)
+
+    def _get_return_type(self) -> str:
+        return self.cursor.result_type.spelling
+
+    def _get_parameters(self) -> List[Dict[str, str]]:
+        params = []
+        for arg in self.cursor.get_arguments():
+            params.append({
+                "name": arg.spelling,
+                "type": arg.type.spelling
+            })
+        return params
+
+    def _get_source_location(self) -> Dict[str, Any]:
+        start = self.cursor.location
+        end = self.cursor.extent.end
+        return {
+            "file": self.cursor.location.file.name if self.cursor.location.file else "",
+            "start_line": start.line,
+            "start_column": start.column,
+            "end_line": end.line,
+            "end_column": end.column
+        }
+
+    def _get_source_code(self) -> str:
+        if not self.cursor.location.file:
+            return ""
+        with open(self.cursor.location.file.name, 'r') as f:
+            lines = f.readlines()
+        start_line = self.cursor.location.line - 1  # 0-indexed
+        end_line = self.cursor.extent.end.line - 1
+        return ''.join(lines[start_line:end_line+1])
+
+    def _get_llvm_ir(self) -> str:
+        # For simplicity, we'll generate LLVM IR for the entire file and return it.
+        # In a more advanced version, we could extract per-function IR.
+        # We'll cache the IR per file to avoid recompiling.
+        if not hasattr(self, '_file_llvm_ir'):
+            self._file_llvm_ir = self._compile_file_to_llvm_ir()
+        return self._file_llvm_ir
+
+    def enrich_with_llvm(self, llvm_ir: str, status: str = "compiled", error: str = ""):
+        self.llvm_ir = llvm_ir
+        self.llvm_status = status
+        self.compiler_error = error
+        if status != "compiled":
+            self.analysis_status = "source_only"
+            return
+        self._build_cfg()
+
+    def _compile_file_to_llvm_ir(self) -> str:
+        cached = self.compile_cache.get(self.file_path)
+        if cached is not None:
+            self.analysis_status = cached["status"]
+            self.compiler_error = cached["error"]
+            return cached["ir"]
+
+        # Use clang to emit LLVM IR for the file
+        is_cxx = Path(self.file_path).suffix.lower() in {'.cpp', '.cc', '.cxx', '.hpp', '.hh', '.hxx'}
+        compiler = 'clang++' if is_cxx else 'clang'
+        standard = '-std=c++17' if is_cxx else '-std=c11'
+        cmd = [
+            compiler,
+            '-S',
+            '-emit-llvm',
+            '-O0',
+            standard,
+        ]
+        for include_dir in self.include_dirs:
+            cmd.extend(['-I', include_dir])
+        cmd.extend([
+            self.file_path,
+            '-o', '-'
+        ])
+        print("DEBUG: LLVM compile command:", " ".join(shlex.quote(arg) for arg in cmd))
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+            if result.returncode != 0:
+                self.analysis_status = "compilation_failed"
+                self.compiler_error = result.stderr.strip()
+                self.compile_cache[self.file_path] = {
+                    "ir": "",
+                    "status": self.analysis_status,
+                    "error": self.compiler_error,
+                }
+                print(f"Warning: Failed to compile {self.file_path} to LLVM IR: {result.stderr}", file=sys.stderr)
+                return ""
+            self.analysis_status = "compiled"
+            self.compile_cache[self.file_path] = {
+                "ir": result.stdout,
+                "status": self.analysis_status,
+                "error": "",
+            }
+            return result.stdout
+        except subprocess.TimeoutExpired:
+            self.analysis_status = "compilation_failed"
+            self.compiler_error = "Compiler timed out after 30 seconds."
+            self.compile_cache[self.file_path] = {
+                "ir": "",
+                "status": self.analysis_status,
+                "error": self.compiler_error,
+            }
+            print(f"Warning: Timeout compiling {self.file_path} to LLVM IR", file=sys.stderr)
+            return ""
+        except Exception as e:
+            self.analysis_status = "compilation_failed"
+            self.compiler_error = str(e)
+            self.compile_cache[self.file_path] = {
+                "ir": "",
+                "status": self.analysis_status,
+                "error": self.compiler_error,
+            }
+            print(f"Warning: Exception compiling {self.file_path} to LLVM IR: {e}", file=sys.stderr)
+            return ""
+
+    def _get_ast(self) -> Dict[str, Any]:
+        # Return a simplified AST representation for the function
+        return self._cursor_to_dict(self.cursor)
+
+    def _cursor_to_dict(self, cursor: clang.cindex.Cursor) -> Dict[str, Any]:
+        """Convert a cursor and its children to a simple dict representation."""
+        node = {
+            "kind": cursor.kind.name,
+            "spelling": cursor.spelling,
+            "displayname": cursor.displayname,
+            "location": {
+                "file": cursor.location.file.name if cursor.location.file else None,
+                "line": cursor.location.line,
+                "column": cursor.location.column
+            } if cursor.location.file else None,
+            "children": []
+        }
+        for child in cursor.get_children():
+            node["children"].append(self._cursor_to_dict(child))
+        return node
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "id": self.id,
+            "name": self.name,
+            "qualified_name": self.qualified_name,
+            "mangled_name": self.mangled_name,
+            "return_type": self.return_type,
+            "parameters": self.parameters,
+            "source_location": self.source_location,
+            "source_code": self.source_code,
+            "llvm_ir": self.llvm_ir,
+            "analysis_status": self.analysis_status,
+            "compiler_error": self.compiler_error,
+            "source": {
+                "file": self.relative_path,
+                "start_line": self.source_location["start_line"],
+                "end_line": self.source_location["end_line"],
+                "start_column": self.source_location["start_column"],
+                "end_column": self.source_location["end_column"],
+            },
+            "llvm": {
+                "matched": self.analysis_status == "success",
+                "status": self.llvm_status,
+                **({"function_name": self.llvm_function_name} if self.llvm_function_name else {}),
+                **({"mangled_name": self.mangled_name} if self.mangled_name else {}),
+                **({"basic_blocks": self.basic_blocks, "cfg": self.cfg}
+                   if self.analysis_status == "success" else {}),
+                **({"reason": "not_emitted_or_not_found"}
+                   if self.llvm_status == "compiled" and self.analysis_status != "success"
+                   else {}),
+                **({"error": self.compiler_error} if self.llvm_status == "compilation_failed" else {}),
+            },
+            "ast": self.ast,
+            "basic_blocks": self.basic_blocks,
+            "cfg": self.cfg,
+            "calls": self.calls,
+            "called_by": self.called_by,
+            "dependencies": self.dependencies
+        }
+
+
+    def _build_cfg(self):
+        """Build control-flow graph from LLVM IR."""
+        llvm_ir = self.llvm_ir
+        if not llvm_ir:
+            return
+
+        function_match = self._find_llvm_function(llvm_ir)
+        if function_match is None:
+            self.basic_blocks = []
+            self.cfg = {"entry_node": "", "exit_node": "", "nodes": [], "edges": []}
+            self.analysis_status = "llvm_function_not_found"
+            self.compiler_error = (
+                f"Function '{self.mangled_name or self.qualified_name}' "
+                "was not found in generated LLVM IR."
+            )
+            return
+
+        match, llvm_name = function_match
+        self.llvm_function_name = llvm_name
+        func_body = self._extract_llvm_function_body(llvm_ir, match.end())
+        if func_body is None:
+            self.basic_blocks = []
+            self.cfg = {"entry_node": "", "exit_node": "", "nodes": [], "edges": []}
+            self.analysis_status = "llvm_function_not_found"
+            self.compiler_error = "Generated LLVM function body is malformed."
+            return
+
+        blocks = self._parse_llvm_blocks(func_body)
+        if not blocks:
+            self.basic_blocks = []
+            self.cfg = {"entry_node": "", "exit_node": "", "nodes": [], "edges": []}
+            self.analysis_status = "llvm_function_not_found"
+            self.compiler_error = "Generated LLVM function contains no basic blocks."
+            return
+
+        debug_lines = self._extract_debug_lines(llvm_ir)
+        for block in blocks:
+            lines = [
+                debug_lines[metadata_id]
+                for instruction in block["instructions"]
+                for metadata_id in re.findall(r"!dbg\s+!(\d+)", instruction)
+                if metadata_id in debug_lines
+            ]
+            if lines:
+                block["source_location_available"] = True
+                block["start_line"] = min(lines)
+                block["end_line"] = max(lines)
+            else:
+                block["source_location_available"] = False
+
+        edges = []
+        for index, block in enumerate(blocks):
+            terminator = self._get_terminator(block["instructions"])
+            if terminator is None:
+                targets = [blocks[index + 1]["id"]] if index + 1 < len(blocks) else []
+            else:
+                targets = self._get_terminator_targets(terminator)
+            edges.extend({"from": block["id"], "to": target} for target in targets)
+
+        entry_node = blocks[0]["id"]
+        exit_nodes = []
+        for block in blocks:
+            terminator = self._get_terminator(block["instructions"])
+            if terminator and terminator.startswith("ret "):
+                exit_nodes.append(block["id"])
+        exit_node = exit_nodes[-1] if exit_nodes else blocks[-1]["id"]
+        self.basic_blocks = blocks
+        self.cfg = {
+            "entry_node": entry_node,
+            "exit_node": exit_node,
+            "nodes": [block["id"] for block in blocks],
+            "edges": edges
+        }
+        self.analysis_status = "success"
+
+    def _find_llvm_function(self, llvm_ir: str):
+        """Find a definition by its exact LLVM symbol name."""
+        candidates = [self.mangled_name, self.qualified_name, self.name]
+        candidates = [candidate for candidate in candidates if candidate]
+        definition_pattern = re.compile(
+            r"^\s*define\b[^{\n]*@"
+            r"(?:(?P<quoted>\"[^\"]+\")|(?P<plain>[^\s(]+))"
+            r"[^{\n]*\{",
+            re.MULTILINE
+        )
+        for match in definition_pattern.finditer(llvm_ir):
+            llvm_name = match.group("quoted") or match.group("plain")
+            llvm_name = llvm_name.strip('"')
+            if llvm_name in candidates:
+                return match, llvm_name
+        return None
+
+    @staticmethod
+    def _extract_llvm_function_body(llvm_ir: str, body_start: int) -> Optional[str]:
+        """Extract a function body using LLVM's closing-brace line."""
+        body_end = re.search(r"(?m)^\s*}\s*$", llvm_ir[body_start:])
+        if body_end is None:
+            return None
+        return llvm_ir[body_start:body_start + body_end.start()]
+
+    @staticmethod
+    def _parse_llvm_blocks(func_body: str) -> List[Dict[str, Any]]:
+        blocks = []
+        current = {"id": "entry", "name": "entry", "instructions": []}
+        for line in func_body.splitlines():
+            stripped = line.strip()
+            if not stripped or stripped.startswith(";"):
+                continue
+            label_match = re.fullmatch(
+                r"(?P<label>[-A-Za-z0-9$._]+):(?:\s*;.*)?", stripped
+            )
+            if label_match:
+                if not blocks and current["id"] == "entry" and not current["instructions"]:
+                    label = label_match.group("label")
+                    current = {"id": label, "name": label, "instructions": []}
+                    continue
+                if current["instructions"]:
+                    blocks.append(current)
+                label = label_match.group("label")
+                current = {"id": label, "name": label, "instructions": []}
+            else:
+                current["instructions"].append(stripped)
+        if current["instructions"] or not blocks:
+            blocks.append(current)
+        return blocks
+
+    @staticmethod
+    def _get_terminator(instructions: List[str]) -> Optional[str]:
+        for instruction in reversed(instructions):
+            if re.match(r"^(br|switch|ret|invoke|unreachable)\b", instruction):
+                return instruction
+        return None
+
+    @staticmethod
+    def _get_terminator_targets(terminator: str) -> List[str]:
+        if terminator.startswith("ret ") or terminator.startswith("unreachable"):
+            return []
+        return re.findall(r"label\s+%?([^,\s\]]+)", terminator)
+
+    @staticmethod
+    def _extract_debug_lines(llvm_ir: str) -> Dict[str, int]:
+        return {
+            metadata_id: int(line)
+            for metadata_id, line in re.findall(
+                r"!(\d+)\s*=\s*!DILocation\(line:\s*(\d+)", llvm_ir
+            )
+        }
+
+
+def _discover_include_dirs(project_path: Path) -> List[str]:
+    """Discover absolute project directories that may contain included headers."""
+    project_path = project_path.resolve()
+    include_dirs = {str(project_path)}
+    header_extensions = {'.h', '.hpp', '.hh', '.hxx'}
+
+    for root, dirs, files in os.walk(project_path):
+        root_path = Path(root).resolve()
+        if root_path.name.lower() in {'include', 'src'}:
+            include_dirs.add(str(root_path))
+        if any(Path(file).suffix.lower() in header_extensions for file in files):
+            include_dirs.add(str(root_path))
+
+    return sorted(include_dirs)
+
+
+def _is_project_owned(cursor: clang.cindex.Cursor, project_root: str) -> bool:
+    """Return whether a cursor's source file is inside the analyzed project."""
+    location_file = cursor.location.file
+    if location_file is None:
+        return False
+    source_path = os.path.abspath(os.path.realpath(location_file.name))
+    project_path = os.path.abspath(os.path.realpath(project_root))
+    try:
+        return os.path.commonpath([source_path, project_path]) == project_path
+    except ValueError:
+        return False
+
+
+def _compile_translation_unit(
+    file_path: Path,
+    include_dirs: List[str],
+    compile_cache: Dict[str, Dict[str, str]]
+) -> Dict[str, str]:
+    path = str(file_path.resolve())
+    if path in compile_cache:
+        return compile_cache[path]
+    is_cxx = file_path.suffix.lower() in {'.cpp', '.cc', '.cxx', '.hpp', '.hh', '.hxx'}
+    compiler = 'clang++' if is_cxx else 'clang'
+    standard = '-std=c++17' if is_cxx else '-std=c11'
+    cmd = [compiler, '-S', '-emit-llvm', '-O0', '-g', standard]
+    for include_dir in include_dirs:
+        cmd.extend(['-I', include_dir])
+    cmd.extend([path, '-o', '-'])
+    print("DEBUG: LLVM compile command:", " ".join(shlex.quote(arg) for arg in cmd))
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+    except subprocess.TimeoutExpired:
+        result = None
+    if result is None:
+        compiled = {"ir": "", "status": "compilation_failed", "error": "Compiler timed out after 30 seconds."}
+    elif result.returncode != 0:
+        compiled = {"ir": "", "status": "compilation_failed", "error": result.stderr.strip()}
+    else:
+        compiled = {"ir": result.stdout, "status": "compiled", "error": ""}
+    compile_cache[path] = compiled
+    return compiled
+
+
+def analyze_project(project_path: Path, output_dir: Path) -> Path:
+    """Analyze a C/C++ project and generate base.json."""
+    project_path = project_path.resolve()
+    output_dir = output_dir.resolve()
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    index = clang.cindex.Index.create()
+    include_dirs = _discover_include_dirs(project_path)
+    compile_cache: Dict[str, Dict[str, str]] = {}
+    clang_args = ['-std=c++17']
+    for include_dir in include_dirs:
+        clang_args.extend(['-I', include_dir])
+
+    # Find all relevant files
+    extensions = {'.c', '.cpp', '.cc', '.cxx', '.h', '.hpp', '.hh', '.hxx'}
+    source_files = []
+    for root, dirs, files in os.walk(project_path):
+        for file in files:
+            if Path(file).suffix in extensions:
+                source_files.append(Path(root) / file)
+
+    # We'll store all functions and files
+    all_files = []
+    all_functions = []  # Flat list of all functions for call graph
+    function_map = {}  # Map from function ID to FunctionInfo
+    functions_by_file: Dict[str, List[FunctionInfo]] = {}
+    excluded_system_functions = set()
+
+    for file_path in source_files:
+        print(f"Parsing {file_path}")
+        try:
+            parse_args = list(clang_args)
+            if file_path.suffix.lower() == '.c':
+                parse_args[0] = '-std=c11'
+            tu = index.parse(str(file_path), args=parse_args)
+        except Exception as e:
+            print(f"Error parsing {file_path}: {e}", file=sys.stderr)
+            continue
+
+        if tu.diagnostics:
+            for diag in tu.diagnostics:
+                print(f"Diagnostic: {diag}", file=sys.stderr)
+
+        # Collect functions from this translation unit
+        file_functions = []
+
+        def visit_cursor(cursor: clang.cindex.Cursor, parent: Optional[clang.cindex.Cursor] = None):
+            if cursor.kind in (CursorKind.FUNCTION_DECL,
+                               CursorKind.CONSTRUCTOR, CursorKind.DESTRUCTOR):
+                # Only consider definitions, not just declarations
+                if cursor.is_definition():
+                    if _is_project_owned(cursor, str(project_path)):
+                        func_info = FunctionInfo(
+                            cursor, str(file_path), str(project_path),
+                            include_dirs, compile_cache
+                        )
+                        if func_info.id not in function_map:
+                            file_functions.append(func_info)
+                            all_functions.append(func_info)
+                            function_map[func_info.id] = func_info
+                    elif cursor.location.file:
+                        excluded_system_functions.add((
+                            os.path.abspath(os.path.realpath(cursor.location.file.name)),
+                            cursor.location.line,
+                            cursor.spelling
+                        ))
+            # Recurse
+            for child in cursor.get_children():
+                visit_cursor(child, cursor)
+
+        visit_cursor(tu.cursor)
+        compiled = _compile_translation_unit(file_path, include_dirs, compile_cache)
+        for func in file_functions:
+            func.enrich_with_llvm(compiled["ir"], compiled["status"], compiled["error"])
+            functions_by_file.setdefault(func.relative_path, []).append(func)
+
+    # Resolve source-level calls after the complete project function inventory exists.
+    for func in all_functions:
+        func.calls = _extract_calls(func.cursor, function_map, str(project_path))
+        func.dependencies = _extract_dependencies(func.cursor, project_path)
+
+    for file_path in source_files:
+        relative_path = os.path.relpath(file_path, project_path)
+        file_info = {
+            "id": f"file::{relative_path}",
+            "path": relative_path,
+            "name": file_path.name,
+            "relative_path": relative_path,
+            "language": "cpp" if file_path.suffix.lower() in {'.cpp', '.cc', '.cxx', '.hpp', '.hh', '.hxx'} else "c",
+            "functions": [f.to_dict() for f in functions_by_file.get(relative_path, [])]
+        }
+        all_files.append(file_info)
+
+    # Build call graph (project-level)
+    call_graph_nodes = []
+    call_graph_edges = []
+    for func in all_functions:
+        call_graph_nodes.append({"id": func.id, "name": func.name, "qualified_name": func.qualified_name})
+        for call in func.calls:
+            if call.get("resolved"):
+                call_graph_edges.append({"from": func.id, "to": call["id"]})
+
+    call_graph = {
+        "nodes": call_graph_nodes,
+        "edges": call_graph_edges
+    }
+
+    # Build base.json structure
+    base_json = {
+        "project": {
+            "name": project_path.name,
+            "root": str(project_path),
+            "language": "cpp"
+        },
+        "files": all_files,
+        "graph": {
+            "function_nodes": [
+                {
+                    "id": func.id,
+                    "type": "function",
+                    "name": func.name,
+                    "qualified_name": func.qualified_name,
+                    "file": func.relative_path,
+                    "start_line": func.source_location["start_line"],
+                    "end_line": func.source_location["end_line"],
+                }
+                for func in all_functions
+            ],
+            "call_edges": call_graph_edges,
+        },
+        "call_graph": call_graph
+    }
+
+    output_file = output_dir / "base.json"
+    with open(output_file, 'w') as f:
+        json.dump(base_json, f, indent=2)
+
+    successful_compilations = sum(result["status"] == "compiled" for result in compile_cache.values())
+    failed_compilations = sum(
+        result["status"] == "compilation_failed" for result in compile_cache.values()
+    )
+    basic_blocks = sum(len(func.basic_blocks) for func in all_functions)
+    cfg_edges = sum(len(func.cfg["edges"]) for func in all_functions)
+    matched_functions = sum(func.analysis_status == "success" for func in all_functions)
+    matching_failures = sum(
+        func.llvm_status == "compiled" and func.analysis_status != "success"
+        for func in all_functions
+    )
+    print(f"Source files discovered: {len(source_files)}")
+    print(f"Project functions: {len(all_functions)}")
+    print(f"System functions excluded: {len(excluded_system_functions)}")
+    print(f"LLVM functions matched: {matched_functions}")
+    print(f"Functions with source ranges: {sum(bool(func.source_location['start_line'] and func.source_location['end_line']) for func in all_functions)}")
+    print(f"Project headers analyzed: {sum(Path(f).suffix.lower() in {'.h', '.hpp', '.hh', '.hxx'} for f in [x['relative_path'] for x in all_files])}")
+    print(f"Functions with CFG: {matched_functions}")
+    print(f"Basic blocks: {basic_blocks}")
+    print(f"CFG edges: {cfg_edges}")
+    print(f"Compilation failures: {failed_compilations}")
+    print(f"LLVM matching failures: {matching_failures}")
+    print(f"Output: {output_file}")
+
+    return output_file
+
+
+def _extract_calls(
+    cursor: clang.cindex.Cursor,
+    function_map: Dict[str, FunctionInfo],
+    project_path: str,
+    include_dirs: Optional[List[str]] = None,
+    compile_cache: Optional[Dict[str, Dict[str, str]]] = None
+) -> List[Dict[str, Any]]:
+    """Extract function calls from the given cursor."""
+    calls = []
+    for child in cursor.get_children():
+        if child.kind == CursorKind.CALL_EXPR:
+            # Get the called function
+            called_ref = child.get_definition()
+            if called_ref and called_ref.kind in (CursorKind.FUNCTION_DECL,
+                                                 CursorKind.CONSTRUCTOR, CursorKind.DESTRUCTOR):
+                if called_ref.is_definition():
+                    if not _is_project_owned(called_ref, project_path):
+                        continue
+                    called_file = os.path.relpath(
+                        os.path.abspath(os.path.realpath(called_ref.location.file.name)),
+                        os.path.abspath(os.path.realpath(project_path))
+                    )
+                    called_qualified = _qualified_cursor_name(called_ref)
+                    called_id_prefix = f"{called_file}::{called_qualified}::"
+                    target = next(
+                        (func for func_id, func in function_map.items()
+                         if func_id.startswith(called_id_prefix)
+                         and func.source_location["start_line"] == called_ref.location.line),
+                        None
+                    )
+                    call = {
+                        "name": called_ref.spelling,
+                        "qualified_name": called_qualified,
+                        "resolved": target is not None,
+                    }
+                    if target is not None:
+                        call["id"] = target.id
+                        if target.mangled_name:
+                            call["llvm_name"] = target.mangled_name
+                    calls.append(call)
+        # Recurse
+        calls.extend(_extract_calls(
+            child, function_map, project_path, include_dirs, compile_cache
+        ))
+    return calls
+
+
+def _qualified_cursor_name(cursor: clang.cindex.Cursor) -> str:
+    name_parts = []
+    while cursor:
+        if cursor.kind in (CursorKind.FUNCTION_DECL, CursorKind.CONSTRUCTOR,
+                           CursorKind.DESTRUCTOR, CursorKind.CLASS_DECL,
+                           CursorKind.STRUCT_DECL, CursorKind.UNION_DECL,
+                           CursorKind.NAMESPACE, CursorKind.TYPEDEF_DECL,
+                           CursorKind.ENUM_DECL) and cursor.spelling:
+            name_parts.insert(0, cursor.spelling)
+        cursor = cursor.semantic_parent
+    return "::".join(name_parts)
+
+
+def _extract_dependencies(cursor: clang.cindex.Cursor, project_path: Path) -> List[str]:
+    """Extract dependencies (simplified)."""
+    deps = []
+    # We'll just look for references to other functions, classes, etc.
+    # For now, return an empty list to keep it simple.
+    return deps
+
+
+if __name__ == "__main__":
+    # For testing
+    import sys
+    if len(sys.argv) != 2:
+        print("Usage: python analyzer.py <project_path>")
+        sys.exit(1)
+    project_path = Path(sys.argv[1])
+    output_dir = Path("output")
+    analyze_project(project_path, output_dir)
+    print(f"Analysis complete. Output in {output_dir}")
