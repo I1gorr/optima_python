@@ -67,6 +67,29 @@ def main():
         default=None,
         help='Process at most this many functions (useful for smoke tests)'
     )
+    enrich_parser.add_argument(
+        '--context-size',
+        type=int,
+        default=None,
+        help='Model context size in tokens (discovered from LM Studio when omitted)'
+    )
+    enrich_parser.add_argument(
+        '--max-input-tokens',
+        type=int,
+        default=None,
+        help='Maximum input tokens; defaults to the model context minus reserved output'
+    )
+    enrich_parser.add_argument(
+        '--reserved-output-tokens',
+        type=int,
+        default=2048,
+        help='Tokens reserved for the enrichment response (default: 2048)'
+    )
+    enrich_parser.add_argument(
+        '--debug',
+        action='store_true',
+        help='Print context preflight and reduction details'
+    )
     
     args = parser.parse_args()
     
@@ -137,6 +160,10 @@ def enrich_command(args):
             base_url=args.base_url,
             model_load_timeout=args.model_load_timeout,
             limit=args.limit,
+            context_size=args.context_size,
+            max_input_tokens=args.max_input_tokens,
+            reserved_output_tokens=args.reserved_output_tokens,
+            debug=args.debug,
         )
         print(f"Enrichment complete. Enhanced JSON saved to: {enhanced_json_path}")
         return 0

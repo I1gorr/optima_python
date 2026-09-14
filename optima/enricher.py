@@ -14,6 +14,7 @@ import urllib.error
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 import logging
+import math
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -21,15 +22,204 @@ logger = logging.getLogger(__name__)
 # Default LM Studio configuration
 DEFAULT_BASE_URL = "http://localhost:1234/v1"
 DEFAULT_API_KEY = "lm-studio"
+DEFAULT_CONTEXT_SIZE = 8192
+DEFAULT_RESERVED_OUTPUT_TOKENS = 2048
+CONTEXT_SAFETY_MARGIN = 128
+ENRICHMENT_JSON_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "purpose": {"type": "string"},
+        "behavior": {"type": "string"},
+        "summary": {"type": "string"},
+        "inputs": {"type": "array", "items": {"type": "string"}},
+        "outputs": {"type": "array", "items": {"type": "string"}},
+        "side_effects": {"type": "array", "items": {"type": "string"}},
+        "dependencies": {"type": "array", "items": {"type": "string"}},
+        "concepts": {"type": "array", "items": {"type": "string"}},
+        "keywords": {"type": "array", "items": {"type": "string"}},
+        "algorithm": {"type": "string"},
+        "complexity": {
+            "type": "object",
+            "properties": {"time": {"type": "string"}, "space": {"type": "string"}},
+            "required": ["time", "space"],
+            "additionalProperties": False,
+        },
+    },
+    "required": [
+        "purpose", "behavior", "summary", "inputs", "outputs", "side_effects",
+        "dependencies", "concepts", "keywords", "algorithm", "complexity",
+    ],
+    "additionalProperties": False,
+}
+
+
+def _estimate_tokens(text: str) -> int:
+    """Conservatively estimate tokens without adding a tokenizer dependency."""
+    try:
+        import tiktoken
+        try:
+            encoding = tiktoken.encoding_for_model("gpt-4")
+        except Exception:
+            encoding = tiktoken.get_encoding("cl100k_base")
+        return len(encoding.encode(text))
+    except (ImportError, Exception):
+        # Source and IR contain many symbols that tokenize more densely than prose.
+        return math.ceil(len(text) / 3)
+
+
+def _context_size_from_record(record: Dict[str, Any]) -> Optional[int]:
+    preferred_keys = ("context_length", "n_ctx", "context_window")
+    fallback_keys = ("max_context_length", "max_context_tokens", "max_position_embeddings")
+    queue = [record]
+    fallback = None
+    while queue:
+        current = queue.pop()
+        if isinstance(current, dict):
+            for key in preferred_keys:
+                value = current.get(key)
+                if isinstance(value, int) and value > 0:
+                    return value
+            for key in fallback_keys:
+                value = current.get(key)
+                if isinstance(value, int) and value > 0:
+                    fallback = fallback or value
+            queue.extend(value for value in current.values() if isinstance(value, (dict, list)))
+        elif isinstance(current, list):
+            queue.extend(current)
+    return fallback
+
+
+def _compact_calls(calls: Any) -> str:
+    names = []
+    for call in calls if isinstance(calls, list) else []:
+        if isinstance(call, dict):
+            name = call.get("qualified_name") or call.get("name")
+        else:
+            name = str(call)
+        if name and name not in names:
+            names.append(name)
+    return "\n".join(names) or "none"
+
+
+def _compact_cfg(cfg: Any) -> str:
+    if not isinstance(cfg, dict):
+        return "unavailable"
+    nodes = cfg.get("nodes", [])
+    edges = cfg.get("edges", [])
+    lines = [f"Blocks: {len(nodes)}", f"Edges: {len(edges)}"]
+    lines.extend(
+        f"{edge.get('from', '?')} -> {edge.get('to', '?')}"
+        for edge in edges
+        if isinstance(edge, dict)
+    )
+    return "\n".join(lines)
+
+
+def _compact_ast(ast: Any, limit: int = 1200) -> str:
+    if not ast:
+        return "unavailable"
+    if isinstance(ast, dict):
+        nodes = []
+        def visit(node: Any, depth: int = 0) -> None:
+            if not isinstance(node, dict) or len(nodes) >= 80:
+                return
+            kind = node.get("kind", "")
+            spelling = node.get("spelling") or node.get("displayname") or ""
+            if kind or spelling:
+                nodes.append(f"{'  ' * min(depth, 3)}{kind}: {spelling}".strip())
+            for child in node.get("children", []):
+                visit(child, depth + 1)
+        visit(ast)
+        return "\n".join(nodes)[:limit] or "unavailable"
+    return str(ast)[:limit]
+
+
+def _compact_llvm(llvm: Any, limit: int = 5000) -> str:
+    if not llvm:
+        return "unavailable"
+    lines = str(llvm).splitlines()
+    important = []
+    for line in lines:
+        stripped = line.strip()
+        if (
+            stripped.startswith(("define ", "}", "br ", "switch ", "ret ", "call ",
+                                  "load ", "store ", "atomicrmw ", "cmpxchg ",
+                                  "add ", "sub ", "mul ", "icmp ", "fcmp "))
+            or (stripped.endswith(":") and not stripped.startswith(";"))
+        ):
+            important.append(line)
+    compact = "\n".join(important)
+    return (compact or str(llvm))[:limit] or "unavailable"
+
+
+def _trim_source(source: str, limit: int) -> str:
+    if len(source) <= limit:
+        return source
+    if limit < 80:
+        return source[:limit]
+    head = int(limit * 0.75)
+    return source[:head] + "\n... [source reduced] ...\n" + source[-(limit - head - 25):]
+
+
+def _response_preview(content: str, limit: int = 500) -> str:
+    """Return a bounded, single-line response preview for diagnostics."""
+    preview = " ".join(content.split())
+    return preview if len(preview) <= limit else preview[:limit] + "... [truncated]"
+
+
+def _parse_json_object(content: str) -> tuple[Optional[Dict[str, Any]], str]:
+    """Parse the expected object, tolerating only common fence/text wrappers."""
+    stripped = content.strip()
+    if not stripped:
+        return None, "empty_response"
+
+    candidates: List[tuple[str, str]] = [(stripped, "json")]
+    fenced = re.fullmatch(
+        r"```(?:json)?\s*(\{.*\})\s*```", stripped, re.DOTALL | re.IGNORECASE
+    )
+    if fenced:
+        candidates.insert(0, (fenced.group(1), "markdown_wrapped_json"))
+    else:
+        decoder = json.JSONDecoder()
+        start = stripped.find("{")
+        if start >= 0:
+            try:
+                _, end = decoder.raw_decode(stripped[start:])
+                if start > 0 or stripped[end + start:].strip():
+                    candidates.insert(0, (stripped[start:start + end], "surrounding_text"))
+            except json.JSONDecodeError:
+                pass
+
+    syntax_error = False
+    for candidate, source in candidates:
+        try:
+            parsed = json.loads(candidate)
+        except json.JSONDecodeError:
+            syntax_error = True
+            continue
+        if isinstance(parsed, dict):
+            return parsed, source
+        return None, "json_root_not_object"
+    return None, "invalid_json" if syntax_error else "schema_mismatch"
 
 
 class LMStudioClient:
-    def __init__(self, base_url: str = DEFAULT_BASE_URL, api_key: str = DEFAULT_API_KEY, model: Optional[str] = None, timeout: int = 120):
+    def __init__(
+        self, base_url: str = DEFAULT_BASE_URL, api_key: str = DEFAULT_API_KEY,
+        model: Optional[str] = None, timeout: int = 120,
+        context_size: Optional[int] = None, max_input_tokens: Optional[int] = None,
+        reserved_output_tokens: int = DEFAULT_RESERVED_OUTPUT_TOKENS,
+        debug: bool = False,
+    ):
         self.base_url = base_url.rstrip('/')
         self.api_key = api_key
         self.timeout = timeout
         self.model = model
         self.model_id = None
+        self.context_size = context_size or DEFAULT_CONTEXT_SIZE
+        self.max_input_tokens = max_input_tokens
+        self.reserved_output_tokens = reserved_output_tokens
+        self.debug = debug
         if not self.model:
             self._discover_model()
 
@@ -134,6 +324,12 @@ class LMStudioClient:
                  if record.get("key") == self.model), None
             )
             if selected:
+                discovered_context = (
+                    _context_size_from_record(native_selected or {})
+                    or _context_size_from_record(selected)
+                )
+                if self.max_input_tokens is None and self.context_size == DEFAULT_CONTEXT_SIZE and discovered_context:
+                    self.context_size = discovered_context
                 state = selected.get("state", "loaded")
                 loaded = (
                     bool(native_selected.get("loaded_instances"))
@@ -148,6 +344,7 @@ class LMStudioClient:
                         "loaded_model": selected.get("id"),
                         "load_wait_seconds": waited,
                         "load_verified": True,
+                        "context_size": self.context_size,
                     }
             print(f"Waiting for model... {int(time.time() - started)}s")
             time.sleep(poll_seconds)
@@ -166,26 +363,51 @@ class LMStudioClient:
             logger.error("LM Studio unavailable at %s: %s", self.base_url, error)
             return False
 
-    def enrich_function(self, function_data: Dict[str, Any], on_model_failure=None):
-        """Send function data to LM Studio for enrichment."""
-        prompt_function_data = {
+    def _prompt_for_stage(self, function_data: Dict[str, Any], stage: str) -> tuple[str, str, Dict[str, Any]]:
+        """Build a priority-ordered prompt without cutting the final prompt blindly."""
+        system_prompt = ("You are a software code-analysis assistant.\n"
+                         "Analyze one function using its actual source and compiler evidence.\n"
+                         "Produce concise, factual semantic descriptions. The source is primary.\n"
+                         "Never invent behaviour, relationships, or compiler facts.")
+        source_location = function_data.get("source_location", function_data.get("source", {}))
+        source = function_data.get("source_code", "")
+        calls = _compact_calls(function_data.get("calls", []))
+        called_by = _compact_calls(function_data.get("called_by", []))
+        cfg = _compact_cfg(function_data.get("cfg", {}))
+        llvm = _compact_llvm(function_data.get("llvm_ir", ""))
+        ast = _compact_ast(function_data.get("ast", {}))
+        include = {"source": True, "calls": True, "cfg": True, "ast": True, "llvm": True}
+        if stage == "compact_ast":
+            ast = _compact_ast(function_data.get("ast", {}), 400)
+        elif stage == "compact_cfg":
+            ast = _compact_ast(function_data.get("ast", {}), 400)
+            cfg = "\n".join(_compact_cfg(function_data.get("cfg", {})).splitlines()[:10])
+        elif stage == "compact_llvm":
+            ast = _compact_ast(function_data.get("ast", {}), 250)
+            cfg = "\n".join(_compact_cfg(function_data.get("cfg", {})).splitlines()[:8])
+            llvm = _compact_llvm(function_data.get("llvm_ir", ""), 2200)
+        elif stage == "remove_llvm":
+            ast = _compact_ast(function_data.get("ast", {}), 150)
+            cfg = "\n".join(_compact_cfg(function_data.get("cfg", {})).splitlines()[:6])
+            llvm = "removed to fit context"
+            include["llvm"] = False
+        elif stage == "minimal_source_context":
+            ast = "removed to fit context"
+            cfg = "removed to fit context"
+            llvm = "removed to fit context"
+            include.update(ast=False, cfg=False, llvm=False)
+
+        identity = {
             "id": function_data.get("id"),
             "name": function_data.get("name"),
             "qualified_name": function_data.get("qualified_name"),
-            "source": function_data.get("source", function_data.get("source_location", {})),
-            "parameters": function_data.get("parameters", []),
-            "return_type": function_data.get("return_type"),
-            "calls": function_data.get("calls", []),
-            "llvm": {
-                "matched": function_data.get("llvm", {}).get("matched"),
-                "function_name": function_data.get("llvm", {}).get("function_name"),
-                "mangled_name": function_data.get("llvm", {}).get("mangled_name"),
-                "cfg": function_data.get("llvm", {}).get("cfg", {}),
+            "file": source_location.get("file") if isinstance(source_location, dict) else "",
+            "source_range": source_location,
+            "signature": {
+                "parameters": function_data.get("parameters", []),
+                "return_type": function_data.get("return_type"),
             },
-            "cfg": function_data.get("cfg", {}),
-            "ast": json.dumps(function_data.get("ast", {}))[:1000],
         }
-        # Prepare the prompt
         system_prompt = ("You are a software code-analysis assistant.\n"
                          "Analyze individual functions using their actual source code and\n"
                          "compiler-derived information.\n"
@@ -210,8 +432,6 @@ Generate a JSON object with these fields:
 9. keywords (array)
 10. algorithm
 11. complexity (object with time and space)
-12. confidence (object with optional field-level confidence values)
-
 Use "unknown" when complexity cannot be determined reliably. Use empty arrays
 only when no items are supported by the evidence.
 
@@ -236,31 +456,243 @@ Return ONLY valid JSON:
   "purpose": "...", "behavior": "...", "summary": "...",
   "inputs": [], "outputs": [], "side_effects": [], "dependencies": [],
   "concepts": [], "keywords": [], "algorithm": "...",
-  "complexity": {{"time": "unknown", "space": "unknown"}},
-  "confidence": {{}}
+  "complexity": {{"time": "unknown", "space": "unknown"}}
 }}
 
 FUNCTION:
-{json.dumps(prompt_function_data, indent=2)}
+{json.dumps(identity, indent=2)}
 
 SOURCE:
-{function_data.get('source_code', '')[:6000]}
+{source}
 
 LLVM IR:
-{function_data.get('llvm_ir', '')[:4000]}
+{llvm}
 
 CALLS:
-{json.dumps(function_data.get('calls', []))}
+{calls}
 
 CALLED BY:
-{json.dumps(function_data.get('called_by', []))}
+{json.dumps(called_by)}
 
 CFG SUMMARY:
-{json.dumps(function_data.get('cfg', {}))}
+{cfg}
 
 AST:
-{json.dumps(function_data.get('ast', {}))[:500]}
+{ast}
 """
+        return system_prompt, user_prompt, include
+
+    def _build_context(self, function_data: Dict[str, Any]) -> tuple[list[dict], Dict[str, Any], List[str]]:
+        stages = ["full", "compact_ast", "compact_cfg", "compact_llvm", "remove_llvm", "minimal_source_context"]
+        input_budget = self.max_input_tokens or (
+            self.context_size - self.reserved_output_tokens - CONTEXT_SAFETY_MARGIN
+        )
+        input_budget = max(256, min(input_budget, self.context_size - self.reserved_output_tokens - CONTEXT_SAFETY_MARGIN))
+        attempts = []
+        for stage in stages:
+            system_prompt, user_prompt, included = self._prompt_for_stage(function_data, stage)
+            estimated = _estimate_tokens(system_prompt + user_prompt)
+            attempts.append((stage, system_prompt, user_prompt, included, estimated))
+            if estimated <= input_budget:
+                metrics = {
+                    "model_context_size": self.context_size,
+                    "estimated_input_tokens": estimated,
+                    "reserved_output_tokens": self.reserved_output_tokens,
+                    "input_budget": input_budget,
+                    "total_budget": estimated + self.reserved_output_tokens,
+                    "context_reduction_level": stage,
+                    "source_included": included["source"],
+                    "ast_included": included["ast"],
+                    "cfg_included": included["cfg"],
+                    "llvm_included": included["llvm"],
+                }
+                if self.debug:
+                    print(
+                        "Context:\n"
+                        f"  Model context:       {self.context_size}\n"
+                        f"  Input tokens:        {estimated}\n"
+                        f"  Reserved output:     {self.reserved_output_tokens}\n"
+                        f"  Total budget:        {estimated + self.reserved_output_tokens}\n"
+                        f"  Status:              OK"
+                    )
+                    if stage != "full":
+                        print(f"Reducing optional context: {stage}")
+                return [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ], metrics, stages[stages.index(stage):]
+        # The source is high priority, but a very large source still needs a bounded final representation.
+        stage, system_prompt, user_prompt, included, _ = attempts[-1]
+        available_chars = max(200, input_budget * 3 - _estimate_tokens(system_prompt) * 3)
+        source_marker = "\nSOURCE:\n"
+        source_start = user_prompt.find(source_marker) + len(source_marker)
+        source_end = user_prompt.find("\n\nLLVM IR:", source_start)
+        if source_start >= len(source_marker) and source_end >= source_start:
+            source = _trim_source(user_prompt[source_start:source_end], available_chars)
+            user_prompt = user_prompt[:source_start] + source + user_prompt[source_end:]
+        estimated = _estimate_tokens(system_prompt + user_prompt)
+        while estimated > input_budget and source_start >= len(source_marker) and source_end >= source_start:
+            current_source = user_prompt[source_start:source_end]
+            reduced = _trim_source(current_source, max(80, int(len(current_source) * 0.85)))
+            if reduced == current_source:
+                break
+            user_prompt = user_prompt[:source_start] + reduced + user_prompt[source_end:]
+            estimated = _estimate_tokens(system_prompt + user_prompt)
+        metrics = {
+            "model_context_size": self.context_size,
+            "estimated_input_tokens": estimated,
+            "reserved_output_tokens": self.reserved_output_tokens,
+            "input_budget": input_budget,
+            "total_budget": estimated + self.reserved_output_tokens,
+            "context_reduction_level": stage,
+            "source_included": True,
+            "ast_included": False,
+            "cfg_included": False,
+            "llvm_included": False,
+        }
+        return [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}], metrics, []
+
+    def enrich_function(self, function_data: Dict[str, Any], on_model_failure=None):
+        """Send one budgeted function prompt to LM Studio."""
+        messages, context_metrics, remaining_stages = self._build_context(function_data)
+        payload = {
+            "model": self.model,
+            "messages": messages,
+            "temperature": 0.1,
+            "max_tokens": self.reserved_output_tokens,
+            "response_format": {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "optima_enrichment",
+                    "strict": True,
+                    "schema": ENRICHMENT_JSON_SCHEMA,
+                },
+            },
+        }
+        max_retries = 2
+        attempt = 0
+        reduction_retry_used = False
+        while attempt <= max_retries:
+            request = urllib.request.Request(
+                f"{self.base_url}/chat/completions",
+                data=json.dumps(payload).encode("utf-8"),
+                headers={"Content-Type": "application/json", "Authorization": "******"},
+                method="POST",
+            )
+            start_time = time.time()
+            try:
+                with urllib.request.urlopen(request, timeout=self.timeout) as response:
+                    response_data = json.loads(response.read().decode("utf-8", errors="replace"))
+                latency_ms = int((time.time() - start_time) * 1000)
+                content = response_data["choices"][0]["message"]["content"]
+                if not isinstance(content, str):
+                    raise TypeError("LM Studio message content is not a string")
+                result, parse_reason = _parse_json_object(content)
+                valid, schema_reason = self._validate_enhancement(result)
+                if valid and result is not None:
+                    result["model"] = self.model
+                    result["status"] = "completed"
+                    usage = response_data.get("usage", {})
+                    result["usage"] = {
+                        "prompt_tokens": usage.get("prompt_tokens", context_metrics["estimated_input_tokens"]),
+                        "completion_tokens": usage.get("completion_tokens"),
+                        "total_tokens": usage.get("total_tokens"),
+                    }
+                    return result, {
+                        "request_success": True, "json_valid": True, "retry_count": attempt,
+                        "latency_seconds": latency_ms / 1000,
+                        "context_metrics": context_metrics,
+                    }
+                reason = schema_reason if result is not None else parse_reason
+                logger.warning(
+                    "Enrichment failed: node_id=%s attempt=%d reason=%s response_preview=%s",
+                    function_data.get("id", "<unknown>"), attempt + 1, reason,
+                    _response_preview(content),
+                )
+                if attempt >= max_retries:
+                    return self._get_fallback_enhancement(attempt, reason), {
+                        "request_success": False, "json_valid": False,
+                        "retry_count": attempt, "latency_seconds": latency_ms / 1000,
+                        "failure_reason": reason,
+                        "response_preview": _response_preview(content),
+                        "context_metrics": context_metrics,
+                    }
+            except urllib.error.HTTPError as error:
+                error_body = error.read().decode("utf-8", errors="replace")
+                if "exceed_context_size" in error_body or "context size" in error_body.lower():
+                    if not reduction_retry_used and remaining_stages and len(remaining_stages) > 1:
+                        reduction_retry_used = True
+                        next_stage = remaining_stages[1]
+                        system_prompt, user_prompt, included = self._prompt_for_stage(function_data, next_stage)
+                        estimated = _estimate_tokens(system_prompt + user_prompt)
+                        context_metrics = {
+                            **context_metrics,
+                            "estimated_input_tokens": estimated,
+                            "total_budget": estimated + self.reserved_output_tokens,
+                            "context_reduction_level": next_stage,
+                            "source_included": included["source"],
+                            "ast_included": included["ast"],
+                            "cfg_included": included["cfg"],
+                            "llvm_included": included["llvm"],
+                        }
+                        payload["messages"] = [
+                            {"role": "system", "content": system_prompt},
+                            {"role": "user", "content": user_prompt},
+                        ]
+                        remaining_stages = remaining_stages[1:]
+                        logger.warning("Context limit reported by LM Studio; reduced context to %s", next_stage)
+                        continue
+                    logger.error("LM Studio rejected the prompt for context size; not retrying unchanged request")
+                    return self._get_fallback_enhancement(attempt, "context_limit"), {
+                        "request_success": False, "json_valid": False,
+                        "retry_count": attempt, "latency_seconds": time.time() - start_time,
+                        "context_metrics": context_metrics,
+                    }
+                reason = "api_request_failure"
+                logger.error(
+                    "Enrichment failed: node_id=%s attempt=%d reason=%s http_status=%s response_preview=%s",
+                    function_data.get("id", "<unknown>"), attempt + 1, reason,
+                    error.code, _response_preview(error_body),
+                )
+                if on_model_failure is not None and attempt < max_retries:
+                    on_model_failure()
+                if attempt >= max_retries:
+                    return self._get_fallback_enhancement(attempt, reason), {
+                        "request_success": False, "json_valid": False,
+                        "retry_count": attempt, "latency_seconds": time.time() - start_time,
+                        "failure_reason": reason,
+                        "context_metrics": context_metrics,
+                    }
+            except urllib.error.URLError as error:
+                reason = "api_request_failure"
+                logger.error(
+                    "Enrichment failed: node_id=%s attempt=%d reason=%s error=%s",
+                    function_data.get("id", "<unknown>"), attempt + 1, reason, error.reason,
+                )
+                if on_model_failure is not None and attempt < max_retries:
+                    on_model_failure()
+                if attempt >= max_retries:
+                    return self._get_fallback_enhancement(attempt, reason), {
+                        "request_success": False, "json_valid": False,
+                        "retry_count": attempt, "latency_seconds": time.time() - start_time,
+                        "failure_reason": reason,
+                        "context_metrics": context_metrics,
+                    }
+            except Exception as error:
+                reason = "unexpected_error"
+                logger.exception(
+                    "Enrichment failed: node_id=%s attempt=%d reason=%s",
+                    function_data.get("id", "<unknown>"), attempt + 1, reason,
+                )
+                if attempt >= max_retries:
+                    return self._get_fallback_enhancement(attempt, reason), {
+                        "request_success": False, "json_valid": False,
+                        "retry_count": attempt, "latency_seconds": time.time() - start_time,
+                        "failure_reason": reason,
+                        "context_metrics": context_metrics,
+                    }
+            attempt += 1
+            time.sleep(1)
 
         # Prepare the request
         messages = [
@@ -373,27 +805,46 @@ AST:
             # Wait a bit before retrying
             time.sleep(1)
 
-    def _validate_enhancement(self, enhancement: Dict[str, Any]) -> bool:
+    def _validate_enhancement(self, enhancement: Optional[Dict[str, Any]]) -> tuple[bool, str]:
         """Validate the enrichment result."""
         if not isinstance(enhancement, dict):
-            return False
-        behaviour = enhancement.get("behavior", enhancement.get("behaviour", ""))
-        purpose = enhancement.get("purpose", "")
-        if not isinstance(behaviour, str) or not isinstance(purpose, str):
-            return False
-        if not behaviour.strip() or not purpose.strip():
-            return False
+            return False, "json_root_not_object"
+        required_strings = ("purpose", "behavior", "summary", "algorithm")
+        required_arrays = ("inputs", "outputs", "side_effects", "dependencies", "concepts", "keywords")
+        missing = [field for field in (*required_strings, *required_arrays, "complexity")
+                   if field not in enhancement]
+        if missing:
+            return False, f"missing_fields:{','.join(missing)}"
+        if any(not isinstance(enhancement[field], str) for field in required_strings):
+            return False, "wrong_field_type:string"
+        if any(
+            not isinstance(enhancement[field], list)
+            or any(not isinstance(item, str) for item in enhancement[field])
+            for field in required_arrays
+        ):
+            return False, "wrong_field_type:string_array"
+        complexity = enhancement["complexity"]
+        if (
+            not isinstance(complexity, dict)
+            or not isinstance(complexity.get("time"), str)
+            or not isinstance(complexity.get("space"), str)
+        ):
+            return False, "wrong_field_type:complexity"
+        if not enhancement["purpose"].strip() or not enhancement["behavior"].strip():
+            return False, "empty_required_string"
         # Reject known placeholder responses
         placeholders = [
             "What the function actually does",
             "What this function is intended to accomplish",
             "What this function is intended to do"
         ]
-        if behaviour.strip() in placeholders or purpose.strip() in placeholders:
-            return False
-        return True
+        if enhancement["behavior"].strip() in placeholders or enhancement["purpose"].strip() in placeholders:
+            return False, "placeholder_response"
+        return True, "valid"
 
-    def _get_fallback_enhancement(self, retry_count: int = 0) -> Dict[str, Any]:
+    def _get_fallback_enhancement(
+        self, retry_count: int = 0, failure_reason: str = "enrichment_failed"
+    ) -> Dict[str, Any]:
         """Return a fallback enhancement when LM Studio fails."""
         return {
             "behavior": "Insufficient implementation context.",
@@ -410,6 +861,7 @@ AST:
             "confidence": {},
             "model": self.model,
             "status": "failed",
+            "failure_reason": failure_reason,
             "usage": {
                 "prompt_tokens": None,
                 "completion_tokens": None,
@@ -428,6 +880,13 @@ def _safe_model_name(model: str) -> str:
 
 def _usable(value: Any) -> bool:
     return bool(value) if isinstance(value, (str, list, dict)) else value is not None
+
+
+def _unique_string_count(value: Any) -> int:
+    """Count distinct schema-valid values without hashing arbitrary model data."""
+    if not isinstance(value, list):
+        return 0
+    return len({item for item in value if isinstance(item, str)})
 
 
 def _field_completeness(enrichment: Dict[str, Any]) -> Dict[str, bool]:
@@ -451,8 +910,8 @@ def _evaluation(function_data: Dict[str, Any], enrichment: Dict[str, Any],
         "field_completeness": completeness,
         "keyword_count": len(enrichment.get("keywords", [])) if isinstance(enrichment.get("keywords"), list) else 0,
         "concept_count": len(enrichment.get("concepts", [])) if isinstance(enrichment.get("concepts"), list) else 0,
-        "unique_keyword_count": len(set(enrichment.get("keywords", []))) if isinstance(enrichment.get("keywords"), list) else 0,
-        "unique_concept_count": len(set(enrichment.get("concepts", []))) if isinstance(enrichment.get("concepts"), list) else 0,
+        "unique_keyword_count": _unique_string_count(enrichment.get("keywords")),
+        "unique_concept_count": _unique_string_count(enrichment.get("concepts")),
         "summary_length": len(str(enrichment.get("summary", ""))),
         "purpose_length": len(str(enrichment.get("purpose", ""))),
         "behavior_length": len(str(enrichment.get("behavior", enrichment.get("behaviour", "")))),
@@ -499,7 +958,10 @@ def _dataset_metrics(functions: List[Dict[str, Any]], elapsed: float) -> Dict[st
 
 def enrich_analysis(base_json_path: Path, output_dir: Path, model: Optional[str] = None,
                     output_path: Optional[Path] = None, base_url: str = DEFAULT_BASE_URL,
-                    model_load_timeout: int = 300, limit: Optional[int] = None) -> Path:
+                    model_load_timeout: int = 300, limit: Optional[int] = None,
+                    context_size: Optional[int] = None, max_input_tokens: Optional[int] = None,
+                    reserved_output_tokens: int = DEFAULT_RESERVED_OUTPUT_TOKENS,
+                    debug: bool = False) -> Path:
     """Enrich base.json with LM Studio to produce enhanced.json."""
     base_json_path = base_json_path.resolve()
     output_dir = output_dir.resolve()
@@ -508,7 +970,11 @@ def enrich_analysis(base_json_path: Path, output_dir: Path, model: Optional[str]
     with open(base_json_path, 'r') as f:
         base_data = json.load(f)
 
-    client = LMStudioClient(base_url=base_url, model=model)
+    client = LMStudioClient(
+        base_url=base_url, model=model, context_size=context_size,
+        max_input_tokens=max_input_tokens,
+        reserved_output_tokens=reserved_output_tokens, debug=debug,
+    )
     if not client.check_connection():
         logger.error("LM Studio connection check failed. Please ensure LM Studio is running and a model is loaded.")
         sys.exit(1)
@@ -571,7 +1037,11 @@ def enrich_analysis(base_json_path: Path, output_dir: Path, model: Optional[str]
                         timeout_seconds=model_load_timeout
                     ),
                 )
-                enrichment["evaluation"] = _evaluation(func, enrichment, metrics, context(func))
+                evaluation_context = {
+                    **context(func),
+                    **metrics.get("context_metrics", {}),
+                }
+                enrichment["evaluation"] = _evaluation(func, enrichment, metrics, evaluation_context)
                 target_func["enrichment"] = enrichment
                 result_data["enrichment_metadata"] = {
                     "provider": "LM Studio", "base_url": client.base_url,
