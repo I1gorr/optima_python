@@ -79,7 +79,9 @@ def flatten_functions(data: dict[str, Any]) -> list[dict[str, Any]]:
     return [
         function
         for file_data in data.get("files", [])
+        if isinstance(file_data, dict)
         for function in file_data.get("functions", [])
+        if isinstance(function, dict)
     ]
 
 
@@ -118,23 +120,51 @@ def inspect_json(path: str | Path) -> dict[str, Any]:
 
 
 def validate_json(path: str | Path) -> dict[str, Any]:
-    """Validate the minimum Optima artifact structure and classify its stage."""
+    """Validate an Optima artifact and return actionable schema diagnostics."""
     data = load_json(path)
     if not isinstance(data.get("project", {}), dict):
         raise ValueError("Optima artifact must contain a project object")
     files = data.get("files")
     if not isinstance(files, list):
         raise ValueError("Optima artifact must contain a files list")
-    if any(
-        not isinstance(file_data, dict)
-        or not isinstance(file_data.get("functions", []), list)
-        for file_data in files
-    ):
-        raise ValueError("Every Optima file entry must contain a functions list")
     info = inspect_json(path)
+    malformed_files: list[int] = []
+    malformed_nodes: list[dict[str, Any]] = []
+    required_function_fields = ("id", "name", "qualified_name")
+    for file_index, file_data in enumerate(files):
+        if not isinstance(file_data, dict) or not isinstance(file_data.get("functions"), list):
+            malformed_files.append(file_index)
+            continue
+        for function_index, function in enumerate(file_data["functions"]):
+            if not isinstance(function, dict):
+                malformed_nodes.append({
+                    "file_index": file_index,
+                    "function_index": function_index,
+                    "missing_fields": list(required_function_fields),
+                    "reason": "function entry is not an object",
+                })
+                continue
+            missing = [field for field in required_function_fields if not function.get(field)]
+            if missing:
+                malformed_nodes.append({
+                    "file_index": file_index,
+                    "function_index": function_index,
+                    "missing_fields": missing,
+                    "reason": "required function identity field is missing",
+                })
     info["status"] = "ENRICHED JSON" if info["enrichment_fields"] else "BASE JSON"
     info["enrichment_required"] = info["status"] == "BASE JSON"
+    info["required_fields"] = {
+        "top_level": ["project", "files"],
+        "function": list(required_function_fields),
+    }
+    info["malformed_files"] = malformed_files
+    info["malformed_nodes"] = malformed_nodes
+    info["valid"] = not malformed_files and not malformed_nodes
     print(f"Input file: {path}")
+    print(f"Malformed files: {len(malformed_files)}")
+    print(f"Malformed nodes: {len(malformed_nodes)}")
+    print(f"Validation: {'OK' if info['valid'] else 'FAILED'}")
     print(f"Status: {info['status']}")
     if info["enrichment_required"]:
         print("-> enrichment will run")
@@ -493,6 +523,7 @@ def save_experiment_summary(path: str | Path, *, model_id: str,
                             index_results: Iterable[dict[str, Any]],
                             matrix: dict[str, Any],
                             k: int | None = None,
+                            enriched_json: str | Path | None = None,
                             output_paths: dict[str, str] | None = None) -> Path:
     """Save a human-readable and machine-readable final experiment summary."""
     rows = evaluation_summary(matrix)["rows"]
@@ -503,6 +534,7 @@ def save_experiment_summary(path: str | Path, *, model_id: str,
         "embedding_model": embedding_model,
         "representation_mode": representation_mode,
         "input_json": str(input_json),
+        "enriched_json": str(enriched_json) if enriched_json is not None else None,
         "number_of_nodes": nodes,
         "enrichment_success": enrichment.get("functions_enriched"),
         "enrichment_failures": enrichment.get("functions_failed"),
@@ -519,6 +551,9 @@ def save_experiment_summary(path: str | Path, *, model_id: str,
             "recall_at_10": primary.get("recall_at_10"),
         },
         "mrr": primary.get("mrr"),
+        "successful_enrichments": enrichment.get("functions_enriched"),
+        "failed_enrichments": enrichment.get("functions_failed"),
+        "token_count": enrichment.get("generated_tokens"),
         "enrichment": enrichment,
         "indexes": list(index_results),
         "evaluation": rows,
