@@ -10,7 +10,6 @@ from __future__ import annotations
 import copy
 import json
 import logging
-import re
 import shutil
 import time
 import zipfile
@@ -91,7 +90,10 @@ def inspect_json(path: str | Path) -> dict[str, Any]:
     fields = sorted({key for function in functions for key in function})
     enrichment_fields = sorted({
         key for function in functions
-        for key in function.get("enrichment", {})
+        for key in (
+            function.get("enrichment")
+            if isinstance(function.get("enrichment"), dict) else {}
+        )
         if key not in {"evaluation", "usage"}
     })
     info = {
@@ -112,6 +114,33 @@ def inspect_json(path: str | Path) -> dict[str, Any]:
     print(f"Available fields: {', '.join(fields) or '(none)'}")
     print(f"Nested structure: project -> files[] -> functions[]")
     print(f"Enrichment fields already present: {', '.join(enrichment_fields) or 'none'}")
+    return info
+
+
+def validate_json(path: str | Path) -> dict[str, Any]:
+    """Validate the minimum Optima artifact structure and classify its stage."""
+    data = load_json(path)
+    if not isinstance(data.get("project", {}), dict):
+        raise ValueError("Optima artifact must contain a project object")
+    files = data.get("files")
+    if not isinstance(files, list):
+        raise ValueError("Optima artifact must contain a files list")
+    if any(
+        not isinstance(file_data, dict)
+        or not isinstance(file_data.get("functions", []), list)
+        for file_data in files
+    ):
+        raise ValueError("Every Optima file entry must contain a functions list")
+    info = inspect_json(path)
+    info["status"] = "ENRICHED JSON" if info["enrichment_fields"] else "BASE JSON"
+    info["enrichment_required"] = info["status"] == "BASE JSON"
+    print(f"Input file: {path}")
+    print(f"Status: {info['status']}")
+    if info["enrichment_required"]:
+        print("-> enrichment will run")
+    else:
+        print("-> enrichment will be skipped")
+        print("-> continue directly to embedding")
     return info
 
 
@@ -298,6 +327,7 @@ def enrich_nodes(
         enrichment = None
         reason = "unknown"
         used_retries = 0
+        generated_tokens = None
         for attempt in range(retries + 1):
             used_retries = attempt
             try:
@@ -318,7 +348,7 @@ def enrich_nodes(
                 time.sleep(1)
         elapsed = time.perf_counter() - node_start
         latencies.append(elapsed)
-        generated = token_counts[-1] if token_counts else None
+        generated = generated_tokens
         if enrichment is None:
             enrichment = _fallback(reason, model_id, used_retries)
             failures.append({"id": str(function.get("id", "")), "reason": reason})
@@ -361,6 +391,7 @@ def enrich_nodes(
         "total_inference_seconds": sum(latencies),
         "average_latency_seconds": sum(latencies) / len(latencies) if latencies else 0.0,
         "generated_tokens": sum(token_counts),
+        "resumed_functions": len(all_selected) - len(latencies),
         "failed_nodes": failures,
     }
     save_json(result, output_json)
@@ -412,6 +443,8 @@ def run_evaluation(report_dir: str | Path, embedding_models: Iterable[str],
         queries = create_benchmark_from_json_files(Path(benchmark_source), num_queries, seed=42)
         benchmark = report / "benchmark" / "queries.json"
         save_benchmark_queries(queries, benchmark)
+    if not queries:
+        raise ValueError("No benchmark queries are available for evaluation")
     aliases = [embedding_alias(model) for model in embedding_models]
     matrix = evaluate_embedding_matrix(report, aliases, queries, k)
     destination = Path(output_dir) if output_dir else report / "results"
@@ -428,8 +461,52 @@ def run_evaluation(report_dir: str | Path, embedding_models: Iterable[str],
     save_best_combinations(matrix, destination)
     generate_visualizations(matrix, destination / "plots")
     save_json({"embedding_models": aliases, "benchmark": str(benchmark), "k": k,
-               "results": matrix}, destination / "results.json")
+               "queries": len(queries), "results": matrix}, destination / "results.json")
     return matrix
+
+
+def evaluation_summary(matrix: dict[str, Any]) -> dict[str, Any]:
+    """Extract controlled-experiment metrics without changing evaluation output."""
+    rows = []
+    for embedding, corpora in matrix.items():
+        for corpus, metrics in corpora.items():
+            if not isinstance(metrics, dict) or "error" in metrics:
+                continue
+            rows.append({
+                "embedding_model": embedding,
+                "corpus": corpus,
+                "recall_at_5": metrics.get("recall_at_5", 0.0),
+                "mrr": metrics.get("mrr", 0.0),
+                "mean_latency": metrics.get("mean_latency", 0.0),
+                "num_queries": metrics.get("num_queries", 0),
+                "document_count": metrics.get("document_count", 0),
+            })
+    if not rows:
+        raise ValueError("Evaluation produced no successful corpus results")
+    return {"rows": rows}
+
+
+def save_experiment_summary(path: str | Path, *, model_id: str,
+                            embedding_model: str, representation_mode: str,
+                            input_json: str | Path, nodes: int,
+                            enrichment_metrics: dict[str, Any] | None,
+                            index_results: Iterable[dict[str, Any]],
+                            matrix: dict[str, Any]) -> Path:
+    """Save a human-readable and machine-readable final experiment summary."""
+    rows = evaluation_summary(matrix)["rows"]
+    summary = {
+        "model": model_id,
+        "embedding_model": embedding_model,
+        "representation_mode": representation_mode,
+        "input_json": str(input_json),
+        "nodes": nodes,
+        "enrichment": enrichment_metrics or {},
+        "indexes": list(index_results),
+        "evaluation": rows,
+    }
+    destination = Path(path)
+    save_json(summary, destination)
+    return destination
 
 
 def retrieve(report_dir: str | Path, corpus_name: str, embedding_model: str,
