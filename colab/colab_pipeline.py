@@ -130,6 +130,7 @@ def validate_json(path: str | Path) -> dict[str, Any]:
     info = inspect_json(path)
     malformed_files: list[int] = []
     malformed_nodes: list[dict[str, Any]] = []
+    malformed_enrichment: list[dict[str, Any]] = []
     required_function_fields = ("id", "name", "qualified_name")
     for file_index, file_data in enumerate(files):
         if not isinstance(file_data, dict) or not isinstance(file_data.get("functions"), list):
@@ -152,6 +153,15 @@ def validate_json(path: str | Path) -> dict[str, Any]:
                     "missing_fields": missing,
                     "reason": "required function identity field is missing",
                 })
+            if "enrichment" in function:
+                enrichment = function["enrichment"]
+                valid, reason = _valid_enrichment(enrichment)
+                if not valid:
+                    malformed_enrichment.append({
+                        "file_index": file_index,
+                        "function_index": function_index,
+                        "reason": reason,
+                    })
     info["status"] = "ENRICHED JSON" if info["enrichment_fields"] else "BASE JSON"
     info["enrichment_required"] = info["status"] == "BASE JSON"
     info["required_fields"] = {
@@ -160,10 +170,12 @@ def validate_json(path: str | Path) -> dict[str, Any]:
     }
     info["malformed_files"] = malformed_files
     info["malformed_nodes"] = malformed_nodes
-    info["valid"] = not malformed_files and not malformed_nodes
+    info["malformed_enrichment"] = malformed_enrichment
+    info["valid"] = not malformed_files and not malformed_nodes and not malformed_enrichment
     print(f"Input file: {path}")
     print(f"Malformed files: {len(malformed_files)}")
     print(f"Malformed nodes: {len(malformed_nodes)}")
+    print(f"Malformed enrichment objects: {len(malformed_enrichment)}")
     print(f"Validation: {'OK' if info['valid'] else 'FAILED'}")
     print(f"Status: {info['status']}")
     if info["enrichment_required"]:
@@ -285,7 +297,13 @@ def load_model(model_id: str, load_in_4bit: bool = True):
             "CUDA is unavailable. Select a Colab GPU runtime before loading "
             f"the requested model: {model_id}"
         )
-    tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast=True)
+    try:
+        tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast=True)
+    except (OSError, ValueError) as exc:
+        raise RuntimeError(
+            f"Could not load tokenizer for Hugging Face model {model_id!r}. "
+            "Check MODEL_ID, access permissions, and the Colab network."
+        ) from exc
     kwargs: dict[str, Any] = {
         "device_map": "auto",
         "torch_dtype": torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16,
@@ -297,7 +315,18 @@ def load_model(model_id: str, load_in_4bit: bool = True):
             bnb_4bit_compute_dtype=kwargs["torch_dtype"],
             bnb_4bit_use_double_quant=True,
         )
-    model = AutoModelForCausalLM.from_pretrained(model_id, **kwargs)
+    try:
+        model = AutoModelForCausalLM.from_pretrained(model_id, **kwargs)
+    except (RuntimeError, OSError, ValueError) as exc:
+        memory = torch.cuda.get_device_properties(0).total_memory / (1024 ** 3)
+        mode = "4-bit quantization" if load_in_4bit else "full precision"
+        raise RuntimeError(
+            f"Could not load {model_id!r} with {mode} on the available GPU "
+            f"({memory:.1f} GiB). The model may not fit; try a GPU with more "
+            "memory or enable LOAD_IN_4BIT, without silently changing MODEL_ID."
+        ) from exc
+    if tokenizer.pad_token_id is None:
+        tokenizer.pad_token = tokenizer.eos_token
     model.eval()
     return tokenizer, model
 
@@ -505,11 +534,11 @@ def evaluation_summary(matrix: dict[str, Any]) -> dict[str, Any]:
             rows.append({
                 "embedding_model": embedding,
                 "corpus": corpus,
-                "recall_at_5": metrics.get("recall_at_5", 0.0),
-                "mrr": metrics.get("mrr", 0.0),
-                "mean_latency": metrics.get("mean_latency", 0.0),
-                "num_queries": metrics.get("num_queries", 0),
-                "document_count": metrics.get("document_count", 0),
+                "recall_at_5": metrics.get("recall_at_5"),
+                "mrr": metrics.get("mrr"),
+                "mean_latency": metrics.get("mean_latency"),
+                "num_queries": metrics.get("num_queries"),
+                "document_count": metrics.get("document_count"),
             })
     if not rows:
         raise ValueError("Evaluation produced no successful corpus results")
