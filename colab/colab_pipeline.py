@@ -491,18 +491,38 @@ def save_experiment_summary(path: str | Path, *, model_id: str,
                             input_json: str | Path, nodes: int,
                             enrichment_metrics: dict[str, Any] | None,
                             index_results: Iterable[dict[str, Any]],
-                            matrix: dict[str, Any]) -> Path:
+                            matrix: dict[str, Any],
+                            k: int | None = None,
+                            output_paths: dict[str, str] | None = None) -> Path:
     """Save a human-readable and machine-readable final experiment summary."""
     rows = evaluation_summary(matrix)["rows"]
+    enrichment = enrichment_metrics or {}
+    primary = next((row for row in rows if row["corpus"] != "raw"), rows[0])
     summary = {
         "model": model_id,
         "embedding_model": embedding_model,
         "representation_mode": representation_mode,
         "input_json": str(input_json),
-        "nodes": nodes,
-        "enrichment": enrichment_metrics or {},
+        "number_of_nodes": nodes,
+        "enrichment_success": enrichment.get("functions_enriched"),
+        "enrichment_failures": enrichment.get("functions_failed"),
+        "enrichment_tokens": enrichment.get("generated_tokens"),
+        "enrichment_runtime": enrichment.get("total_runtime_seconds"),
+        "average_enrichment_latency": enrichment.get("average_latency_seconds"),
+        "number_of_documents": primary.get("document_count"),
+        "number_of_queries": primary.get("num_queries"),
+        "k": k,
+        "retrieval_latency": primary.get("mean_latency"),
+        "recall_at_k": {
+            "recall_at_1": primary.get("recall_at_1"),
+            "recall_at_5": primary.get("recall_at_5"),
+            "recall_at_10": primary.get("recall_at_10"),
+        },
+        "mrr": primary.get("mrr"),
+        "enrichment": enrichment,
         "indexes": list(index_results),
         "evaluation": rows,
+        "output_paths": output_paths or {},
     }
     destination = Path(path)
     save_json(summary, destination)
