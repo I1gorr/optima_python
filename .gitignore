@@ -1,0 +1,27 @@
+# Local Python environments and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Notebook/editor state
+.ipynb_checkpoints/
+
+# Local credentials and environment files
+.env
+.env.*
+!.env.example
+
+# Reproducible experiment outputs and downloaded indexes
+colab_outputs/
+rag_report/
+output/rag_report/
+evaluation_results/
+
+# Packaging/build products
+build/
+dist/
+*.egg-info/
