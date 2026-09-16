@@ -1,8 +1,11 @@
 """
 Optima analyzer: extracts compiler-derived information from C/C++ projects.
 """
+import ctypes.util
+import glob
 import json
 import os
+import shutil
 import subprocess
 import tempfile
 import sys
@@ -13,8 +16,101 @@ from typing import List, Dict, Any, Optional, Set
 import clang.cindex
 from clang.cindex import CursorKind, TypeKind, StorageClass
 
-# Configure clang library path
-clang.cindex.Config.set_library_file('/usr/lib/libclang.so.22.1.8')
+
+def _find_libclang() -> Optional[Path]:
+    """Locate the native libclang shared library without assuming a version.
+
+    Debian/Ubuntu packages install libclang under a version-specific path
+    (e.g. /usr/lib/llvm-14/lib/libclang.so.1) rather than the unversioned
+    /usr/lib/libclang.so the 'clang' PyPI bindings look for by default, and the
+    exact filename changes with every LLVM release. Pinning one literal
+    filename (e.g. libclang.so.22.1.8) breaks the moment the installed LLVM
+    version differs from whatever was hardcoded, so every candidate here is
+    discovered dynamically, never hardcoded to a specific version.
+    """
+    configured = os.environ.get("LIBCLANG_PATH")
+    if configured:
+        configured_path = Path(configured)
+        direct = configured_path / "libclang.so" if configured_path.is_dir() else configured_path
+        if direct.exists():
+            return direct
+
+    found = ctypes.util.find_library("clang")
+    if found:
+        return Path(found)
+
+    patterns = [
+        "/usr/lib/llvm-*/lib/libclang.so*",
+        "/usr/lib/*/libclang-*.so*",  # e.g. /usr/lib/x86_64-linux-gnu/libclang-14.so.1
+        "/usr/lib/*/libclang.so*",
+        "/usr/lib/libclang*.so*",
+        "/usr/local/lib/libclang*.so*",
+    ]
+    candidates = [Path(p) for pattern in patterns for p in glob.glob(pattern) if Path(p).is_file()]
+    if not candidates:
+        return None
+
+    def _version_key(path: Path) -> int:
+        match = re.search(r"llvm-(\d+)", str(path)) or re.search(r"(\d+)", path.name)
+        return int(match.group(1)) if match else -1
+
+    # Prefer the newest LLVM version when several are installed side by side.
+    candidates.sort(key=_version_key)
+    return candidates[-1]
+
+
+def _configure_clang() -> None:
+    """Load libclang on local, Colab, and Kaggle installations."""
+    if clang.cindex.Config.loaded:
+        return
+    library = _find_libclang()
+    if library:
+        clang.cindex.Config.set_library_file(str(library))
+    # If nothing was found, fall through and let clang's own discovery produce
+    # its actionable error rather than silently failing here.
+
+
+_configure_clang()
+
+# Free functions, constructors, and destructors are the historically-handled
+# kinds. Regular/static/virtual class methods (CXX_METHOD), function templates,
+# and user-defined conversion operators are function-like too and must be
+# extracted and resolved as call targets the same way, or Optima silently
+# drops most of the API surface of any object-oriented C++ codebase.
+FUNCTION_LIKE_KINDS = (
+    CursorKind.FUNCTION_DECL, CursorKind.CONSTRUCTOR, CursorKind.DESTRUCTOR,
+    CursorKind.CXX_METHOD, CursorKind.FUNCTION_TEMPLATE, CursorKind.CONVERSION_FUNCTION,
+)
+CLASS_LIKE_KINDS = (
+    CursorKind.CLASS_DECL, CursorKind.STRUCT_DECL, CursorKind.CLASS_TEMPLATE,
+)
+NAME_CONTRIBUTING_KINDS = FUNCTION_LIKE_KINDS + CLASS_LIKE_KINDS + (
+    CursorKind.UNION_DECL, CursorKind.NAMESPACE, CursorKind.TYPEDEF_DECL,
+    CursorKind.ENUM_DECL,
+)
+
+
+def _enclosing_class_cursor(cursor: clang.cindex.Cursor) -> Optional[clang.cindex.Cursor]:
+    """Walk up to the nearest enclosing class/struct/class-template definition."""
+    parent = cursor.semantic_parent
+    while parent:
+        if parent.kind in CLASS_LIKE_KINDS:
+            return parent
+        parent = parent.semantic_parent
+    return None
+
+
+def _class_id_for_cursor(cursor: clang.cindex.Cursor, project_root: str) -> Optional[str]:
+    """Build a class id from a class cursor. Derived purely from the cursor's own
+    identity so a method computes the same id as the class's own extraction pass."""
+    if cursor.location.file is None:
+        return None
+    relative_path = os.path.relpath(
+        os.path.abspath(os.path.realpath(cursor.location.file.name)),
+        os.path.abspath(os.path.realpath(project_root)),
+    )
+    qualified_name = _qualified_cursor_name(cursor)
+    return f"class::{relative_path}::{qualified_name}::{cursor.location.line}"
 
 
 class FunctionInfo:
@@ -41,6 +137,28 @@ class FunctionInfo:
         self.parameters = self._get_parameters()
         self.source_location = self._get_source_location()
         self.source_code = self._get_source_code()
+        enclosing_class = _enclosing_class_cursor(cursor)
+        self.class_id = (
+            _class_id_for_cursor(enclosing_class, self.project_root)
+            if enclosing_class is not None else None
+        )
+        self.class_info = {
+            "class_id": self.class_id,
+            "is_method": enclosing_class is not None,
+            "is_constructor": cursor.kind == CursorKind.CONSTRUCTOR,
+            "is_destructor": cursor.kind == CursorKind.DESTRUCTOR,
+            "is_static": cursor.is_static_method(),
+            "is_virtual": cursor.is_virtual_method(),
+            "is_pure_virtual": cursor.is_pure_virtual_method(),
+            "is_const": cursor.is_const_method(),
+            "is_template": cursor.kind == CursorKind.FUNCTION_TEMPLATE,
+            "is_conversion_operator": cursor.kind == CursorKind.CONVERSION_FUNCTION,
+            "is_operator_overload": self.name.startswith("operator") and self.name != "operator",
+            "access_specifier": (
+                cursor.access_specifier.name
+                if enclosing_class is not None else None
+            ),
+        }
         self.analysis_status = "pending"
         self.compiler_error = ""
         self.llvm_ir = ""
@@ -63,11 +181,7 @@ class FunctionInfo:
         name_parts = []
         cursor = self.cursor
         while cursor:
-            if cursor.kind in (CursorKind.FUNCTION_DECL,
-                               CursorKind.CONSTRUCTOR, CursorKind.DESTRUCTOR,
-                               CursorKind.CLASS_DECL, CursorKind.STRUCT_DECL,
-                               CursorKind.UNION_DECL, CursorKind.NAMESPACE,
-                               CursorKind.TYPEDEF_DECL, CursorKind.ENUM_DECL):
+            if cursor.kind in NAME_CONTRIBUTING_KINDS:
                 if cursor.spelling:
                     name_parts.insert(0, cursor.spelling)
             cursor = cursor.semantic_parent
@@ -214,6 +328,7 @@ class FunctionInfo:
             "name": self.name,
             "qualified_name": self.qualified_name,
             "mangled_name": self.mangled_name,
+            "class_info": self.class_info,
             "return_type": self.return_type,
             "parameters": self.parameters,
             "source_location": self.source_location,
@@ -427,6 +542,64 @@ def _is_project_owned(cursor: clang.cindex.Cursor, project_root: str) -> bool:
         return False
 
 
+_COMPILER_PATH_CACHE: Dict[str, Optional[str]] = {}
+_RESOURCE_DIR_CACHE: Dict[str, Optional[str]] = {}
+
+
+def _find_clang_compiler(name: str) -> Optional[str]:
+    """Locate a clang/clang++ executable without assuming an exact version.
+
+    Prefers an unversioned entry on PATH (e.g. /usr/bin/clang++), and falls
+    back to the versioned binaries Debian/Ubuntu clang packages install
+    (clang++-14, clang++-18, ...) when no unversioned one is on PATH, picking
+    the newest version found. Never hardcodes a specific LLVM release.
+    """
+    if name in _COMPILER_PATH_CACHE:
+        return _COMPILER_PATH_CACHE[name]
+    resolved = shutil.which(name)
+    if resolved is None:
+        def _version_key(p: str) -> int:
+            match = re.search(r"llvm-(\d+)", p) or re.search(r"-(\d+)$", p)
+            return int(match.group(1)) if match else -1
+
+        versioned = sorted(
+            glob.glob(f"/usr/bin/{name}-*") + glob.glob(f"/usr/lib/llvm-*/bin/{name}"),
+            key=_version_key,
+        )
+        resolved = versioned[-1] if versioned else None
+    _COMPILER_PATH_CACHE[name] = resolved
+    return resolved
+
+
+def _clang_resource_dir(compiler: str) -> Optional[str]:
+    """Ask the compiler itself for its resource directory, which is where its
+    builtin headers (stddef.h, stdarg.h, stdbool.h, ...) live.
+
+    When more than one clang/LLVM install is present on a machine, the
+    'clang++' actually invoked can end up disagreeing with whichever
+    resource directory the system's default header search picks up,
+    producing errors like "fatal error: 'stddef.h' file not found" even
+    though a perfectly good stddef.h exists elsewhere on disk. Asking this
+    exact compiler binary via `-print-resource-dir` and pinning it with
+    -resource-dir keeps header resolution tied to the compiler actually
+    running, instead of relying on ambient auto-detection.
+    """
+    if compiler in _RESOURCE_DIR_CACHE:
+        return _RESOURCE_DIR_CACHE[compiler]
+    resource_dir = None
+    try:
+        result = subprocess.run(
+            [compiler, "-print-resource-dir"], capture_output=True, text=True, timeout=10
+        )
+        candidate = result.stdout.strip()
+        if result.returncode == 0 and candidate and (Path(candidate) / "include" / "stddef.h").exists():
+            resource_dir = candidate
+    except (OSError, subprocess.TimeoutExpired):
+        pass
+    _RESOURCE_DIR_CACHE[compiler] = resource_dir
+    return resource_dir
+
+
 def _compile_translation_unit(
     file_path: Path,
     include_dirs: List[str],
@@ -436,9 +609,21 @@ def _compile_translation_unit(
     if path in compile_cache:
         return compile_cache[path]
     is_cxx = file_path.suffix.lower() in {'.cpp', '.cc', '.cxx', '.hpp', '.hh', '.hxx'}
-    compiler = 'clang++' if is_cxx else 'clang'
+    compiler_name = 'clang++' if is_cxx else 'clang'
+    compiler = _find_clang_compiler(compiler_name)
+    if compiler is None:
+        compiled = {
+            "ir": "", "status": "compilation_failed",
+            "error": f"No '{compiler_name}' executable was found (checked PATH and "
+                     f"/usr/bin/{compiler_name}-*).",
+        }
+        compile_cache[path] = compiled
+        return compiled
     standard = '-std=c++17' if is_cxx else '-std=c11'
     cmd = [compiler, '-S', '-emit-llvm', '-O0', '-g', standard]
+    resource_dir = _clang_resource_dir(compiler)
+    if resource_dir:
+        cmd.extend(['-resource-dir', resource_dir])
     for include_dir in include_dirs:
         cmd.extend(['-I', include_dir])
     cmd.extend([path, '-o', '-'])
@@ -467,6 +652,14 @@ def analyze_project(project_path: Path, output_dir: Path) -> Path:
     include_dirs = _discover_include_dirs(project_path)
     compile_cache: Dict[str, Dict[str, str]] = {}
     clang_args = ['-std=c++17']
+    # libclang's own header search can disagree with the system's default one
+    # (the same "fatal error: 'stddef.h' file not found" problem as the LLVM
+    # compile step below, but here it aborts index.parse() entirely and loses
+    # every function in the file rather than just the LLVM mapping for one —
+    # so pin it to a real resource directory whenever one can be detected.
+    _parse_resource_dir = _clang_resource_dir(_find_clang_compiler('clang++') or 'clang++')
+    if _parse_resource_dir:
+        clang_args.extend(['-resource-dir', _parse_resource_dir])
     for include_dir in include_dirs:
         clang_args.extend(['-I', include_dir])
 
@@ -483,6 +676,7 @@ def analyze_project(project_path: Path, output_dir: Path) -> Path:
     all_functions = []  # Flat list of all functions for call graph
     function_map = {}  # Map from function ID to FunctionInfo
     functions_by_file: Dict[str, List[FunctionInfo]] = {}
+    class_cursor_map: Dict[str, clang.cindex.Cursor] = {}  # class id -> defining cursor
     excluded_system_functions = set()
 
     for file_path in source_files:
@@ -504,8 +698,12 @@ def analyze_project(project_path: Path, output_dir: Path) -> Path:
         file_functions = []
 
         def visit_cursor(cursor: clang.cindex.Cursor, parent: Optional[clang.cindex.Cursor] = None):
-            if cursor.kind in (CursorKind.FUNCTION_DECL,
-                               CursorKind.CONSTRUCTOR, CursorKind.DESTRUCTOR):
+            if cursor.kind in CLASS_LIKE_KINDS and cursor.is_definition():
+                if _is_project_owned(cursor, str(project_path)):
+                    class_id = _class_id_for_cursor(cursor, str(project_path))
+                    if class_id and class_id not in class_cursor_map:
+                        class_cursor_map[class_id] = cursor
+            if cursor.kind in FUNCTION_LIKE_KINDS:
                 # Only consider definitions, not just declarations
                 if cursor.is_definition():
                     if _is_project_owned(cursor, str(project_path)):
@@ -538,6 +736,19 @@ def analyze_project(project_path: Path, output_dir: Path) -> Path:
         func.calls = _extract_calls(func.cursor, function_map, str(project_path))
         func.dependencies = _extract_dependencies(func.cursor, project_path)
 
+    # Link each class to the methods that named it as their enclosing class.
+    method_ids_by_class: Dict[str, List[str]] = {}
+    for func in all_functions:
+        if func.class_id:
+            method_ids_by_class.setdefault(func.class_id, []).append(func.id)
+
+    classes_by_file: Dict[str, List[Dict[str, Any]]] = {}
+    for class_id, class_cursor in class_cursor_map.items():
+        class_dict = _class_cursor_to_dict(
+            class_cursor, class_id, str(project_path), method_ids_by_class.get(class_id, [])
+        )
+        classes_by_file.setdefault(class_dict["source_location"]["file"], []).append(class_dict)
+
     for file_path in source_files:
         relative_path = os.path.relpath(file_path, project_path)
         file_info = {
@@ -546,7 +757,8 @@ def analyze_project(project_path: Path, output_dir: Path) -> Path:
             "name": file_path.name,
             "relative_path": relative_path,
             "language": "cpp" if file_path.suffix.lower() in {'.cpp', '.cc', '.cxx', '.hpp', '.hh', '.hxx'} else "c",
-            "functions": [f.to_dict() for f in functions_by_file.get(relative_path, [])]
+            "functions": [f.to_dict() for f in functions_by_file.get(relative_path, [])],
+            "classes": classes_by_file.get(relative_path, []),
         }
         all_files.append(file_info)
 
@@ -605,8 +817,19 @@ def analyze_project(project_path: Path, output_dir: Path) -> Path:
         func.llvm_status == "compiled" and func.analysis_status != "success"
         for func in all_functions
     )
+    methods = sum(func.class_info["is_method"] for func in all_functions)
+    constructors = sum(func.class_info["is_constructor"] for func in all_functions)
+    destructors = sum(func.class_info["is_destructor"] for func in all_functions)
+    templates = sum(func.class_info["is_template"] for func in all_functions)
+    virtuals = sum(func.class_info["is_virtual"] for func in all_functions)
+    statics = sum(func.class_info["is_static"] for func in all_functions)
+    operators = sum(func.class_info["is_operator_overload"] for func in all_functions)
     print(f"Source files discovered: {len(source_files)}")
+    print(f"Classes/structs discovered: {len(class_cursor_map)}")
     print(f"Project functions: {len(all_functions)}")
+    print(f"  of which methods: {methods} (constructors: {constructors}, destructors: {destructors}, "
+          f"static: {statics}, virtual: {virtuals}, operator overloads: {operators})")
+    print(f"  of which function templates: {templates}")
     print(f"System functions excluded: {len(excluded_system_functions)}")
     print(f"LLVM functions matched: {matched_functions}")
     print(f"Functions with source ranges: {sum(bool(func.source_location['start_line'] and func.source_location['end_line']) for func in all_functions)}")
@@ -634,8 +857,7 @@ def _extract_calls(
         if child.kind == CursorKind.CALL_EXPR:
             # Get the called function
             called_ref = child.get_definition()
-            if called_ref and called_ref.kind in (CursorKind.FUNCTION_DECL,
-                                                 CursorKind.CONSTRUCTOR, CursorKind.DESTRUCTOR):
+            if called_ref and called_ref.kind in FUNCTION_LIKE_KINDS:
                 if called_ref.is_definition():
                     if not _is_project_owned(called_ref, project_path):
                         continue
@@ -671,14 +893,38 @@ def _extract_calls(
 def _qualified_cursor_name(cursor: clang.cindex.Cursor) -> str:
     name_parts = []
     while cursor:
-        if cursor.kind in (CursorKind.FUNCTION_DECL, CursorKind.CONSTRUCTOR,
-                           CursorKind.DESTRUCTOR, CursorKind.CLASS_DECL,
-                           CursorKind.STRUCT_DECL, CursorKind.UNION_DECL,
-                           CursorKind.NAMESPACE, CursorKind.TYPEDEF_DECL,
-                           CursorKind.ENUM_DECL) and cursor.spelling:
+        if cursor.kind in NAME_CONTRIBUTING_KINDS and cursor.spelling:
             name_parts.insert(0, cursor.spelling)
         cursor = cursor.semantic_parent
     return "::".join(name_parts)
+
+
+def _class_cursor_to_dict(
+    cursor: clang.cindex.Cursor, class_id: str, project_root: str, method_ids: List[str]
+) -> Dict[str, Any]:
+    """Build the base.json representation of one extracted class/struct."""
+    relative_path = os.path.relpath(
+        os.path.abspath(os.path.realpath(cursor.location.file.name)),
+        os.path.abspath(os.path.realpath(project_root)),
+    )
+    base_classes = [
+        child.type.spelling for child in cursor.get_children()
+        if child.kind == CursorKind.CXX_BASE_SPECIFIER
+    ]
+    return {
+        "id": class_id,
+        "name": cursor.spelling,
+        "qualified_name": _qualified_cursor_name(cursor),
+        "kind": cursor.kind.name,
+        "is_abstract": cursor.is_abstract_record(),
+        "base_classes": base_classes,
+        "source_location": {
+            "file": relative_path,
+            "start_line": cursor.location.line,
+            "end_line": cursor.extent.end.line,
+        },
+        "method_ids": method_ids,
+    }
 
 
 def _extract_dependencies(cursor: clang.cindex.Cursor, project_path: Path) -> List[str]:

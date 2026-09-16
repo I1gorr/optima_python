@@ -14,6 +14,17 @@ dependencies = [
     "langchain-huggingface>=0.0.1",
     "faiss-cpu>=1.7.4",
     "numpy>=1.24.0",
+    "clang>=16",
+]
+
+[project.optional-dependencies]
+kaggle = [
+    "accelerate>=0.30.0",
+    "bitsandbytes>=0.43.0",
+    "matplotlib>=3.7.0",
+    "sentence-transformers>=2.7.0",
+    "tqdm>=4.66.0",
+    "transformers>=4.40.0",
 ]
 
 [project.scripts]
