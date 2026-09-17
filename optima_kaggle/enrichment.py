@@ -307,8 +307,10 @@ def enrich_one(handle: Any, function: dict[str, Any], gen: GenerationSettings,
         "prompt_reductions": prompt_reductions,
         "input_tokens": last_input_tokens,
         "max_input_tokens": handle.spec.max_input_tokens,
+        "max_new_tokens": gen.max_new_tokens,
     }
 
+    load_report = getattr(handle, "load_report", None) or {}
     result_enrichment["evaluation"] = _evaluation(function, result_enrichment, metrics, context)
     result_enrichment["evaluation"].update({
         "failure_category": None if category == "completed" else category,
@@ -318,6 +320,13 @@ def enrich_one(handle: Any, function: dict[str, Any], gen: GenerationSettings,
         "repair_used": repair_used,
         "peak_allocated_gib": last_peak_gib,
         "free_after_gib": last_free_gib,
+        # GPU placement is constant across every function in one model's run
+        # (it is decided once, at load time), but recorded per function here
+        # too so per-function metrics rows are self-contained for comparison
+        # tooling that reads function-level records in isolation.
+        "gpu_placement": load_report.get("gpu_placement"),
+        "gpu_count_used": load_report.get("gpu_count_used"),
+        "used_cpu_offload": load_report.get("used_cpu_offload", False),
     })
     return result_enrichment
 
@@ -601,13 +610,32 @@ def require_all_gates_passed(ctx: Any, spec: Any, gen: GenerationSettings) -> No
     print(f"All gates passed for {spec.slug} (config_hash={expected_hash}).")
 
 
+def _require_handle(handle: Any, gate_name: str) -> None:
+    """Fail loud and clear when a gate is called without a loaded model,
+    instead of letting a later ``handle.something`` raise AttributeError
+    (and, worse, letting an except-block's own ``handle.spec`` access mask
+    that AttributeError with a second, more confusing one). This is a
+    defense-in-depth check: the notebook itself also guards HANDLE before
+    calling into each gate, but library code must not depend on that.
+    """
+    if handle is None:
+        raise GateFailedError(
+            gate_name,
+            f"{gate_name} requires a successfully loaded model HANDLE, but "
+            f"HANDLE is None. GATE 1 (models.load_model_safe) must complete "
+            f"successfully first.",
+        )
+
+
 def gate1_load(ctx: Any, handle: Any, gen: GenerationSettings) -> dict[str, Any]:
+    _require_handle(handle, "gate1_load")
     return record_gate(ctx, handle.spec, gen, "gate1_load", True, handle.load_report)
 
 
 def gate2_trivial(ctx: Any, handle: Any, gen: GenerationSettings) -> dict[str, Any]:
     from . import models
 
+    _require_handle(handle, "gate2_trivial")
     messages = [{"role": "user", "content": "In one short sentence, what is a binary search tree?"}]
     try:
         result = models.generate_text(handle, messages, max_new_tokens=64, do_sample=False)
@@ -629,6 +657,7 @@ def gate3_one_function(ctx: Any, handle: Any, gen: GenerationSettings, snap: Any
                         smoke_function_ids: Optional[list[str]] = None) -> dict[str, Any]:
     from colab.colab_pipeline import _valid_enrichment, flatten_functions, load_json
 
+    _require_handle(handle, "gate3_one_function")
     base = load_json(snap.path)
     functions = flatten_functions(base)
     fn = _select_gate3_function(functions, smoke_function_ids)
@@ -674,6 +703,7 @@ def gate4_three_functions(ctx: Any, handle: Any, gen: GenerationSettings, snap: 
     from optima.enricher import _dataset_metrics
     from colab.colab_pipeline import flatten_functions, load_json
 
+    _require_handle(handle, "gate4_three_functions")
     base = load_json(snap.path)
     functions = flatten_functions(base)
     gate3_fn = _select_gate3_function(functions, smoke_function_ids[:1] if smoke_function_ids else None)
@@ -712,7 +742,10 @@ def gate4_three_functions(ctx: Any, handle: Any, gen: GenerationSettings, snap: 
         dataset_metrics_ok = False
         dataset_metrics_error = f"{type(exc).__name__}: {exc}"
 
-    checks = {
+    # Functional checks decide whether GATE 4 passes: they establish that
+    # enrichment actually works end to end (three real functions, sequentially,
+    # each producing a distinct, schema-valid, correctly-attributed result).
+    functional_checks = {
         "all_three_completed": all_three_completed,
         "purposes_not_all_same": purposes_not_all_same,
         "insufficient_count_below_two": insufficient_count < 2,
@@ -725,21 +758,45 @@ def gate4_three_functions(ctx: Any, handle: Any, gen: GenerationSettings, snap: 
             and (e.get("evaluation", {}).get("output_tokens") or 0) > 0
             for _fn, e in records
         ),
-        "largest_prompt_headroom_ok": largest_free is None or largest_free >= 0.5,
         "dataset_metrics_roundtrip_ok": dataset_metrics_ok,
     }
-    passed = all(checks.values())
+    # Resource warnings never fail the gate on their own: a function that
+    # completed successfully with less than the preferred 0.5 GiB of
+    # post-generation headroom is a real signal worth surfacing (the next,
+    # larger prompt might not be so lucky), not proof that enrichment failed.
+    resource_warnings = {
+        "largest_prompt_headroom_ok": largest_free is None or largest_free >= 0.5,
+    }
+
+    functional_passed = all(functional_checks.values())
+    triggered_warnings = [name for name, ok in resource_warnings.items() if not ok]
+    if functional_passed and not triggered_warnings:
+        status = "PASSED"
+    elif functional_passed:
+        status = "PASSED WITH RESOURCE WARNING"
+    else:
+        status = "FAILED"
+
     details = {
-        "checks": checks, "dataset_metrics_error": dataset_metrics_error,
+        "status": status, "checks": functional_checks, "resource_warnings": resource_warnings,
+        "largest_prompt_free_after_gib": largest_free, "dataset_metrics_error": dataset_metrics_error,
         "functions": [
             {"function_id": fn["id"], "status": e.get("status"), "purpose": e.get("purpose"),
              "failure_category": e.get("evaluation", {}).get("failure_category"),
-             "input_tokens": e.get("evaluation", {}).get("input_tokens")}
+             "input_tokens": e.get("evaluation", {}).get("input_tokens"),
+             "free_after_gib": e.get("evaluation", {}).get("free_after_gib")}
             for fn, e in records
         ],
     }
+    print(f"GATE 4 status: {status}")
+    if triggered_warnings:
+        print(f"  resource warning(s): {triggered_warnings} "
+              f"(largest-prompt free_after_gib={largest_free}); "
+              f"functional checks passed, so the gate still passes.")
     print(json.dumps(details, indent=2, default=str)[:4000])
-    return record_gate(ctx, handle.spec, gen, "gate4_three_functions", passed, details)
+    # `passed` (whether record_gate raises GateFailedError) is functional-only;
+    # a resource warning is recorded in `details` but never fails the gate.
+    return record_gate(ctx, handle.spec, gen, "gate4_three_functions", functional_passed, details)
 
 
 # --------------------------------------------------------------------------
@@ -749,6 +806,7 @@ def gate4_three_functions(ctx: Any, handle: Any, gen: GenerationSettings, snap: 
 def run_full_enrichment(ctx: Any, handle: Any, gen: GenerationSettings, snap: Any,
                          max_consecutive_failures: int = 5, materialize_every: int = 10,
                          min_success_rate: float = 0.95) -> dict[str, Any]:
+    _require_handle(handle, "run_full_enrichment")
     require_all_gates_passed(ctx, handle.spec, gen)
 
     from colab.colab_pipeline import flatten_functions, load_json

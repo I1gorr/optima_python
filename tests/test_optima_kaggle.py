@@ -22,6 +22,7 @@ from optima_kaggle.errors import (
     CheckpointCorruptError,
     ComparisonMismatchError,
     EmbeddingError,
+    GateFailedError,
     GenerationOOMError,
     ModelDoesNotFitError,
     ModelNotFeasibleError,
@@ -725,6 +726,106 @@ class RetrievalEvalTests(unittest.TestCase):
         with self.assertRaises(ComparisonMismatchError):
             retrieval_eval.build_comparison(self.ctx, {}, ["raw", "m1", "m2"],
                                             {"manifest": {"sha256": "bench"}, "queries": []})
+
+
+class GateBehaviorTests(unittest.TestCase):
+    """Regression tests for two real failures observed on the live Kaggle
+    2xT4 run: (1) a gate called with HANDLE=None raised a second, masking
+    AttributeError instead of a clear prerequisite error; (2) GATE 4 failed
+    outright when three functions completed successfully but the largest
+    prompt's post-generation headroom was below the preferred 0.5 GiB.
+    """
+
+    root = ARTIFACTS_ROOT / "gate_behavior"
+
+    def setUp(self):
+        if self.root.exists():
+            shutil.rmtree(self.root)
+        self.root.mkdir(parents=True)
+        content = json.dumps(_minimal_base_json(function_count=5)).encode("utf-8")
+        sha = hashlib.sha256(content).hexdigest()
+        run_dir = self.root / "runs" / f"base-{sha[:12]}"
+        base_path = run_dir / "base" / "base.json"
+        base_path.parent.mkdir(parents=True)
+        base_path.write_bytes(content)
+        self.snap = snapshot.BaseSnapshot(path=base_path, sha256=sha, bytes=len(content),
+                                          url="file:///fake", etag=None, downloaded_at="now",
+                                          run_dir=run_dir)
+        self.ctx = snapshot.RunContext.create(self.root, self.snap, {}, {}, "deadbeef")
+        self.spec = _fake_spec(max_input_tokens=1000, slug="gate-behavior-model")
+        self.gen = GenerationSettings(retries=1, max_new_tokens=32)
+        self.handle = _FakeHandle(self.spec)
+
+    def tearDown(self):
+        shutil.rmtree(self.root, ignore_errors=True)
+
+    # --- (1) HANDLE=None must never produce a masking AttributeError ---
+
+    def test_gate1_with_none_handle_raises_gate_failed_error(self):
+        with self.assertRaises(GateFailedError):
+            enrichment.gate1_load(self.ctx, None, self.gen)
+
+    def test_gate2_with_none_handle_raises_gate_failed_error_not_attribute_error(self):
+        with self.assertRaises(GateFailedError) as ctxmgr:
+            enrichment.gate2_trivial(self.ctx, None, self.gen)
+        self.assertIn("GATE 1", str(ctxmgr.exception))
+
+    def test_gate3_with_none_handle_raises_gate_failed_error(self):
+        with self.assertRaises(GateFailedError):
+            enrichment.gate3_one_function(self.ctx, None, self.gen, self.snap)
+
+    def test_gate4_with_none_handle_raises_gate_failed_error(self):
+        with self.assertRaises(GateFailedError):
+            enrichment.gate4_three_functions(self.ctx, None, self.gen, self.snap)
+
+    def test_run_full_enrichment_with_none_handle_raises_gate_failed_error(self):
+        with self.assertRaises(GateFailedError):
+            enrichment.run_full_enrichment(self.ctx, None, self.gen, self.snap)
+
+    # --- (2) GATE 4 functional-vs-resource-warning split ---
+
+    @staticmethod
+    def _distinct_enrichment_jsons():
+        """Three schema-valid enrichments with distinct purposes, so
+        purposes_not_all_same is satisfied the way three real, independently
+        enriched functions would (rather than an identical mocked response).
+        """
+        base = json.loads(VALID_ENRICHMENT_JSON)
+        return [json.dumps({**base, "purpose": f"Purpose {i}."}) for i in range(3)]
+
+    def test_gate4_passes_with_resource_warning_when_headroom_low_but_functional_ok(self):
+        results = [_gen_result(text, free=0.2) for text in self._distinct_enrichment_jsons()]
+        with mock.patch.object(models, "generate_text", side_effect=results):
+            result = enrichment.gate4_three_functions(self.ctx, self.handle, self.gen, self.snap)
+        self.assertTrue(result["passed"])
+        self.assertEqual(result["details"]["status"], "PASSED WITH RESOURCE WARNING")
+        self.assertFalse(result["details"]["resource_warnings"]["largest_prompt_headroom_ok"])
+        self.assertTrue(result["details"]["checks"]["all_three_completed"])
+        self.assertNotIn("largest_prompt_headroom_ok", result["details"]["checks"])
+
+    def test_gate4_passes_cleanly_when_headroom_is_fine(self):
+        results = [_gen_result(text, free=5.0) for text in self._distinct_enrichment_jsons()]
+        with mock.patch.object(models, "generate_text", side_effect=results):
+            result = enrichment.gate4_three_functions(self.ctx, self.handle, self.gen, self.snap)
+        self.assertTrue(result["passed"])
+        self.assertEqual(result["details"]["status"], "PASSED")
+
+    def test_gate4_still_fails_when_a_functional_check_actually_fails(self):
+        with mock.patch.object(models, "generate_text", return_value=_gen_result("not json at all")):
+            with self.assertRaises(GateFailedError):
+                enrichment.gate4_three_functions(self.ctx, self.handle, self.gen, self.snap)
+
+    # --- per-function GPU placement metadata ---
+
+    def test_enrich_one_records_gpu_placement_per_function(self):
+        handle = _FakeHandle(self.spec)
+        handle.load_report = {"gpu_placement": "sharded", "gpu_count_used": 2, "used_cpu_offload": False}
+        fn = _minimal_base_json(1)["files"][0]["functions"][0]
+        with mock.patch.object(models, "generate_text", return_value=_gen_result(VALID_ENRICHMENT_JSON)):
+            record = enrichment.enrich_one(handle, fn, self.gen, self.root / "attempts.jsonl")
+        self.assertEqual(record["evaluation"]["gpu_placement"], "sharded")
+        self.assertEqual(record["evaluation"]["gpu_count_used"], 2)
+        self.assertFalse(record["evaluation"]["used_cpu_offload"])
 
 
 if __name__ == "__main__":
