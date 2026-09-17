@@ -113,7 +113,7 @@ MODEL_REGISTRY: dict[str, ModelSpec] = {
         slug="qwen25-32b-instruct-nf4", model_id="Qwen/Qwen2.5-32B-Instruct",
         quantization="nf4", single_gpu_tier="C", max_input_tokens=4096,
         notes="~18-19 GiB in nf4. Does not fit 1xT4; fits across 2xT4 (29.1 GiB "
-              "combined) via sharded device_map='auto'. Refused on a single-GPU "
+              "combined) via sharded device_map='balanced'. Refused on a single-GPU "
               "session unless ALLOW_INFEASIBLE; on a 2-GPU session it is allowed "
               "through to the real check_fit() gate.",
     ),
@@ -315,13 +315,19 @@ def check_fit(spec: ModelSpec, num_gpus: Optional[int] = None,
     1. single_gpu  - only reachable with exactly one visible GPU: it alone
                      holds weights + full headroom.
     2. sharded     - two or more GPUs are visible and the weights fit across
-                     them combined (each carrying its own apportioned
-                     headroom reservation). ``max_memory`` is deliberately
-                     capped per GPU near an equal share of the weights (not
-                     "whatever is free") so Accelerate's device-map planner
-                     is forced to actually spread layers across every GPU
-                     instead of greedily filling GPU 0 first and leaving the
-                     rest empty.
+                     them combined. ``max_memory`` here is each GPU's real
+                     safe budget (free VRAM, minus a safety factor, minus
+                     this model's apportioned generation headroom) -- NOT an
+                     artificially tightened "fair share". Balancing layers
+                     across GPUs is ``device_map="balanced"``'s job (set in
+                     ``load_model_safe``); it is restricted to GPU devices
+                     only and never spills to CPU/disk the way
+                     ``device_map="auto"`` does when a per-GPU cap is too
+                     tight -- which is exactly what previously produced
+                     "Some modules are dispatched on the CPU or the disk"
+                     for a 4-bit model (4-bit modules cannot be CPU/disk
+                     offloaded without ``llm_int8_enable_fp32_cpu_offload``,
+                     which this pipeline deliberately does not set).
     3. sharded_cpu_offload - only if allow_cpu_offload; GPUs + a bounded
                      slice of free CPU RAM hold the weights. Orders of
                      magnitude slower; a documented last resort, not a
@@ -372,22 +378,13 @@ def check_fit(spec: ModelSpec, num_gpus: Optional[int] = None,
             return report
 
     # 2. Sharded fit (num_gpus >= 2): do the GPUs combined (each with its own
-    #    apportioned headroom reservation) hold the weights? If so, cap each
-    #    GPU's max_memory near an equal share of the weights (with slack for
-    #    uneven per-layer sizes) instead of handing it its full free budget --
-    #    a full-budget cap is exactly what lets Accelerate's greedy planner
-    #    fill GPU 0 alone and leave GPU 1 untouched. Only fall back to the
-    #    uncapped per-GPU budget if the balanced cap would not actually fit
-    #    (e.g. GPUs with very unequal free memory); either way every visible
-    #    GPU is offered to the planner.
+    #    apportioned headroom reservation) hold the weights? Every visible
+    #    GPU's real safe budget is offered to the planner; device_map=
+    #    "balanced" (load_model_safe) is what actually spreads layers across
+    #    all of them instead of filling GPU 0 alone -- max_memory here only
+    #    bounds each GPU so generation headroom is never eaten by weights.
     elif sum(budget_gib) >= weights_gib:
-        fair_share_gib = weights_gib / num_gpus
-        balanced_gib = [min(budget_gib[i], max(fair_share_gib * 1.25, 1.0)) for i in range(num_gpus)]
-        if sum(balanced_gib) >= weights_gib:
-            chosen_gib = balanced_gib
-        else:
-            chosen_gib = budget_gib
-        max_memory = {i: f"{chosen_gib[i]:.2f}GiB" for i in range(num_gpus) if chosen_gib[i] > 0}
+        max_memory = {i: f"{budget_gib[i]:.2f}GiB" for i in range(num_gpus) if budget_gib[i] > 0}
         report = FitReport(
             num_gpus=num_gpus, free_gib=free_gib, per_gpu_reserved_gib=per_gpu_reserved_gib,
             budget_gib=budget_gib, weights_gib=weights_gib, total_headroom_gib=total_headroom_gib,
@@ -466,10 +463,14 @@ class ModelHandle:
 
 
 def load_model_safe(spec: ModelSpec, bnb_status: Optional["environment.BnbStatus"] = None) -> ModelHandle:
-    """Load a causal LM with explicit device placement -- a single GPU when
-    the model fits one, or an accelerate-dispatched shard across every
-    visible GPU (with an explicit, pre-computed ``max_memory``) when it does
-    not -- and full post-load verification. Never falls back from nf4 to fp16.
+    """Load a single causal LM instance with explicit device placement -- one
+    GPU when the model fits alone (``num_gpus == 1``), or ``device_map=
+    "balanced"`` across every visible GPU (with an explicit, pre-computed,
+    GPU-only ``max_memory``) otherwise -- plus full post-load verification.
+    "balanced" never spills a module to CPU/disk, which quantized (nf4)
+    weights cannot tolerate; there is no CPU/disk fallback path here except
+    the separate, opt-in ``sharded_cpu_offload`` placement. Never falls back
+    from nf4 to fp16.
     """
     import torch
     from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
@@ -515,11 +516,21 @@ def load_model_safe(spec: ModelSpec, bnb_status: Optional["environment.BnbStatus
 
     if fit.placement == "single_gpu":
         device_map: Any = {"": fit.chosen_gpu}
+    elif fit.placement == "sharded":
+        # GPU-only multi-GPU placement: "balanced" is restricted to the GPU
+        # devices in max_memory and never spills a module to CPU/disk when a
+        # per-GPU budget is tight -- unlike device_map="auto", which treats
+        # CPU/disk as ordinary fallback targets and is what previously
+        # produced "Some modules are dispatched on the CPU or the disk" for
+        # this 4-bit model (4-bit modules cannot be CPU/disk offloaded
+        # without llm_int8_enable_fp32_cpu_offload, which is deliberately
+        # never set here -- see check_fit()'s docstring).
+        device_map = "balanced"
     else:
-        # "sharded" / "sharded_cpu_offload": always pass the explicit
-        # max_memory computed by check_fit() -- never a bare device_map="auto"
-        # with no max_memory, which is the exact mechanism that produced the
-        # original single-GPU OOM (it fills whichever GPU it starts with).
+        # "sharded_cpu_offload": the one placement that deliberately wants
+        # CPU included, via the explicit "cpu" entry in fit.max_memory --
+        # "balanced" would refuse that entirely, so "auto" is still correct
+        # here, and only reached when allow_cpu_offload was explicitly set.
         device_map = "auto"
 
     load_kwargs: dict[str, Any] = {
@@ -609,9 +620,9 @@ def load_model_safe(spec: ModelSpec, bnb_status: Optional["environment.BnbStatus
 
     # Per-GPU headroom check: every GPU actually holding part of the model
     # must independently satisfy the reservation check_fit() used to build
-    # max_memory. A single under-provisioned GPU (often GPU 0, which
-    # device_map="auto" typically also loads with embedding/LM-head/first
-    # layer overhead) is named specifically rather than averaged away.
+    # max_memory. A single under-provisioned GPU (often GPU 0, which the
+    # device map typically also loads with embedding/LM-head/first-layer
+    # overhead) is named specifically rather than averaged away.
     required_headroom = required_headroom_gib(spec, model.config)
     insufficient = []
     for i in sorted(gpu_indices_used) or [0]:
