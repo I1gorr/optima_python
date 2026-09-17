@@ -73,10 +73,6 @@ class PromptTooLongError(OptimaKaggleError):
     """A function's prompt could not be reduced under max_input_tokens."""
 
 
-class SystemicEnrichmentFailure(OptimaKaggleError):
-    """Too many consecutive enrichment failures; something is systemically broken."""
-
-
 class EnrichmentQualityError(OptimaKaggleError):
     """The full enrichment run finished but did not meet the success-rate bar."""
 

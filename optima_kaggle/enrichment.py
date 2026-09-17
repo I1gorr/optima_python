@@ -24,7 +24,6 @@ from .errors import (
     GenerationOOMError,
     PromptTooLongError,
     ResumeMismatchError,
-    SystemicEnrichmentFailure,
 )
 
 RETRYABLE_CATEGORIES = {"generation_error", "invalid_json", "schema_invalid", "output_truncated"}
@@ -726,8 +725,19 @@ def _require_handle(handle: Any, gate_name: str) -> None:
 
 
 def gate1_load(ctx: Any, handle: Any, gen: GenerationSettings) -> dict[str, Any]:
+    """Also verifies the multi-GPU placement policy in ``models.check_fit``:
+    whenever more than one GPU was visible at fit time, the loaded model
+    must actually hold parameters on more than one GPU (not just GPU 0 with
+    a second GPU left idle). A single-GPU session (``num_gpus == 1``) is
+    unaffected -- there is nothing to shard across.
+    """
     _require_handle(handle, "gate1_load")
-    return record_gate(ctx, handle.spec, gen, "gate1_load", True, handle.load_report)
+    load_report = handle.load_report
+    num_gpus = (load_report.get("fit_report") or {}).get("num_gpus", 1)
+    gpu_count_used = load_report.get("gpu_count_used", 1)
+    multi_gpu_ok = num_gpus < 2 or gpu_count_used >= 2
+    details = {**load_report, "num_gpus_visible": num_gpus, "multi_gpu_verified": multi_gpu_ok}
+    return record_gate(ctx, handle.spec, gen, "gate1_load", multi_gpu_ok, details)
 
 
 def gate2_trivial(ctx: Any, handle: Any, gen: GenerationSettings) -> dict[str, Any]:
@@ -895,13 +905,19 @@ def gate4_three_functions(ctx: Any, handle: Any, gen: GenerationSettings, snap: 
 # --------------------------------------------------------------------------
 
 def run_full_enrichment(ctx: Any, handle: Any, gen: GenerationSettings, snap: Any,
-                         max_consecutive_failures: int = 5, materialize_every: int = 10) -> dict[str, Any]:
-    """Note: this does not gate on an overall success rate. A model that
-    genuinely fails on many functions is a real comparison result, not a
-    reason to abort the run and block embeddings/retrieval/evaluation from
-    seeing what it did produce. ``max_consecutive_failures`` remains as a
-    circuit breaker for a different situation -- the GPU/model becoming
-    unresponsive mid-run -- not a judgment on output quality.
+                         materialize_every: int = 10) -> dict[str, Any]:
+    """Note: this does not gate on an overall success rate, or on how many
+    functions in a row failed to produce anything useful. A model that
+    genuinely fails on many (or even all) functions is a real comparison
+    result, not a reason to abort the run and block embeddings/retrieval/
+    evaluation from seeing what it did produce -- invalid_json, insufficient
+    context, a schema-incomplete response, prompt_too_long, or a recovered
+    cuda_oom are all recorded per function and never stop the run. Only a
+    genuine infrastructure failure -- an unrecovered CUDA OOM
+    (``GenerationOOMError``), a model/tokenizer that cannot load, or another
+    unrecoverable runtime error -- propagates out of ``enrich_one``/this loop
+    as an exception and actually stops the run; there is no separate
+    consecutive-failure counter for model-output quality.
     """
     _require_handle(handle, "run_full_enrichment")
     require_all_gates_passed(ctx, handle.spec, gen)
@@ -933,30 +949,20 @@ def run_full_enrichment(ctx: Any, handle: Any, gen: GenerationSettings, snap: An
           f"{already_completed} already completed, {len(todo)} to do")
 
     attempts_log = ctx.logs_dir / slug / "attempts.jsonl"
-    consecutive_failures = 0
     partial = True
     start = time.perf_counter()
     out_path: Optional[Path] = None
     try:
         from tqdm.auto import tqdm
         for index, fn in enumerate(tqdm(todo, desc=f"Enriching with {slug}")):
+            # enrich_one() never raises for a model-output problem (invalid
+            # JSON, insufficient context, a schema gap, a recovered OOM,
+            # ...) -- it records the outcome on the function and returns.
+            # Only a genuine infrastructure failure (e.g. GenerationOOMError
+            # for an unrecovered CUDA OOM) propagates past this call and
+            # stops the run; there is no separate quality-based abort here.
             enrichment = enrich_one(handle, fn, gen, attempts_log)
             ckpt.append(fn["id"], enrichment)
-            if enrichment.get("status") == "completed":
-                consecutive_failures = 0
-            else:
-                consecutive_failures += 1
-                if consecutive_failures >= max_consecutive_failures:
-                    recent = [
-                        {"failure_category": r.get("enrichment", {}).get("evaluation", {}).get("failure_category"),
-                         "failure_reason": r.get("enrichment", {}).get("evaluation", {}).get("failure_reason")}
-                        for r in ckpt.recent_records(5)
-                    ]
-                    raise SystemicEnrichmentFailure(
-                        f"{consecutive_failures} consecutive enrichment failures for "
-                        f"{slug}; aborting rather than burning the rest of the GPU "
-                        f"budget. Recent failures: {recent}"
-                    )
             if (index + 1) % materialize_every == 0:
                 materialize(ctx, snap, handle.spec, gen, ckpt, time.perf_counter() - start, partial=True,
                            load_report=handle.load_report)
@@ -995,7 +1001,7 @@ def run_full_enrichment(ctx: Any, handle: Any, gen: GenerationSettings, snap: An
 def run_model_queue(ctx: Any, model_queue: list[str], gen_settings_factory: Any, bnb_status: Any,
                      num_gpus: Optional[int] = None, stop_on_failure: bool = True,
                      allow_infeasible: bool = False, delete_cache_after_unload: bool = True,
-                     max_consecutive_failures: int = 5, materialize_every: int = 10) -> dict[str, Any]:
+                     materialize_every: int = 10) -> dict[str, Any]:
     """Run check_fit -> load -> gates 1-4 -> full enrichment -> unload for
     each queued model slug, using the exact same functions the single-model
     notebook cells use. ``num_gpus`` defaults to ``torch.cuda.device_count()``
@@ -1024,8 +1030,7 @@ def run_model_queue(ctx: Any, model_queue: list[str], gen_settings_factory: Any,
             gate2_trivial(ctx, handle, gen)
             gate3_one_function(ctx, handle, gen, ctx.base)
             gate4_three_functions(ctx, handle, gen, ctx.base)
-            full = run_full_enrichment(ctx, handle, gen, ctx.base, max_consecutive_failures,
-                                       materialize_every)
+            full = run_full_enrichment(ctx, handle, gen, ctx.base, materialize_every)
             results[slug] = {"status": "enrichment_passed", **full}
         except Exception as exc:  # noqa: BLE001 - per-model isolation is the point of this loop
             results[slug] = {"status": "failed", "error": f"{type(exc).__name__}: {exc}"}

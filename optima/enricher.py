@@ -168,39 +168,64 @@ def _response_preview(content: str, limit: int = 500) -> str:
 
 
 def _parse_json_object(content: str) -> tuple[Optional[Dict[str, Any]], str]:
-    """Parse the expected object, tolerating only common fence/text wrappers."""
+    """Recover a JSON object from a raw LLM response as permissively as
+    possible, in a fixed order, so a model is never marked invalid_json for
+    formatting alone:
+
+    1. Parse the raw response directly as JSON.
+    2. Extract a Markdown-fenced ```json``` block (anywhere in the text, not
+       just when the fence is the entire response).
+    3. Extract any other fenced ``` block (unlabeled or a different tag).
+    4. Scan the text for every '{' (or '[') and try decoding a JSON value
+       starting there, in order, until one succeeds -- this recovers JSON
+       that is preceded/followed by prose without relying on fences at all.
+    5. Only report "invalid_json" once none of the above recovers anything.
+
+    A recovered value that parses but is not a JSON object (e.g. a bare
+    array) is reported as "json_root_not_object" rather than treated as a
+    successful parse -- the enrichment schema is always an object.
+    """
     stripped = content.strip()
     if not stripped:
         return None, "empty_response"
 
-    candidates: List[tuple[str, str]] = [(stripped, "json")]
-    fenced = re.fullmatch(
-        r"```(?:json)?\s*(\{.*\})\s*```", stripped, re.DOTALL | re.IGNORECASE
-    )
-    if fenced:
-        candidates.insert(0, (fenced.group(1), "markdown_wrapped_json"))
+    try:
+        parsed = json.loads(stripped)
+    except json.JSONDecodeError:
+        pass
     else:
-        decoder = json.JSONDecoder()
-        start = stripped.find("{")
-        if start >= 0:
-            try:
-                _, end = decoder.raw_decode(stripped[start:])
-                if start > 0 or stripped[end + start:].strip():
-                    candidates.insert(0, (stripped[start:start + end], "surrounding_text"))
-            except json.JSONDecodeError:
-                pass
+        if isinstance(parsed, dict):
+            return parsed, "json"
+        return None, "json_root_not_object"
 
-    syntax_error = False
-    for candidate, source in candidates:
+    fence_pattern = re.compile(r"```(\w*)[ \t]*\r?\n?(.*?)```", re.DOTALL)
+    fence_matches = list(fence_pattern.finditer(stripped))
+    ordered_bodies = (
+        [m.group(2) for m in fence_matches if m.group(1).lower() == "json"]
+        + [m.group(2) for m in fence_matches if m.group(1).lower() != "json"]
+    )
+    saw_non_object = False
+    for body in ordered_bodies:
         try:
-            parsed = json.loads(candidate)
+            parsed = json.loads(body.strip())
         except json.JSONDecodeError:
-            syntax_error = True
             continue
         if isinstance(parsed, dict):
-            return parsed, source
-        return None, "json_root_not_object"
-    return None, "invalid_json" if syntax_error else "schema_mismatch"
+            return parsed, "markdown_wrapped_json"
+        saw_non_object = True
+
+    decoder = json.JSONDecoder()
+    for match in re.finditer(r"[{\[]", stripped):
+        start = match.start()
+        try:
+            candidate, _end = decoder.raw_decode(stripped, start)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(candidate, dict):
+            return candidate, "surrounding_text"
+        saw_non_object = True
+
+    return None, "json_root_not_object" if saw_non_object else "invalid_json"
 
 
 class LMStudioClient:

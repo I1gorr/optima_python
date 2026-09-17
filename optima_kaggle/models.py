@@ -307,10 +307,21 @@ def check_fit(spec: ModelSpec, num_gpus: Optional[int] = None,
     parameter count. This is the sole feasibility gate for a model -- the
     registry's ``single_gpu_tier`` (§6.1) is advisory only.
 
-    Decision order (prefer the simplest placement that works):
-    1. single_gpu  - one GPU alone holds weights + full headroom.
-    2. sharded     - the GPUs combined (each carrying its own apportioned
-                     headroom reservation) hold the weights.
+    This is a *benchmarking* pipeline: whenever more than one GPU is
+    visible, every visible GPU is used to hold this one model instance --
+    never just GPU 0 with a second GPU left idle, even when the model would
+    comfortably fit alone on GPU 0. Decision order:
+
+    1. single_gpu  - only reachable with exactly one visible GPU: it alone
+                     holds weights + full headroom.
+    2. sharded     - two or more GPUs are visible and the weights fit across
+                     them combined (each carrying its own apportioned
+                     headroom reservation). ``max_memory`` is deliberately
+                     capped per GPU near an equal share of the weights (not
+                     "whatever is free") so Accelerate's device-map planner
+                     is forced to actually spread layers across every GPU
+                     instead of greedily filling GPU 0 first and leaving the
+                     rest empty.
     3. sharded_cpu_offload - only if allow_cpu_offload; GPUs + a bounded
                      slice of free CPU RAM hold the weights. Orders of
                      magnitude slower; a documented last resort, not a
@@ -345,25 +356,38 @@ def check_fit(spec: ModelSpec, num_gpus: Optional[int] = None,
                   f"budget={round(budget_gib[i], 3)} GiB")
         print(f"  decision: placement={placement}, fits={fits}")
 
-    # 1. Single-GPU fit: does one GPU alone hold weights + the model's FULL
-    #    (non-apportioned) headroom?
-    single_gpu_margins = [
-        free_gib[i] * safety_factor - total_headroom_gib - weights_gib for i in range(num_gpus)
-    ]
-    best_single_gpu = max(range(num_gpus), key=lambda i: free_gib[i])
-    if single_gpu_margins[best_single_gpu] >= 0:
-        report = FitReport(
-            num_gpus=num_gpus, free_gib=free_gib, per_gpu_reserved_gib=per_gpu_reserved_gib,
-            budget_gib=budget_gib, weights_gib=weights_gib, total_headroom_gib=total_headroom_gib,
-            placement="single_gpu", fits=True, chosen_gpu=best_single_gpu, max_memory=None,
-        )
-        _print_table("single_gpu", True)
-        return report
+    # 1. Single-GPU fit: only considered when exactly one GPU is visible.
+    #    With two or more visible GPUs this branch is skipped entirely --
+    #    see the module-level note above: a second idle GPU is not an
+    #    acceptable placement for this benchmarking pipeline.
+    if num_gpus == 1:
+        single_gpu_margin = free_gib[0] * safety_factor - total_headroom_gib - weights_gib
+        if single_gpu_margin >= 0:
+            report = FitReport(
+                num_gpus=num_gpus, free_gib=free_gib, per_gpu_reserved_gib=per_gpu_reserved_gib,
+                budget_gib=budget_gib, weights_gib=weights_gib, total_headroom_gib=total_headroom_gib,
+                placement="single_gpu", fits=True, chosen_gpu=0, max_memory=None,
+            )
+            _print_table("single_gpu", True)
+            return report
 
-    # 2. Sharded fit: do the GPUs combined (each with its own apportioned
-    #    headroom reservation) hold the weights?
-    if sum(budget_gib) >= weights_gib:
-        max_memory = {i: f"{budget_gib[i]:.2f}GiB" for i in range(num_gpus) if budget_gib[i] > 0}
+    # 2. Sharded fit (num_gpus >= 2): do the GPUs combined (each with its own
+    #    apportioned headroom reservation) hold the weights? If so, cap each
+    #    GPU's max_memory near an equal share of the weights (with slack for
+    #    uneven per-layer sizes) instead of handing it its full free budget --
+    #    a full-budget cap is exactly what lets Accelerate's greedy planner
+    #    fill GPU 0 alone and leave GPU 1 untouched. Only fall back to the
+    #    uncapped per-GPU budget if the balanced cap would not actually fit
+    #    (e.g. GPUs with very unequal free memory); either way every visible
+    #    GPU is offered to the planner.
+    elif sum(budget_gib) >= weights_gib:
+        fair_share_gib = weights_gib / num_gpus
+        balanced_gib = [min(budget_gib[i], max(fair_share_gib * 1.25, 1.0)) for i in range(num_gpus)]
+        if sum(balanced_gib) >= weights_gib:
+            chosen_gib = balanced_gib
+        else:
+            chosen_gib = budget_gib
+        max_memory = {i: f"{chosen_gib[i]:.2f}GiB" for i in range(num_gpus) if chosen_gib[i] > 0}
         report = FitReport(
             num_gpus=num_gpus, free_gib=free_gib, per_gpu_reserved_gib=per_gpu_reserved_gib,
             budget_gib=budget_gib, weights_gib=weights_gib, total_headroom_gib=total_headroom_gib,
@@ -563,9 +587,11 @@ def load_model_safe(spec: ModelSpec, bnb_status: Optional["environment.BnbStatus
         )
 
     if fit.placement == "sharded" and len(gpu_indices_used) < 2:
-        print(f"NOTE: {spec.slug} was given a sharded device_map but accelerate "
-              f"placed it entirely on GPU {gpu_indices_used}; the model fits on "
-              f"one GPU after all. This is not an error.")
+        print(f"WARNING: {spec.slug} was given a balanced sharded device_map "
+              f"across {num_gpus} GPU(s) but Accelerate placed it entirely on "
+              f"GPU {gpu_indices_used}; the requested multi-GPU placement was "
+              f"NOT achieved. gate1_load() below checks for this and fails "
+              f"the gate rather than silently proceeding on one GPU.")
 
     if spec.quantization == "nf4":
         has_4bit = any(type(m).__name__ == "Linear4bit" for m in model.modules())
@@ -610,9 +636,18 @@ def load_model_safe(spec: ModelSpec, bnb_status: Optional["environment.BnbStatus
     resolved_commit = getattr(model.config, "_commit_hash", None)
     input_device = model.get_input_embeddings().weight.device
 
+    # Per-GPU allocated memory, explicitly, so a sharded load's actual
+    # footprint on EVERY visible GPU (not just a combined total) is visible
+    # in the checkpointed manifest and printed below -- the direct evidence
+    # that GPU 1 (etc.) actually holds parameters, not just GPU 0.
+    per_gpu_allocated_gib = {
+        i: round(torch.cuda.memory_allocated(i) / (1024 ** 3), 3) for i in range(num_gpus)
+    }
+
     load_report = {
         "load_seconds": round(load_seconds, 2), "footprint_gib": round(footprint_gib, 3),
         "allocated_gib": round(allocated_gib, 3), "free_gib": round(free_gib_after, 3),
+        "per_gpu_allocated_gib": per_gpu_allocated_gib,
         "required_headroom_gib": required_headroom, "resolved_commit_hash": resolved_commit,
         "dtype": str(dtype),
         "device_map_summary": {str(k): str(v) for k, v in resolved_device_map.items()},
@@ -624,6 +659,7 @@ def load_model_safe(spec: ModelSpec, bnb_status: Optional["environment.BnbStatus
     print(f"MODEL LOADED: {spec.slug} in {load_report['load_seconds']}s, "
           f"placement={fit.placement}, gpus_used={sorted(gpu_indices_used) or [0]}, "
           f"footprint={load_report['footprint_gib']} GiB, free_after={load_report['free_gib']} GiB")
+    print(f"PER-GPU ALLOCATED for {spec.slug}: {per_gpu_allocated_gib}")
     return ModelHandle(spec=spec, model=model, tokenizer=tokenizer,
                         input_device=input_device, load_report=load_report)
 
