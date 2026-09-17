@@ -66,12 +66,14 @@ def load_json(path: str | Path) -> dict[str, Any]:
 
 
 def save_json(value: dict[str, Any], path: str | Path) -> Path:
-    """Write an artifact, creating parent directories and never mutating input."""
+    """Atomically write an artifact, creating parent directories."""
     destination = Path(path)
     destination.parent.mkdir(parents=True, exist_ok=True)
-    destination.write_text(
+    temporary = destination.with_name(f".{destination.name}.tmp")
+    temporary.write_text(
         json.dumps(value, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
+    temporary.replace(destination)
     return destination
 
 
@@ -332,7 +334,7 @@ def load_model(model_id: str, load_in_4bit: bool = True):
 
 
 def _generate(model: Any, tokenizer: Any, messages: list[dict[str, str]],
-              max_new_tokens: int) -> tuple[str, int | None]:
+              max_new_tokens: int, context_length: int = 8192) -> tuple[str, int | None]:
     import torch
 
     if hasattr(tokenizer, "apply_chat_template"):
@@ -341,7 +343,10 @@ def _generate(model: Any, tokenizer: Any, messages: list[dict[str, str]],
         )
     else:
         prompt = "\n\n".join(f"{item['role']}: {item['content']}" for item in messages)
-    encoded = tokenizer(prompt, return_tensors="pt")
+    input_limit = max(256, context_length - max_new_tokens)
+    encoded = tokenizer(
+        prompt, return_tensors="pt", truncation=True, max_length=input_limit
+    )
     device = next(model.parameters()).device
     encoded = {key: value.to(device) for key, value in encoded.items()}
     with torch.inference_mode():
@@ -362,6 +367,7 @@ def enrich_nodes(
     max_new_tokens: int = 768,
     retries: int = 2,
     limit: int | None = None,
+    context_length: int = 8192,
 ) -> dict[str, Any]:
     """Enrich nodes with resumable writes; one failed node does not abort a run."""
     base = load_json(input_json)
@@ -391,7 +397,8 @@ def enrich_nodes(
             used_retries = attempt
             try:
                 text, generated_tokens = _generate(
-                    model, tokenizer, build_enrichment_messages(function), max_new_tokens
+                    model, tokenizer, build_enrichment_messages(function),
+                    max_new_tokens, context_length
                 )
                 parsed, parse_reason = _parse_json_object(text)
                 valid, schema_reason = _valid_enrichment(parsed)

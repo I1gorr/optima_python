@@ -32,4 +32,4 @@ optima = "optima.__main__:main"
 optima-evaluate = "evaluation.run_evaluation:main"
 
 [tool.setuptools.packages.find]
-include = ["optima", "evaluation*"]
+include = ["optima", "evaluation*", "optima_kaggle"]

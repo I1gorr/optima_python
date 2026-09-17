@@ -1,5 +1,14 @@
+README.md
 pyproject.toml
+evaluation/__init__.py
+evaluation/run_evaluation.py
+evaluation/analysis/__init__.py
+evaluation/analysis/statistics.py
+evaluation/metrics/__init__.py
+evaluation/metrics/enrichment.py
+evaluation/metrics/retrieval.py
 optima/__init__.py
+optima/__main__.py
 optima/analyzer.py
 optima/cli.py
 optima/enricher.py
@@ -7,4 +16,8 @@ optima.egg-info/PKG-INFO
 optima.egg-info/SOURCES.txt
 optima.egg-info/dependency_links.txt
 optima.egg-info/entry_points.txt
+optima.egg-info/requires.txt
 optima.egg-info/top_level.txt
+tests/test_benchmark_generator.py
+tests/test_embedding_registry.py
+tests/test_evaluation.py

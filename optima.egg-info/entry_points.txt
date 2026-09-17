@@ -1,2 +1,3 @@
 [console_scripts]
-optima = optima.cli:main
+optima = optima.__main__:main
+optima-evaluate = evaluation.run_evaluation:main

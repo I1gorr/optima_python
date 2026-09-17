@@ -11,6 +11,7 @@ The loader also understands the historical ``indexes/<model>/<corpus>`` layout.
 
 import json
 import logging
+import os
 import re
 import time
 from dataclasses import asdict, dataclass
@@ -116,7 +117,18 @@ def _read_metadata(index_path: Path) -> Dict[str, Any]:
         return {}
 
 
-def get_embeddings(embedding_model_name: str):
+def _embedding_device() -> str:
+    configured = os.environ.get("OPTIMA_EMBEDDING_DEVICE", "auto").strip().lower()
+    if configured and configured != "auto":
+        return configured
+    try:
+        import torch
+        return "cuda" if torch.cuda.is_available() else "cpu"
+    except ImportError:
+        return "cpu"
+
+
+def get_embeddings(embedding_model_name: str, device: Optional[str] = None):
     """Load a registered model, falling back to deterministic embeddings."""
     spec = resolve_embedding_model(embedding_model_name)
     try:
@@ -124,9 +136,10 @@ def get_embeddings(embedding_model_name: str):
             raise RuntimeError("mock embedding requested")
         logger.info("Attempting to load embedding model %s (%s)", spec.alias, spec.model_name)
         from langchain_huggingface import HuggingFaceEmbeddings
+        selected_device = device or _embedding_device()
         return HuggingFaceEmbeddings(
             model_name=spec.model_name,
-            model_kwargs={"device": "cpu"},
+            model_kwargs={"device": selected_device},
             encode_kwargs={"normalize_embeddings": True},
         )
     except Exception as exc:
@@ -146,7 +159,8 @@ class OptimaEmbedder:
         self.embedding_model_name = self.embedding_spec.model_name
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
-        self.embeddings = get_embeddings(self.embedding_alias)
+        self.device = _embedding_device()
+        self.embeddings = get_embeddings(self.embedding_alias, self.device)
         self.text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=chunk_size, chunk_overlap=chunk_overlap, length_function=len
         )
@@ -222,6 +236,7 @@ class OptimaEmbedder:
             "estimated_tokens": total_chars // 4,
             "embedding_model": self.embedding_model_name,
             "embedding_alias": self.embedding_alias,
+            "device": self.device,
             "chunk_size": self.chunk_size,
             "chunk_overlap": self.chunk_overlap,
             "using_mock_embeddings": self.using_mock_embeddings,

@@ -35,6 +35,15 @@ def _find_libclang() -> Optional[Path]:
         if direct.exists():
             return direct
 
+    # Some 'clang'/'libclang' PyPI packages bundle their own precompiled native
+    # library right next to the Python bindings (clang/native/libclang.so).
+    # When present this is the best candidate: it is guaranteed to match the
+    # exact Python package version actually imported, avoiding any Python
+    # binding / native library version mismatch entirely.
+    bundled = Path(clang.cindex.__file__).resolve().parent / "native" / "libclang.so"
+    if bundled.exists():
+        return bundled
+
     found = ctypes.util.find_library("clang")
     if found:
         return Path(found)
@@ -592,8 +601,14 @@ def _clang_resource_dir(compiler: str) -> Optional[str]:
             [compiler, "-print-resource-dir"], capture_output=True, text=True, timeout=10
         )
         candidate = result.stdout.strip()
-        if result.returncode == 0 and candidate and (Path(candidate) / "include" / "stddef.h").exists():
-            resource_dir = candidate
+        if result.returncode == 0 and candidate:
+            candidate_path = Path(candidate)
+            # Most LLVM packaging puts builtin headers under <resource-dir>/include/,
+            # but some distributions (observed on Kaggle's LLVM install) put them
+            # directly under <resource-dir>/. Accept either layout rather than
+            # assuming one.
+            if (candidate_path / "include" / "stddef.h").exists() or (candidate_path / "stddef.h").exists():
+                resource_dir = candidate
     except (OSError, subprocess.TimeoutExpired):
         pass
     _RESOURCE_DIR_CACHE[compiler] = resource_dir
@@ -735,6 +750,18 @@ def analyze_project(project_path: Path, output_dir: Path) -> Path:
     for func in all_functions:
         func.calls = _extract_calls(func.cursor, function_map, str(project_path))
         func.dependencies = _extract_dependencies(func.cursor, project_path)
+
+    # Invert resolved calls into called_by so each function also knows its callers
+    # (previously always empty — nothing populated it after being initialized).
+    called_by_map: Dict[str, List[Dict[str, Any]]] = {}
+    for func in all_functions:
+        for call in func.calls:
+            if call.get("resolved") and call.get("id"):
+                called_by_map.setdefault(call["id"], []).append({
+                    "id": func.id, "name": func.name, "qualified_name": func.qualified_name,
+                })
+    for func in all_functions:
+        func.called_by = called_by_map.get(func.id, [])
 
     # Link each class to the methods that named it as their enclosing class.
     method_ids_by_class: Dict[str, List[str]] = {}
