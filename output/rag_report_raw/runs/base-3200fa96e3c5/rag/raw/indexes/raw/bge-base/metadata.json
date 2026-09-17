@@ -1,0 +1,17 @@
+{
+  "chunk_overlap": 200,
+  "chunk_size": 1000,
+  "corpus": "raw",
+  "corpus_type": "raw",
+  "created_at": "2026-09-17T16:36:51.897666+00:00",
+  "dimension": 768,
+  "document_count": 96,
+  "embedding_alias": "bge-base",
+  "embedding_model": "BAAI/bge-base-en-v1.5",
+  "num_chunks": 143,
+  "num_documents": 96,
+  "representation_mode": "raw",
+  "schema_version": 1,
+  "source_json": "/home/igorr/Projects/op-python/optima/output/rag_report_raw/runs/base-3200fa96e3c5/base/base.json",
+  "using_mock_embeddings": false
+}

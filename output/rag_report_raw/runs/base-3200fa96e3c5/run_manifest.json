@@ -1,0 +1,11 @@
+{
+  "base_sha256": "3200fa96e3c5154f0ed6c784be632fed3ab781fda774a777a196d02368891e01",
+  "base_url": "file:///home/igorr/Projects/op-python/optima/output/base.json",
+  "created_at": "2026-09-17T16:36:18.564285+00:00",
+  "optima_commit": "raw-eval-5models",
+  "last_session_id": "a20ce38e50824d068ad681841e1ee190",
+  "config": {},
+  "env": {},
+  "configured_models": [],
+  "models": {}
+}

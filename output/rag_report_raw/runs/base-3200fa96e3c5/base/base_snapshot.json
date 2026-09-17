@@ -1,0 +1,10 @@
+{
+  "path": "/home/igorr/Projects/op-python/optima/output/rag_report_raw/runs/base-3200fa96e3c5/base/base.json",
+  "sha256": "3200fa96e3c5154f0ed6c784be632fed3ab781fda774a777a196d02368891e01",
+  "bytes": 80166344,
+  "url": "file:///home/igorr/Projects/op-python/optima/output/base.json",
+  "etag": null,
+  "downloaded_at": "2026-09-17T16:36:15.028195+00:00",
+  "run_dir": "/home/igorr/Projects/op-python/optima/output/rag_report_raw/runs/base-3200fa96e3c5",
+  "compressed_sha256": null
+}

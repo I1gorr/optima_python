@@ -1,0 +1,30 @@
+{
+  "path": "/home/igorr/Projects/op-python/optima/output/rag_report_raw/runs/base-3200fa96e3c5/base/base.json",
+  "valid": true,
+  "status": "BASE JSON",
+  "files": 43,
+  "functions": 96,
+  "unique_function_ids": 96,
+  "analysis_status_counts": {
+    "llvm_function_not_found": 47,
+    "success": 40,
+    "source_only": 9
+  },
+  "presence_counts": {
+    "return_type": 96,
+    "parameters": 64,
+    "source_location": 96,
+    "ast": 96,
+    "cfg": 96,
+    "basic_blocks": 40,
+    "calls": 29,
+    "called_by": 0,
+    "dependencies": 0,
+    "llvm": 96,
+    "llvm_ir": 87,
+    "mangled_name": 96,
+    "compiler_error": 56
+  },
+  "empty_source_code_count": 0,
+  "checked_at": "2026-09-17T16:36:18.559913+00:00"
+}
