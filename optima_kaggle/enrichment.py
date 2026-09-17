@@ -964,7 +964,10 @@ def run_full_enrichment(ctx: Any, handle: Any, gen: GenerationSettings, snap: An
             f"See {out_path} and {attempts_log}."
         )
 
-    return {"enriched_json": out_path, "metrics": metrics, "partial": partial}
+    return {
+        "enriched_json": out_path, "metrics": metrics, "partial": partial,
+        "resumed_functions": already_completed, "processed_this_run": len(todo),
+    }
 
 
 def run_model_queue(ctx: Any, model_queue: list[str], gen_settings_factory: Any, bnb_status: Any,

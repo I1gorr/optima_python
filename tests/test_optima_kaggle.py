@@ -350,6 +350,24 @@ class ModelSpecTests(unittest.TestCase):
         spec = models.resolve_spec("qwen25-32b-instruct-nf4", num_gpus=2)
         self.assertEqual(spec.single_gpu_tier, "C")
 
+    def test_spec_from_model_id_builds_a_usable_spec_without_the_registry(self):
+        spec = models.spec_from_model_id("Qwen/Qwen2.5-Coder-7B-Instruct")
+        self.assertEqual(spec.model_id, "Qwen/Qwen2.5-Coder-7B-Instruct")
+        self.assertEqual(spec.quantization, "nf4")
+        self.assertEqual(spec.max_input_tokens, 1500)
+        self.assertEqual(spec.max_new_tokens, 256)
+        self.assertNotIn(spec.slug, models.MODEL_REGISTRY)  # confirms no registry involvement
+        # slug must be self-consistent with ModelSpec's own validation
+        models.ModelSpec(slug=spec.slug, model_id=spec.model_id, quantization=spec.quantization,
+                         single_gpu_tier=spec.single_gpu_tier, max_input_tokens=spec.max_input_tokens)
+
+    def test_spec_from_model_id_honors_overrides(self):
+        spec = models.spec_from_model_id("org/some-model", quantization="fp16",
+                                         max_input_tokens=800, max_new_tokens=128)
+        self.assertEqual(spec.quantization, "fp16")
+        self.assertEqual(spec.max_input_tokens, 800)
+        self.assertEqual(spec.max_new_tokens, 128)
+
 
 class ModelFitTests(unittest.TestCase):
     def test_estimate_weights_gib_against_real_hf_config(self):

@@ -170,6 +170,31 @@ def resolve_spec(name_or_slug: str, overrides: Optional[dict[str, Any]] = None,
     return spec
 
 
+def spec_from_model_id(model_id: str, quantization: str = "nf4",
+                        max_input_tokens: int = 1500, max_new_tokens: int = 256,
+                        revision: Optional[str] = None,
+                        chat_template_kwargs: Optional[dict[str, Any]] = None,
+                        strip_think: bool = False,
+                        allow_cpu_offload: bool = False) -> ModelSpec:
+    """Build a ModelSpec directly from a Hugging Face model ID, bypassing
+    MODEL_REGISTRY entirely -- for the simple "I type one model name and run
+    it" workflow, where nothing consults or refuses on a registry tier.
+    ``check_fit()``/``load_model_safe()`` are the same functions either way;
+    this only skips the registry lookup that ``resolve_spec()`` does.
+    """
+    from optima.rag.embedding_simple import _slug  # local import: no heavy deps
+
+    slug = _slug(model_id)
+    return ModelSpec(
+        slug=slug, model_id=model_id, quantization=quantization,
+        single_gpu_tier="B",  # unused for ad hoc specs: check_fit() is the only real gate
+        max_input_tokens=max_input_tokens, max_new_tokens=max_new_tokens,
+        revision=revision, chat_template_kwargs=chat_template_kwargs or {},
+        strip_think=strip_think, allow_cpu_offload=allow_cpu_offload,
+        notes=f"Ad hoc spec for {model_id} (built from MODEL_NAME, not MODEL_REGISTRY).",
+    )
+
+
 def estimate_weights_gib(spec: ModelSpec) -> dict[str, Any]:
     """Estimate weight memory using a meta-device model (no weight download)."""
     import torch
