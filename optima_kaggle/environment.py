@@ -132,6 +132,24 @@ def _cpu_ram_gib() -> Optional[float]:
     return None
 
 
+def cpu_free_ram_gib() -> Optional[float]:
+    """Currently available (not just free) CPU RAM, for CPU-offload budgeting.
+
+    ``MemAvailable`` (not ``MemFree``) is used because it already accounts
+    for reclaimable cache/buffers, which is what actually matters for "how
+    much RAM could a new large allocation use."
+    """
+    try:
+        with open("/proc/meminfo") as handle:
+            for line in handle:
+                if line.startswith("MemAvailable:"):
+                    kb = int(line.split()[1])
+                    return round(kb / (1024 * 1024), 2)
+    except OSError:
+        pass
+    return None
+
+
 def _internet_reachable(url: str = "https://huggingface.co", timeout: float = 5.0) -> bool:
     try:
         request = urllib.request.Request(url, method="HEAD")
@@ -166,13 +184,24 @@ def diagnose(hf_home: Optional[str] = None, working_dir: str = "/kaggle/working"
             "Settings panel before running the model-loading cells."
         )
 
-    props = torch.cuda.get_device_properties(0)
-    free_bytes, total_bytes = torch.cuda.mem_get_info()
+    num_gpus = torch.cuda.device_count()
+    gpus = []
+    for i in range(num_gpus):
+        props = torch.cuda.get_device_properties(i)
+        free_bytes, total_bytes = torch.cuda.mem_get_info(i)
+        gpus.append({
+            "index": i, "name": props.name,
+            "compute_capability": f"{props.major}.{props.minor}",
+            "total_vram_gib": round(total_bytes / (1024 ** 3), 3),
+            "free_vram_gib": round(free_bytes / (1024 ** 3), 3),
+        })
     info.update({
-        "gpu_name": props.name,
-        "compute_capability": f"{props.major}.{props.minor}",
-        "gpu_total_vram_gib": round(total_bytes / (1024 ** 3), 3),
-        "gpu_free_vram_gib": round(free_bytes / (1024 ** 3), 3),
+        "num_gpus": num_gpus, "multi_gpu_capable": num_gpus > 1, "gpus": gpus,
+        # Back-compat single-GPU convenience fields, mirroring GPU 0.
+        "gpu_name": gpus[0]["name"] if gpus else None,
+        "compute_capability": gpus[0]["compute_capability"] if gpus else None,
+        "gpu_total_vram_gib": gpus[0]["total_vram_gib"] if gpus else None,
+        "gpu_free_vram_gib": gpus[0]["free_vram_gib"] if gpus else None,
     })
 
     for label, path in (("working_dir", working_dir), ("hf_home", hf_home or os.environ.get("HF_HOME", ""))):
@@ -184,6 +213,12 @@ def diagnose(hf_home: Optional[str] = None, working_dir: str = "/kaggle/working"
                 info[f"{label}_disk_free_gib"] = None
 
     for key, value in info.items():
+        if key == "gpus":
+            for gpu in value:
+                print(f"  gpu[{gpu['index']}]                   {gpu['name']}, "
+                      f"cc={gpu['compute_capability']}, "
+                      f"free={gpu['free_vram_gib']}/{gpu['total_vram_gib']} GiB")
+            continue
         print(f"  {key:<26} {value}")
     return info
 
@@ -330,23 +365,52 @@ def require_bitsandbytes(status: BnbStatus, spec_slug: str) -> None:
 
 
 def gpu_report(label: str, log_path: Optional[Path] = None) -> dict[str, Any]:
-    """Print current GPU memory stats and optionally append them to a jsonl log."""
+    """Print current GPU memory stats for every visible GPU (plus an
+    aggregate) and optionally append the record to a jsonl log.
+
+    Never reads ``torch.cuda.memory_allocated()``/``mem_get_info()`` with no
+    argument: that silently means "current device only," which is misleading
+    once a model is sharded across more than one GPU.
+    """
     import torch
 
-    if not torch.cuda.is_available():
+    num_gpus = torch.cuda.device_count() if torch.cuda.is_available() else 0
+    if num_gpus == 0:
         record = {"label": label, "cuda_available": False, "timestamp": time.time()}
-    else:
-        free_bytes, total_bytes = torch.cuda.mem_get_info()
-        record = {
-            "label": label,
-            "allocated_gib": round(torch.cuda.memory_allocated() / (1024 ** 3), 4),
-            "reserved_gib": round(torch.cuda.memory_reserved() / (1024 ** 3), 4),
-            "max_allocated_gib": round(torch.cuda.max_memory_allocated() / (1024 ** 3), 4),
+        print(f"[gpu:{label}] cuda_available=False")
+        if log_path is not None:
+            log_path = Path(log_path)
+            log_path.parent.mkdir(parents=True, exist_ok=True)
+            with log_path.open("a", encoding="utf-8") as handle:
+                handle.write(json.dumps(record) + "\n")
+        return record
+
+    gpus = []
+    for i in range(num_gpus):
+        free_bytes, total_bytes = torch.cuda.mem_get_info(i)
+        gpus.append({
+            "index": i,
+            "allocated_gib": round(torch.cuda.memory_allocated(i) / (1024 ** 3), 4),
+            "reserved_gib": round(torch.cuda.memory_reserved(i) / (1024 ** 3), 4),
+            "max_allocated_gib": round(torch.cuda.max_memory_allocated(i) / (1024 ** 3), 4),
             "free_gib": round(free_bytes / (1024 ** 3), 4),
             "total_gib": round(total_bytes / (1024 ** 3), 4),
-            "timestamp": time.time(),
-        }
-    print(f"[gpu:{label}] " + ", ".join(f"{k}={v}" for k, v in record.items() if k != "label"))
+        })
+    aggregate = {
+        "allocated_gib": round(sum(g["allocated_gib"] for g in gpus), 4),
+        "reserved_gib": round(sum(g["reserved_gib"] for g in gpus), 4),
+        "max_allocated_gib": round(sum(g["max_allocated_gib"] for g in gpus), 4),
+        "free_gib": round(min(g["free_gib"] for g in gpus), 4),
+        "total_gib": round(sum(g["total_gib"] for g in gpus), 4),
+    }
+    record = {"label": label, "gpus": gpus, "aggregate": aggregate, "timestamp": time.time()}
+
+    per_gpu_text = " | ".join(
+        f"gpu{g['index']}: alloc={g['allocated_gib']} free={g['free_gib']}/{g['total_gib']}"
+        for g in gpus
+    )
+    print(f"[gpu:{label}] {per_gpu_text} || total_alloc={aggregate['allocated_gib']}, "
+          f"min_free={aggregate['free_gib']}")
     if log_path is not None:
         log_path = Path(log_path)
         log_path.parent.mkdir(parents=True, exist_ok=True)
@@ -356,14 +420,21 @@ def gpu_report(label: str, log_path: Optional[Path] = None) -> dict[str, Any]:
 
 
 def assert_gpu_clean(threshold_gib: float = 0.3) -> None:
+    """Check every visible GPU, not just the current device. A model sharded
+    across two GPUs that only unloads GPU 0 must still be caught here.
+    """
     import gc
 
     import torch
 
     from .errors import GpuNotCleanError
 
-    allocated_gib = torch.cuda.memory_allocated() / (1024 ** 3)
-    if allocated_gib < threshold_gib:
+    dirty = []
+    for i in range(torch.cuda.device_count()):
+        allocated_gib = torch.cuda.memory_allocated(i) / (1024 ** 3)
+        if allocated_gib >= threshold_gib:
+            dirty.append((i, round(allocated_gib, 3)))
+    if not dirty:
         return
     culprits = []
     try:
@@ -373,9 +444,10 @@ def assert_gpu_clean(threshold_gib: float = 0.3) -> None:
                 culprits.append(type_name)
     except Exception:  # noqa: BLE001 - best-effort diagnostic only
         pass
+    dirty_text = ", ".join(f"GPU {i}: {gib} GiB" for i, gib in dirty)
     raise GpuNotCleanError(
-        f"GPU memory was not released: {allocated_gib:.3f} GiB still allocated "
-        f"(threshold {threshold_gib} GiB). Live model-like objects found: "
+        f"GPU memory was not released on {len(dirty)} device(s) (threshold "
+        f"{threshold_gib} GiB): {dirty_text}. Live model-like objects found: "
         f"{sorted(set(culprits)) or 'none found by gc scan'}. "
         f"A stale reference (e.g. a notebook Out[] cache or sys.last_traceback) "
         f"is likely keeping the model alive."

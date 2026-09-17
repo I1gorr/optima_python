@@ -1,5 +1,6 @@
 """Model registry, VRAM fit estimation, and memory-conscious Hugging Face
-model loading/generation/unloading for a single T4 (or similar) GPU.
+model loading/generation/unloading across one or more GPUs (e.g. a single
+T4, or 2xT4 with model-parallel sharding for ~30B-class models).
 
 Nothing here imports torch/transformers/accelerate at module load time:
 those imports happen inside functions so that ``MODEL_REGISTRY`` and
@@ -10,6 +11,7 @@ packages installed.
 from __future__ import annotations
 
 import gc
+import json
 import time
 from dataclasses import dataclass, field, replace
 from typing import Any, Optional
@@ -23,8 +25,24 @@ from .errors import (
     ModelNotFeasibleError,
 )
 
-_VALID_TIERS = ("A", "B", "C")
+_VALID_SINGLE_GPU_TIERS = ("A", "B", "C")
 _VALID_QUANTS = ("fp16", "nf4", "nf4-prequantized")
+
+
+def _device_index(value: Any) -> Optional[int]:
+    """Normalize a hf_device_map value ("", 0, "cuda:1", torch.device(...), ...)
+    to a plain GPU index, or None if it is not a GPU (e.g. "cpu"/"disk")."""
+    if isinstance(value, int):
+        return value
+    text = str(value)
+    if text.startswith("cuda:"):
+        try:
+            return int(text.split(":", 1)[1])
+        except ValueError:
+            return None
+    if text.isdigit():
+        return int(text)
+    return None
 
 
 @dataclass(frozen=True)
@@ -32,17 +50,18 @@ class ModelSpec:
     slug: str
     model_id: str
     quantization: str  # "fp16" | "nf4" | "nf4-prequantized"
-    tier: str  # "A" (fits comfortably) | "B" (fits, tight) | "C" (does not fit on 1xT4)
+    single_gpu_tier: str  # "A" (fits 1xT4) | "B" (fits, tight) | "C" (does not fit 1xT4)
     max_input_tokens: int
     revision: Optional[str] = None
     max_new_tokens: int = 768
     chat_template_kwargs: dict[str, Any] = field(default_factory=dict)
     strip_think: bool = False
+    allow_cpu_offload: bool = False
     notes: str = ""
 
     def __post_init__(self) -> None:
-        if self.tier not in _VALID_TIERS:
-            raise ValueError(f"Invalid tier {self.tier!r} for {self.slug}")
+        if self.single_gpu_tier not in _VALID_SINGLE_GPU_TIERS:
+            raise ValueError(f"Invalid single_gpu_tier {self.single_gpu_tier!r} for {self.slug}")
         if self.quantization not in _VALID_QUANTS:
             raise ValueError(f"Invalid quantization {self.quantization!r} for {self.slug}")
         if self.slug in ("raw", "base"):
@@ -54,60 +73,83 @@ class ModelSpec:
 
 # Sizes are INFERRED estimates; the authoritative gate is check_fit(), which
 # runs a meta-device parameter count against the config actually resolved
-# from Hugging Face at call time.
+# from Hugging Face at call time, and is aware of every visible GPU.
 MODEL_REGISTRY: dict[str, ModelSpec] = {
     "qwen25-3b-instruct-fp16": ModelSpec(
         slug="qwen25-3b-instruct-fp16", model_id="Qwen/Qwen2.5-3B-Instruct",
-        quantization="fp16", tier="A", max_input_tokens=6144,
+        quantization="fp16", single_gpu_tier="A", max_input_tokens=6144,
         notes="Control model; works without bitsandbytes (~6.2 GiB weights).",
     ),
     "qwen25-7b-instruct-nf4": ModelSpec(
         slug="qwen25-7b-instruct-nf4", model_id="Qwen/Qwen2.5-7B-Instruct",
-        quantization="nf4", tier="A", max_input_tokens=6144,
-        notes="~5.5 GiB in nf4. Recommended default first model.",
+        quantization="nf4", single_gpu_tier="A", max_input_tokens=6144,
+        notes="~5.5 GiB in nf4. Recommended default first model. Fits a single "
+              "T4 even in a 2-GPU session (check_fit() picks single_gpu placement).",
     ),
     "qwen25-coder-7b-instruct-nf4": ModelSpec(
         slug="qwen25-coder-7b-instruct-nf4", model_id="Qwen/Qwen2.5-Coder-7B-Instruct",
-        quantization="nf4", tier="A", max_input_tokens=6144,
+        quantization="nf4", single_gpu_tier="A", max_input_tokens=6144,
         notes="Code-specialized 7B.",
     ),
     "qwen25-14b-instruct-nf4": ModelSpec(
         slug="qwen25-14b-instruct-nf4", model_id="Qwen/Qwen2.5-14B-Instruct",
-        quantization="nf4", tier="B", max_input_tokens=4096,
-        notes="~9.5-10 GiB in nf4; tight headroom on a 14.56 GiB T4.",
+        quantization="nf4", single_gpu_tier="B", max_input_tokens=4096,
+        notes="~9.5-10 GiB in nf4; tight headroom on one 14.56 GiB T4, "
+              "comfortable if allowed to shard across two.",
     ),
     "qwen25-coder-14b-instruct-nf4": ModelSpec(
         slug="qwen25-coder-14b-instruct-nf4", model_id="Qwen/Qwen2.5-Coder-14B-Instruct",
-        quantization="nf4", tier="B", max_input_tokens=4096,
+        quantization="nf4", single_gpu_tier="B", max_input_tokens=4096,
         notes="Code-specialized 14B; same headroom profile as qwen25-14b.",
     ),
     "qwen3-14b-nf4": ModelSpec(
         slug="qwen3-14b-nf4", model_id="Qwen/Qwen3-14B",
-        quantization="nf4", tier="B", max_input_tokens=4096,
+        quantization="nf4", single_gpu_tier="B", max_input_tokens=4096,
         chat_template_kwargs={"enable_thinking": False}, strip_think=True,
         notes="Needs transformers>=4.51 (NOT CONFIRMED on Kaggle's preinstalled version).",
     ),
     "qwen25-32b-instruct-nf4": ModelSpec(
         slug="qwen25-32b-instruct-nf4", model_id="Qwen/Qwen2.5-32B-Instruct",
-        quantization="nf4", tier="C", max_input_tokens=4096,
-        notes="~18-19 GiB in nf4. Does not fit on 1xT4; refused unless ALLOW_INFEASIBLE.",
+        quantization="nf4", single_gpu_tier="C", max_input_tokens=4096,
+        notes="~18-19 GiB in nf4. Does not fit 1xT4; fits across 2xT4 (29.1 GiB "
+              "combined) via sharded device_map='auto'. Refused on a single-GPU "
+              "session unless ALLOW_INFEASIBLE; on a 2-GPU session it is allowed "
+              "through to the real check_fit() gate.",
     ),
     "qwen3-30b-a3b-nf4": ModelSpec(
         slug="qwen3-30b-a3b-nf4", model_id="Qwen/Qwen3-30B-A3B",
-        quantization="nf4", tier="C", max_input_tokens=4096,
-        notes="MoE stores all experts regardless of active params; refused.",
+        quantization="nf4", single_gpu_tier="C", max_input_tokens=4096,
+        notes="MoE, ~30B total params (only ~3B active per token) -- nf4 storage "
+              "is driven by total params (every expert must reside somewhere), "
+              "~16-17 GiB estimated. Whether bitsandbytes quantizes the "
+              "fused-expert Linear layers the same way as a dense model is NOT "
+              "CONFIRMED; the Linear4bit presence check after loading verifies "
+              "this at runtime. Infeasible on 1xT4; expected to fit across 2xT4, "
+              "confirmed at runtime by check_fit(), not assumed here.",
     ),
     "deepseek-r1-distill-qwen-32b-nf4": ModelSpec(
         slug="deepseek-r1-distill-qwen-32b-nf4", model_id="deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
-        quantization="nf4", tier="C", max_input_tokens=4096,
+        quantization="nf4", single_gpu_tier="C", max_input_tokens=4096,
         strip_think=True,
-        notes="Does not fit; also emits long <think> output that conflicts with bounded JSON. Refused.",
+        notes="Same dense architecture/size class as Qwen2.5-32B (~18-19 GiB "
+              "nf4); fits across 2xT4. Still emits long <think>...</think> "
+              "output that conflicts with bounded JSON -- strip_think=True is "
+              "set, and expect more retries/output_truncated at the default "
+              "max_new_tokens.",
     ),
 }
 
 
 def resolve_spec(name_or_slug: str, overrides: Optional[dict[str, Any]] = None,
-                  allow_infeasible: bool = False) -> ModelSpec:
+                  num_gpus: int = 1, allow_infeasible: bool = False) -> ModelSpec:
+    """Resolve a registry slug to a ModelSpec.
+
+    ``single_gpu_tier`` is advisory metadata, not the feasibility gate: a
+    Tier C spec is refused here only when ``num_gpus < 2`` (a genuinely
+    single-GPU session). On a 2+ GPU session it resolves normally and is
+    left to ``check_fit()`` -- the sole authority on whether it actually
+    fits, sharded or otherwise.
+    """
     if name_or_slug not in MODEL_REGISTRY:
         raise KeyError(
             f"Unknown model slug {name_or_slug!r}. Known slugs: "
@@ -117,12 +159,13 @@ def resolve_spec(name_or_slug: str, overrides: Optional[dict[str, Any]] = None,
     spec = MODEL_REGISTRY[name_or_slug]
     if overrides:
         spec = replace(spec, **overrides)
-    if spec.tier == "C" and not allow_infeasible:
+    if spec.single_gpu_tier == "C" and num_gpus < 2 and not allow_infeasible:
         raise ModelNotFeasibleError(
-            f"{spec.slug} ({spec.model_id}) is classified Tier C: "
-            f"{spec.notes} It is refused on a single T4 unless "
-            f"allow_infeasible=True (and even then check_fit() will still "
-            f"block it if it genuinely does not fit)."
+            f"{spec.slug} ({spec.model_id}) is classified single_gpu_tier=C: "
+            f"{spec.notes} It is refused on a {num_gpus}-GPU session unless "
+            f"allow_infeasible=True or a second GPU is attached (num_gpus>=2), "
+            f"in which case check_fit() performs the real, GPU-count-aware "
+            f"feasibility check instead of this early refusal."
         )
     return spec
 
@@ -184,37 +227,124 @@ def required_headroom_gib(spec: ModelSpec, config: Any) -> float:
     return round(kv_gib + 1.0 + 0.3, 3)
 
 
-def check_fit(spec: ModelSpec, safety_factor: float = 0.95) -> dict[str, Any]:
-    """Pre-download VRAM fit check using a meta-device parameter count.
-    Raises ModelDoesNotFitError before any weight download if it will not fit.
+@dataclass
+class FitReport:
+    num_gpus: int
+    free_gib: list[float]
+    per_gpu_reserved_gib: list[float]
+    budget_gib: list[float]
+    weights_gib: float
+    total_headroom_gib: float
+    placement: str  # "single_gpu" | "sharded" | "sharded_cpu_offload"
+    fits: bool
+    chosen_gpu: Optional[int] = None
+    max_memory: Optional[dict[Any, str]] = None
+    cpu_budget_gib: Optional[float] = None
+
+
+def check_fit(spec: ModelSpec, num_gpus: Optional[int] = None,
+              allow_cpu_offload: Optional[bool] = None, safety_factor: float = 0.95) -> FitReport:
+    """Multi-GPU-aware pre-download VRAM fit check using a meta-device
+    parameter count. This is the sole feasibility gate for a model -- the
+    registry's ``single_gpu_tier`` (§6.1) is advisory only.
+
+    Decision order (prefer the simplest placement that works):
+    1. single_gpu  - one GPU alone holds weights + full headroom.
+    2. sharded     - the GPUs combined (each carrying its own apportioned
+                     headroom reservation) hold the weights.
+    3. sharded_cpu_offload - only if allow_cpu_offload; GPUs + a bounded
+                     slice of free CPU RAM hold the weights. Orders of
+                     magnitude slower; a documented last resort, not a
+                     default path.
+    Raises ModelDoesNotFitError if none of the above fit.
     """
     import torch
 
-    estimate = estimate_weights_gib(spec)
-    headroom_gib = required_headroom_gib(spec, estimate["config"])
-    free_bytes, _total_bytes = torch.cuda.mem_get_info()
-    free_gib = free_bytes / (1024 ** 3)
-    required_gib = estimate["weights_gib"] + headroom_gib
-    margin_gib = free_gib * safety_factor - required_gib
-
-    report = {
-        "slug": spec.slug, "model_id": spec.model_id, "quantization": spec.quantization,
-        "weights_gib": estimate["weights_gib"], "headroom_gib": headroom_gib,
-        "required_gib": round(required_gib, 3), "free_gib": round(free_gib, 3),
-        "margin_gib": round(margin_gib, 3), "fits": margin_gib >= 0,
-    }
-    print(f"FIT ESTIMATE for {spec.slug}: weights={report['weights_gib']} GiB, "
-          f"headroom={report['headroom_gib']} GiB, required={report['required_gib']} GiB, "
-          f"free={report['free_gib']} GiB, margin={report['margin_gib']} GiB")
-    if not report["fits"]:
+    num_gpus = num_gpus if num_gpus is not None else torch.cuda.device_count()
+    if num_gpus == 0:
         raise ModelDoesNotFitError(
-            f"{spec.slug} is estimated to need {report['required_gib']} GiB "
-            f"(weights {report['weights_gib']} + headroom {report['headroom_gib']}) "
-            f"but only {report['free_gib']} GiB is free (margin {report['margin_gib']} GiB). "
-            f"Try: lower max_input_tokens, switch to nf4 if not already, or "
-            f"choose a Tier A model."
+            f"No CUDA device is visible; cannot fit {spec.slug}. Enable a GPU runtime."
         )
-    return report
+    allow_cpu_offload = spec.allow_cpu_offload if allow_cpu_offload is None else allow_cpu_offload
+
+    estimate = estimate_weights_gib(spec)
+    weights_gib = estimate["weights_gib"]
+    total_headroom_gib = required_headroom_gib(spec, estimate["config"])
+
+    free_gib = [torch.cuda.mem_get_info(i)[0] / (1024 ** 3) for i in range(num_gpus)]
+    per_gpu_reserved_gib = [max(1.0, total_headroom_gib / num_gpus) for _ in range(num_gpus)]
+    budget_gib = [
+        max(0.0, free_gib[i] * safety_factor - per_gpu_reserved_gib[i]) for i in range(num_gpus)
+    ]
+
+    def _print_table(placement: str, fits: bool) -> None:
+        print(f"FIT ESTIMATE for {spec.slug} ({num_gpus} GPU(s)): "
+              f"weights={weights_gib} GiB, total_headroom={total_headroom_gib} GiB")
+        for i in range(num_gpus):
+            print(f"  gpu[{i}]: free={round(free_gib[i], 3)} GiB, "
+                  f"reserved={round(per_gpu_reserved_gib[i], 3)} GiB, "
+                  f"budget={round(budget_gib[i], 3)} GiB")
+        print(f"  decision: placement={placement}, fits={fits}")
+
+    # 1. Single-GPU fit: does one GPU alone hold weights + the model's FULL
+    #    (non-apportioned) headroom?
+    single_gpu_margins = [
+        free_gib[i] * safety_factor - total_headroom_gib - weights_gib for i in range(num_gpus)
+    ]
+    best_single_gpu = max(range(num_gpus), key=lambda i: free_gib[i])
+    if single_gpu_margins[best_single_gpu] >= 0:
+        report = FitReport(
+            num_gpus=num_gpus, free_gib=free_gib, per_gpu_reserved_gib=per_gpu_reserved_gib,
+            budget_gib=budget_gib, weights_gib=weights_gib, total_headroom_gib=total_headroom_gib,
+            placement="single_gpu", fits=True, chosen_gpu=best_single_gpu, max_memory=None,
+        )
+        _print_table("single_gpu", True)
+        return report
+
+    # 2. Sharded fit: do the GPUs combined (each with its own apportioned
+    #    headroom reservation) hold the weights?
+    if sum(budget_gib) >= weights_gib:
+        max_memory = {i: f"{budget_gib[i]:.2f}GiB" for i in range(num_gpus) if budget_gib[i] > 0}
+        report = FitReport(
+            num_gpus=num_gpus, free_gib=free_gib, per_gpu_reserved_gib=per_gpu_reserved_gib,
+            budget_gib=budget_gib, weights_gib=weights_gib, total_headroom_gib=total_headroom_gib,
+            placement="sharded", fits=True, max_memory=max_memory,
+        )
+        _print_table("sharded", True)
+        return report
+
+    # 3. Sharded + CPU offload: opt-in only, and only as a last resort.
+    if allow_cpu_offload:
+        cpu_budget_gib = (environment.cpu_free_ram_gib() or 0.0) * 0.7
+        if sum(budget_gib) + cpu_budget_gib >= weights_gib:
+            max_memory = {i: f"{budget_gib[i]:.2f}GiB" for i in range(num_gpus) if budget_gib[i] > 0}
+            max_memory["cpu"] = f"{cpu_budget_gib:.2f}GiB"
+            print(f"WARNING: {spec.slug} requires CPU offload to fit "
+                  f"({cpu_budget_gib:.2f} GiB of CPU RAM will hold some layers). "
+                  f"This is an order of magnitude slower than pure-GPU generation "
+                  f"and is NOT comparable to other models' latency; "
+                  f"used_cpu_offload=True will be recorded.")
+            report = FitReport(
+                num_gpus=num_gpus, free_gib=free_gib, per_gpu_reserved_gib=per_gpu_reserved_gib,
+                budget_gib=budget_gib, weights_gib=weights_gib, total_headroom_gib=total_headroom_gib,
+                placement="sharded_cpu_offload", fits=True, max_memory=max_memory,
+                cpu_budget_gib=cpu_budget_gib,
+            )
+            _print_table("sharded_cpu_offload", True)
+            return report
+
+    _print_table("none", False)
+    cpu_note = (
+        "CPU offload was considered but insufficient." if allow_cpu_offload
+        else "CPU offload was not enabled for this model (allow_cpu_offload=False)."
+    )
+    raise ModelDoesNotFitError(
+        f"{spec.slug} does not fit: weights={weights_gib} GiB, "
+        f"total_headroom={total_headroom_gib} GiB, per-GPU free={[round(g, 2) for g in free_gib]} GiB "
+        f"across {num_gpus} GPU(s). {cpu_note} "
+        f"Try: lower max_input_tokens, confirm nf4 quantization is selected, "
+        f"attach a second GPU, or (if appropriate for this model) enable allow_cpu_offload."
+    )
 
 
 def check_disk_for_download(spec: ModelSpec, hf_home: Optional[str] = None) -> dict[str, Any]:
@@ -253,18 +383,21 @@ class ModelHandle:
 
 
 def load_model_safe(spec: ModelSpec, bnb_status: Optional["environment.BnbStatus"] = None) -> ModelHandle:
-    """Load a causal LM with explicit, single-GPU placement and full
-    post-load verification. Never falls back from nf4 to fp16.
+    """Load a causal LM with explicit device placement -- a single GPU when
+    the model fits one, or an accelerate-dispatched shard across every
+    visible GPU (with an explicit, pre-computed ``max_memory``) when it does
+    not -- and full post-load verification. Never falls back from nf4 to fp16.
     """
     import torch
     from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
-    if not torch.cuda.is_available():
+    num_gpus = torch.cuda.device_count()
+    if num_gpus == 0:
         raise ModelLoadError(
             f"CUDA is unavailable; cannot load {spec.model_id}.", category="load_failed",
         )
 
-    check_fit(spec)
+    fit = check_fit(spec, num_gpus=num_gpus)
     check_disk_for_download(spec)
 
     if spec.quantization == "nf4":
@@ -291,13 +424,27 @@ def load_model_safe(spec: ModelSpec, bnb_status: Optional["environment.BnbStatus
             f"prompts consistently.", category="load_failed", stage="tokenizer",
         )
 
+    # Both T4s share the same compute capability, so a single dtype decision
+    # (read from GPU 0) is correct even when sharding across both; a
+    # heterogeneous GPU pair would need a per-GPU dtype decision, out of scope.
     major, _minor = torch.cuda.get_device_capability(0)
     dtype = torch.bfloat16 if major >= 8 else torch.float16
 
+    if fit.placement == "single_gpu":
+        device_map: Any = {"": fit.chosen_gpu}
+    else:
+        # "sharded" / "sharded_cpu_offload": always pass the explicit
+        # max_memory computed by check_fit() -- never a bare device_map="auto"
+        # with no max_memory, which is the exact mechanism that produced the
+        # original single-GPU OOM (it fills whichever GPU it starts with).
+        device_map = "auto"
+
     load_kwargs: dict[str, Any] = {
-        "revision": spec.revision, "device_map": {"": 0}, "low_cpu_mem_usage": True,
+        "revision": spec.revision, "device_map": device_map, "low_cpu_mem_usage": True,
         "attn_implementation": "sdpa",
     }
+    if fit.placement != "single_gpu":
+        load_kwargs["max_memory"] = fit.max_memory
     try:
         from transformers import __version__ as _tf_version
         if tuple(int(p) for p in _tf_version.split(".")[:2]) >= (4, 56):
@@ -330,17 +477,36 @@ def load_model_safe(spec: ModelSpec, bnb_status: Optional["environment.BnbStatus
     load_seconds = time.perf_counter() - start
 
     model.eval()
-    device_map = getattr(model, "hf_device_map", None) or {"": 0}
-    allowed_devices = {0, "cuda:0"}
-    bad_devices = {v for v in device_map.values() if v not in allowed_devices}
+    resolved_device_map = getattr(model, "hf_device_map", None) or {"": fit.chosen_gpu or 0}
+
+    # Print the full device map unconditionally: this is the artifact that
+    # lets the user visually confirm a sharded 30B-class load actually landed
+    # on both cuda:0 and cuda:1. A single-GPU load legitimately shows only
+    # one device -- that is expected, not a failure.
+    print(f"DEVICE MAP for {spec.slug}:")
+    print(json.dumps({str(k): str(v) for k, v in resolved_device_map.items()}, indent=2))
+
+    gpu_indices_used = {
+        idx for idx in (_device_index(v) for v in resolved_device_map.values()) if idx is not None
+    }
+    allowed = {i for i in range(num_gpus)} | {f"cuda:{i}" for i in range(num_gpus)}
+    if fit.placement == "sharded_cpu_offload":
+        allowed = allowed | {"cpu"}
+    bad_devices = {v for v in resolved_device_map.values() if v not in allowed}
     if bad_devices:
         del model
         _cleanup_gpu()
         raise ModelLoadError(
-            f"{spec.model_id} was placed on non-GPU-0 devices {bad_devices} "
-            f"(CPU/disk offload is not supported by this pipeline).",
+            f"{spec.model_id} was placed on unsupported devices {bad_devices} "
+            f"(disk offload is never supported; CPU offload is only allowed "
+            f"when placement=='sharded_cpu_offload', currently {fit.placement!r}).",
             category="load_failed",
         )
+
+    if fit.placement == "sharded" and len(gpu_indices_used) < 2:
+        print(f"NOTE: {spec.slug} was given a sharded device_map but accelerate "
+              f"placed it entirely on GPU {gpu_indices_used}; the model fits on "
+              f"one GPU after all. This is not an error.")
 
     if spec.quantization == "nf4":
         has_4bit = any(type(m).__name__ == "Linear4bit" for m in model.modules())
@@ -354,33 +520,50 @@ def load_model_safe(spec: ModelSpec, bnb_status: Optional["environment.BnbStatus
             )
 
     footprint_gib = model.get_memory_footprint() / (1024 ** 3)
-    allocated_gib = torch.cuda.memory_allocated() / (1024 ** 3)
-    free_bytes, _total = torch.cuda.mem_get_info()
-    free_gib = free_bytes / (1024 ** 3)
+    allocated_gib = sum(torch.cuda.memory_allocated(i) for i in range(num_gpus)) / (1024 ** 3)
+
+    # Per-GPU headroom check: every GPU actually holding part of the model
+    # must independently satisfy the reservation check_fit() used to build
+    # max_memory. A single under-provisioned GPU (often GPU 0, which
+    # device_map="auto" typically also loads with embedding/LM-head/first
+    # layer overhead) is named specifically rather than averaged away.
     required_headroom = required_headroom_gib(spec, model.config)
-    if free_gib < required_headroom:
+    insufficient = []
+    for i in sorted(gpu_indices_used) or [0]:
+        free_i_gib = torch.cuda.mem_get_info(i)[0] / (1024 ** 3)
+        reserved_i_gib = fit.per_gpu_reserved_gib[i] if i < len(fit.per_gpu_reserved_gib) else required_headroom
+        if free_i_gib < reserved_i_gib:
+            insufficient.append((i, round(free_i_gib, 3), round(reserved_i_gib, 3)))
+    if insufficient:
         del model
         _cleanup_gpu()
+        detail = ", ".join(f"GPU {i}: {free} GiB free < {reserved} GiB reserved"
+                           for i, free, reserved in insufficient)
         raise InsufficientHeadroomError(
             f"{spec.model_id} loaded (footprint {footprint_gib:.2f} GiB) but "
-            f"only {free_gib:.2f} GiB free VRAM remains, below the required "
-            f"headroom of {required_headroom:.2f} GiB for "
+            f"{len(insufficient)} GPU(s) are below their reserved headroom for "
             f"max_input_tokens={spec.max_input_tokens}+max_new_tokens="
-            f"{spec.max_new_tokens}. Lower max_input_tokens or choose a "
-            f"smaller/more-quantized model."
+            f"{spec.max_new_tokens}: {detail}. Lower max_input_tokens or "
+            f"choose a smaller/more-quantized model."
         )
+    free_gib_after = min(torch.cuda.mem_get_info(i)[0] for i in range(num_gpus)) / (1024 ** 3)
 
     resolved_commit = getattr(model.config, "_commit_hash", None)
     input_device = model.get_input_embeddings().weight.device
 
     load_report = {
         "load_seconds": round(load_seconds, 2), "footprint_gib": round(footprint_gib, 3),
-        "allocated_gib": round(allocated_gib, 3), "free_gib": round(free_gib, 3),
+        "allocated_gib": round(allocated_gib, 3), "free_gib": round(free_gib_after, 3),
         "required_headroom_gib": required_headroom, "resolved_commit_hash": resolved_commit,
-        "dtype": str(dtype), "device_map_summary": {str(k): str(v) for k, v in device_map.items()},
+        "dtype": str(dtype),
+        "device_map_summary": {str(k): str(v) for k, v in resolved_device_map.items()},
         "has_linear4bit": spec.quantization == "nf4",
+        "gpu_placement": fit.placement, "gpu_count_used": len(gpu_indices_used) or 1,
+        "used_cpu_offload": fit.placement == "sharded_cpu_offload",
+        "fit_report": vars(fit),
     }
     print(f"MODEL LOADED: {spec.slug} in {load_report['load_seconds']}s, "
+          f"placement={fit.placement}, gpus_used={sorted(gpu_indices_used) or [0]}, "
           f"footprint={load_report['footprint_gib']} GiB, free_after={load_report['free_gib']} GiB")
     return ModelHandle(spec=spec, model=model, tokenizer=tokenizer,
                         input_device=input_device, load_report=load_report)
@@ -434,7 +617,11 @@ def generate_text(handle: ModelHandle, messages: list[dict[str, str]],
     input_tokens = int(encoded["input_ids"].shape[1])
     encoded = {key: value.to(handle.input_device) for key, value in encoded.items()}
 
-    torch.cuda.reset_peak_memory_stats()
+    # Reset stats on every visible GPU, not just torch.cuda.current_device()
+    # (the bare no-argument form), which would silently miss a second GPU
+    # holding part of a sharded model.
+    for i in range(torch.cuda.device_count()):
+        torch.cuda.reset_peak_memory_stats(i)
     gen_kwargs: dict[str, Any] = {
         "max_new_tokens": max_new_tokens, "do_sample": do_sample,
         "repetition_penalty": 1.0, "pad_token_id": tokenizer.pad_token_id,
@@ -468,9 +655,13 @@ def generate_text(handle: ModelHandle, messages: list[dict[str, str]],
     if spec.strip_think:
         text, think_stripped = _strip_think(text)
 
-    peak_allocated_gib = torch.cuda.max_memory_allocated() / (1024 ** 3)
-    free_bytes, _total = torch.cuda.mem_get_info()
-    free_after_gib = free_bytes / (1024 ** 3)
+    # Aggregate across every visible GPU: peak is the SUM (a sharded model's
+    # total footprint is what determines whether the next model fits, not
+    # any single device's number); free is the MIN (the tightest GPU is what
+    # will OOM first on the next call, not the average or the sum).
+    num_gpus = torch.cuda.device_count()
+    peak_allocated_gib = sum(torch.cuda.max_memory_allocated(i) for i in range(num_gpus)) / (1024 ** 3)
+    free_after_gib = min(torch.cuda.mem_get_info(i)[0] for i in range(num_gpus)) / (1024 ** 3)
 
     del encoded, output, generated_ids
 
@@ -483,12 +674,22 @@ def generate_text(handle: ModelHandle, messages: list[dict[str, str]],
 
 
 def _cleanup_gpu() -> None:
+    """Release cached allocator memory on EVERY visible GPU.
+
+    torch.cuda.empty_cache() and torch.cuda.reset_peak_memory_stats() with no
+    explicit device act on torch.cuda.current_device() only -- calling them
+    once, unscoped, after unloading a model sharded across GPU 0 and GPU 1
+    would silently leave GPU 1's cached allocator memory unreleased.
+    """
     import torch
     gc.collect()
     gc.collect()
     if torch.cuda.is_available():
-        torch.cuda.empty_cache()
-        torch.cuda.ipc_collect()
+        for i in range(torch.cuda.device_count()):
+            with torch.cuda.device(i):
+                torch.cuda.empty_cache()
+                torch.cuda.reset_peak_memory_stats()
+        torch.cuda.ipc_collect()  # process-global, not per-device
 
 
 def unload_model(handle: Optional[ModelHandle], delete_cache: bool = False) -> None:

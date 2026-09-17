@@ -410,11 +410,18 @@ class Checkpoint:
 
 
 def materialize(ctx: Any, snap: Any, spec: Any, gen: GenerationSettings, ckpt: Checkpoint,
-                 elapsed: float, partial: bool, resolved_commit_hash: Optional[str] = None) -> Path:
+                 elapsed: float, partial: bool, load_report: Optional[dict[str, Any]] = None) -> Path:
     """Rebuild enhanced_<slug>.json from base.json + the checkpoint. Always
     safe to call (even mid-run): a torn enhanced_*.json can never lose work
     because the checkpoint, not this file, is authoritative.
+
+    ``load_report`` is ``ModelHandle.load_report`` (models.py) -- its
+    ``resolved_commit_hash``/``gpu_placement``/``gpu_count_used``/
+    ``used_cpu_offload`` fields are threaded into ``enrichment_metadata``
+    below so the multi-GPU placement a model actually used is visible in the
+    comparison table (§20), not just its success rate.
     """
+    load_report = load_report or {}
     from colab.colab_pipeline import flatten_functions, load_json, save_json
     from optima.enricher import _dataset_metrics
 
@@ -448,11 +455,14 @@ def materialize(ctx: Any, snap: Any, spec: Any, gen: GenerationSettings, ckpt: C
 
     result["enrichment_metadata"] = {
         "provider": "Hugging Face Transformers", "model": spec.model_id,
-        "model_slug": spec.slug, "resolved_commit_hash": resolved_commit_hash,
+        "model_slug": spec.slug, "resolved_commit_hash": load_report.get("resolved_commit_hash"),
         "quantization": spec.quantization, "total_functions": len(functions),
         "enriched_functions": enriched_count, "failed_functions": failed_count,
         "partial": partial, "started_at": (ckpt.header or {}).get("created_at"),
         "completed_at": _now_iso(),
+        "gpu_placement": load_report.get("gpu_placement"),
+        "gpu_count_used": load_report.get("gpu_count_used"),
+        "used_cpu_offload": load_report.get("used_cpu_offload", False),
     }
     result["experiment"] = {
         "model": spec.model_id, "temperature": gen.temperature if gen.do_sample else None,
@@ -794,14 +804,14 @@ def run_full_enrichment(ctx: Any, handle: Any, gen: GenerationSettings, snap: An
                     )
             if (index + 1) % materialize_every == 0:
                 materialize(ctx, snap, handle.spec, gen, ckpt, time.perf_counter() - start, partial=True,
-                           resolved_commit_hash=handle.load_report.get("resolved_commit_hash"))
+                           load_report=handle.load_report)
             if (index + 1) % 10 == 0:
                 environment.gpu_report(f"{slug}: after {index + 1}/{len(todo)}", ctx.gpu_log_path)
         partial = False
     finally:
         elapsed = time.perf_counter() - start
         out_path = materialize(ctx, snap, handle.spec, gen, ckpt, elapsed, partial=partial,
-                              resolved_commit_hash=handle.load_report.get("resolved_commit_hash"))
+                              load_report=handle.load_report)
         if partial:
             ctx.set_model_status(slug, "enrichment_incomplete", {"enriched_json": str(out_path)})
 
@@ -829,23 +839,31 @@ def run_full_enrichment(ctx: Any, handle: Any, gen: GenerationSettings, snap: An
 
 
 def run_model_queue(ctx: Any, model_queue: list[str], gen_settings_factory: Any, bnb_status: Any,
-                     stop_on_failure: bool = True, allow_infeasible: bool = False,
-                     delete_cache_after_unload: bool = True, max_consecutive_failures: int = 5,
-                     materialize_every: int = 10, min_success_rate: float = 0.95) -> dict[str, Any]:
+                     num_gpus: Optional[int] = None, stop_on_failure: bool = True,
+                     allow_infeasible: bool = False, delete_cache_after_unload: bool = True,
+                     max_consecutive_failures: int = 5, materialize_every: int = 10,
+                     min_success_rate: float = 0.95) -> dict[str, Any]:
     """Run check_fit -> load -> gates 1-4 -> full enrichment -> unload for
     each queued model slug, using the exact same functions the single-model
-    notebook cells use.
+    notebook cells use. ``num_gpus`` defaults to ``torch.cuda.device_count()``
+    when not given -- resolve_spec/check_fit both re-derive it internally
+    too, so a stale caller-supplied value can only affect the early,
+    advisory single_gpu_tier refusal in resolve_spec, never the real fit
+    decision.
     """
-    from . import models
+    from . import environment, models
+
+    if num_gpus is None:
+        import torch
+        num_gpus = torch.cuda.device_count()
 
     results: dict[str, Any] = {}
     for slug in model_queue:
         handle = None
         try:
-            spec = models.resolve_spec(slug, allow_infeasible=allow_infeasible)
+            spec = models.resolve_spec(slug, num_gpus=num_gpus, allow_infeasible=allow_infeasible)
             gen = gen_settings_factory(spec)
-            models.check_fit(spec)
-            from . import environment
+            models.check_fit(spec, num_gpus=num_gpus)
             environment.gpu_report(f"{slug}: before load", ctx.gpu_log_path)
             handle = models.load_model_safe(spec, bnb_status)
             environment.gpu_report(f"{slug}: after load", ctx.gpu_log_path)

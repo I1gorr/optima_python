@@ -74,9 +74,11 @@ class FakeTokenizer:
         return {"input_ids": ids}
 
 
-def _fake_spec(max_input_tokens=50, max_new_tokens=32, quantization="fp16", tier="A", slug="fake-model"):
+def _fake_spec(max_input_tokens=50, max_new_tokens=32, quantization="fp16",
+                single_gpu_tier="A", slug="fake-model", allow_cpu_offload=False):
     return models.ModelSpec(
-        slug=slug, model_id="fake-org/fake-model", quantization=quantization, tier=tier,
+        slug=slug, model_id="fake-org/fake-model", quantization=quantization,
+        single_gpu_tier=single_gpu_tier, allow_cpu_offload=allow_cpu_offload,
         max_input_tokens=max_input_tokens, max_new_tokens=max_new_tokens,
     )
 
@@ -328,19 +330,24 @@ class FreezeBenchmarkTests(unittest.TestCase):
 class ModelSpecTests(unittest.TestCase):
     def test_slug_cannot_collide_with_reserved_corpus_names(self):
         with self.assertRaises(ValueError):
-            models.ModelSpec(slug="raw", model_id="x", quantization="fp16", tier="A", max_input_tokens=10)
+            models.ModelSpec(slug="raw", model_id="x", quantization="fp16",
+                             single_gpu_tier="A", max_input_tokens=10)
 
     def test_resolve_unknown_slug_raises_key_error(self):
         with self.assertRaises(KeyError):
             models.resolve_spec("not-a-real-model")
 
-    def test_tier_c_is_refused_by_default(self):
+    def test_tier_c_is_refused_on_single_gpu_by_default(self):
         with self.assertRaises(ModelNotFeasibleError):
-            models.resolve_spec("qwen25-32b-instruct-nf4")
+            models.resolve_spec("qwen25-32b-instruct-nf4", num_gpus=1)
 
-    def test_tier_c_can_be_force_resolved(self):
-        spec = models.resolve_spec("qwen25-32b-instruct-nf4", allow_infeasible=True)
-        self.assertEqual(spec.tier, "C")
+    def test_tier_c_can_be_force_resolved_on_single_gpu(self):
+        spec = models.resolve_spec("qwen25-32b-instruct-nf4", num_gpus=1, allow_infeasible=True)
+        self.assertEqual(spec.single_gpu_tier, "C")
+
+    def test_tier_c_resolves_normally_with_two_gpus(self):
+        spec = models.resolve_spec("qwen25-32b-instruct-nf4", num_gpus=2)
+        self.assertEqual(spec.single_gpu_tier, "C")
 
 
 class ModelFitTests(unittest.TestCase):
@@ -356,27 +363,66 @@ class ModelFitTests(unittest.TestCase):
         self.assertGreater(info["quantizable_params"], info["other_params"])
         self.assertTrue(4.0 <= info["weights_gib"] <= 8.0, info["weights_gib"])
 
+    @staticmethod
+    def _fake_estimate(weights_gib, config=None):
+        config = config or mock.Mock(num_hidden_layers=2, num_key_value_heads=2, hidden_size=64,
+                                     num_attention_heads=2, head_dim=32)
+        return {"weights_gib": weights_gib, "config": config, "quantizable_params": 1, "other_params": 1}
+
     def test_check_fit_raises_when_synthetic_free_memory_is_too_small(self):
         spec = _fake_spec()
-        fake_config = mock.Mock(num_hidden_layers=2, num_key_value_heads=2, hidden_size=64,
-                                num_attention_heads=2, head_dim=32)
-        with mock.patch.object(models, "estimate_weights_gib",
-                               return_value={"weights_gib": 10.0, "config": fake_config,
-                                            "quantizable_params": 1, "other_params": 1}), \
+        with mock.patch.object(models, "estimate_weights_gib", return_value=self._fake_estimate(10.0)), \
              mock.patch("torch.cuda.mem_get_info", return_value=(1 * 1024**3, 8 * 1024**3)):
             with self.assertRaises(ModelDoesNotFitError):
-                models.check_fit(spec)
+                models.check_fit(spec, num_gpus=1)
 
-    def test_check_fit_passes_when_synthetic_free_memory_is_large(self):
+    def test_check_fit_chooses_single_gpu_placement_when_one_gpu_suffices(self):
         spec = _fake_spec()
-        fake_config = mock.Mock(num_hidden_layers=2, num_key_value_heads=2, hidden_size=64,
-                                num_attention_heads=2, head_dim=32)
-        with mock.patch.object(models, "estimate_weights_gib",
-                               return_value={"weights_gib": 1.0, "config": fake_config,
-                                            "quantizable_params": 1, "other_params": 1}), \
+        with mock.patch.object(models, "estimate_weights_gib", return_value=self._fake_estimate(1.0)), \
              mock.patch("torch.cuda.mem_get_info", return_value=(20 * 1024**3, 24 * 1024**3)):
-            report = models.check_fit(spec)
-            self.assertTrue(report["fits"])
+            report = models.check_fit(spec, num_gpus=1)
+            self.assertTrue(report.fits)
+            self.assertEqual(report.placement, "single_gpu")
+            self.assertEqual(report.chosen_gpu, 0)
+            self.assertIsNone(report.max_memory)
+
+    def test_check_fit_shards_across_two_gpus_when_neither_alone_suffices(self):
+        spec = _fake_spec()
+        # Each GPU has 8 GiB free; 10 GiB of weights needs both combined,
+        # but no single GPU (8 GiB) could hold 10 GiB + headroom alone.
+        with mock.patch.object(models, "estimate_weights_gib", return_value=self._fake_estimate(10.0)), \
+             mock.patch("torch.cuda.mem_get_info", return_value=(8 * 1024 ** 3, 12 * 1024 ** 3)):
+            report = models.check_fit(spec, num_gpus=2)
+            self.assertTrue(report.fits)
+            self.assertEqual(report.placement, "sharded")
+            self.assertEqual(set(report.max_memory.keys()), {0, 1})
+            self.assertIsNone(report.chosen_gpu)
+
+    def test_check_fit_raises_when_even_sharded_across_two_gpus_does_not_fit(self):
+        spec = _fake_spec(allow_cpu_offload=False)
+        with mock.patch.object(models, "estimate_weights_gib", return_value=self._fake_estimate(100.0)), \
+             mock.patch("torch.cuda.mem_get_info", return_value=(6 * 1024 ** 3, 8 * 1024 ** 3)):
+            with self.assertRaises(ModelDoesNotFitError):
+                models.check_fit(spec, num_gpus=2)
+
+    def test_check_fit_falls_back_to_cpu_offload_when_allowed_and_sufficient(self):
+        spec = _fake_spec(allow_cpu_offload=True)
+        with mock.patch.object(models, "estimate_weights_gib", return_value=self._fake_estimate(20.0)), \
+             mock.patch("torch.cuda.mem_get_info", return_value=(6 * 1024 ** 3, 8 * 1024 ** 3)), \
+             mock.patch.object(environment, "cpu_free_ram_gib", return_value=50.0):
+            report = models.check_fit(spec, num_gpus=2, allow_cpu_offload=True)
+            self.assertTrue(report.fits)
+            self.assertEqual(report.placement, "sharded_cpu_offload")
+            self.assertIn("cpu", report.max_memory)
+            self.assertIsNotNone(report.cpu_budget_gib)
+
+    def test_check_fit_does_not_use_cpu_offload_unless_allowed(self):
+        spec = _fake_spec(allow_cpu_offload=False)
+        with mock.patch.object(models, "estimate_weights_gib", return_value=self._fake_estimate(20.0)), \
+             mock.patch("torch.cuda.mem_get_info", return_value=(6 * 1024 ** 3, 8 * 1024 ** 3)), \
+             mock.patch.object(environment, "cpu_free_ram_gib", return_value=50.0):
+            with self.assertRaises(ModelDoesNotFitError):
+                models.check_fit(spec, num_gpus=2, allow_cpu_offload=False)
 
     def test_check_disk_for_download_uses_monkeypatched_hf_api(self):
         spec = _fake_spec()

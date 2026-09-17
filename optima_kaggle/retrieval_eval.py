@@ -325,6 +325,13 @@ def _load_experiment_settings(ctx: Any, corpora: list[str]) -> dict[str, dict[st
             "config_hash": experiment.get("config_hash"),
             "success_rate": metrics.get("success_rate"),
             "failed_functions": metrics.get("functions_failed"),
+            # Multi-GPU placement: informational only, never fed into the
+            # mismatch guard below -- different models are expected to use
+            # different placements (a 7B model stays single-GPU even in a
+            # 2-GPU session; a 32B-class model may shard across both).
+            "gpu_placement": metadata.get("gpu_placement"),
+            "gpu_count_used": metadata.get("gpu_count_used"),
+            "used_cpu_offload": metadata.get("used_cpu_offload", False),
         }
     return settings
 
@@ -380,6 +387,9 @@ def build_comparison(ctx: Any, matrices: dict[str, Any], corpora: list[str],
                     "config_hash": model_settings.get("config_hash"),
                     "enrichment_success_rate": model_settings.get("success_rate"),
                     "failed_functions_stripped": model_settings.get("failed_functions"),
+                    "gpu_placement": model_settings.get("gpu_placement"),
+                    "gpu_count_used": model_settings.get("gpu_count_used"),
+                    "used_cpu_offload": model_settings.get("used_cpu_offload", False),
                     "recall_at_1": _to_float(metrics.get("recall_at_1")),
                     "recall_at_5": _to_float(metrics.get("recall_at_5")),
                     "recall_at_10": _to_float(metrics.get("recall_at_10")),
