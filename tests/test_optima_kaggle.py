@@ -450,17 +450,32 @@ class BuildBoundedMessagesTests(unittest.TestCase):
         self.assertEqual(reductions, [])
         self.assertLessEqual(tokens, spec.max_input_tokens)
 
-    def test_reduces_in_order_when_over_budget(self):
+    def test_ast_and_cfg_are_excluded_by_default_not_just_as_a_fallback(self):
+        # AST/CFG make prompts large and are not part of the "useful local
+        # information" a function-level prompt needs; they must be absent up
+        # front, not only removed reactively once over budget.
         fn = _minimal_base_json(1)["files"][0]["functions"][0]
-        fn["source_code"] = "int x;\n" * 500
-        fn["ast"] = "AST " * 200
-        fn["cfg"] = {"nodes": ["n"] * 50}
-        spec = _fake_spec(max_input_tokens=1200)
+        fn["ast"] = "SomeAstNodeMarker " * 200
+        fn["cfg"] = {"nodes": ["SomeCfgNodeMarker"] * 50}
+        spec = _fake_spec(max_input_tokens=1000)
+        messages, tokens, reductions = enrichment.build_bounded_messages(
+            fn, FakeTokenizer(), spec, "colab_v2_no_module_ir"
+        )
+        combined = " ".join(m["content"] for m in messages)
+        self.assertNotIn("SomeAstNodeMarker", combined)
+        self.assertNotIn("SomeCfgNodeMarker", combined)
+        self.assertEqual(reductions, [])  # excluded by default; no fallback reduction was needed
+
+    def test_reduces_source_when_still_over_budget_after_defaults(self):
+        fn = _minimal_base_json(1)["files"][0]["functions"][0]
+        fn["source_code"] = "int x;\n" * 2000
+        fn["calls"] = [f"call_target_{i}" for i in range(200)]
+        spec = _fake_spec(max_input_tokens=700)
         messages, tokens, reductions = enrichment.build_bounded_messages(
             fn, FakeTokenizer(), spec, "colab_v2_no_module_ir"
         )
         self.assertLessEqual(tokens, spec.max_input_tokens)
-        self.assertIn("ast_removed", reductions)
+        self.assertTrue(any(r.startswith("source_trimmed") for r in reductions))
 
     def test_prompt_too_long_raises_when_no_reduction_suffices(self):
         fn = _minimal_base_json(1)["files"][0]["functions"][0]
@@ -525,15 +540,38 @@ class EnrichOneTests(unittest.TestCase):
             record = enrichment.enrich_one(self.handle, self.fn, self.gen, self.attempts_log)
         self.assertEqual(record["evaluation"]["failure_category"], "output_truncated")
 
-    def test_cuda_oom_aborts_without_retry(self):
+    def test_cuda_oom_gets_one_reduced_budget_retry_then_succeeds(self):
         import torch
+        oom = torch.cuda.OutOfMemoryError("simulated oom")
         with mock.patch.object(models, "generate_text",
-                               side_effect=torch.cuda.OutOfMemoryError("simulated oom")):
+                               side_effect=[oom, _gen_result(VALID_ENRICHMENT_JSON)]):
+            record = enrichment.enrich_one(self.handle, self.fn, self.gen, self.attempts_log)
+        self.assertEqual(record["status"], "completed")
+        lines = [json.loads(line) for line in self.attempts_log.read_text().splitlines()]
+        self.assertEqual(lines[0]["category"], "cuda_oom")
+        self.assertEqual(lines[1]["category"], "completed")
+
+    def test_cuda_oom_persists_but_continues_when_gpu_recovers(self):
+        import torch
+        oom = torch.cuda.OutOfMemoryError("simulated oom")
+        with mock.patch.object(models, "generate_text", side_effect=[oom, oom]), \
+             mock.patch("torch.cuda.mem_get_info", return_value=(5 * 1024 ** 3, 8 * 1024 ** 3)):
+            record = enrichment.enrich_one(self.handle, self.fn, self.gen, self.attempts_log)
+        # A single OOM'd function must not raise/abort the run when the GPU
+        # recovered real headroom afterward -- it is recorded as failed and
+        # the caller (run_full_enrichment's loop) moves on to the next function.
+        self.assertEqual(record["status"], "failed")
+        self.assertEqual(record["evaluation"]["failure_category"], "cuda_oom")
+        lines = [json.loads(line) for line in self.attempts_log.read_text().splitlines()]
+        self.assertEqual([line["category"] for line in lines], ["cuda_oom", "cuda_oom"])
+
+    def test_cuda_oom_aborts_when_gpu_still_unhealthy_after_retry(self):
+        import torch
+        oom = torch.cuda.OutOfMemoryError("simulated oom")
+        with mock.patch.object(models, "generate_text", side_effect=[oom, oom]), \
+             mock.patch("torch.cuda.mem_get_info", return_value=(0.1 * 1024 ** 3, 8 * 1024 ** 3)):
             with self.assertRaises(GenerationOOMError):
                 enrichment.enrich_one(self.handle, self.fn, self.gen, self.attempts_log)
-        lines = self.attempts_log.read_text().splitlines()
-        self.assertEqual(len(lines), 1)  # exactly one attempt logged, no retry
-        self.assertEqual(json.loads(lines[0])["category"], "cuda_oom")
 
     def test_generation_error_is_retried_then_recovers(self):
         with mock.patch.object(models, "generate_text",
@@ -782,7 +820,7 @@ class GateBehaviorTests(unittest.TestCase):
         with self.assertRaises(GateFailedError):
             enrichment.run_full_enrichment(self.ctx, None, self.gen, self.snap)
 
-    # --- (2) GATE 4 functional-vs-resource-warning split ---
+    # --- (2) GATE 4 no longer gates on GPU headroom at all ---
 
     @staticmethod
     def _distinct_enrichment_jsons():
@@ -793,15 +831,18 @@ class GateBehaviorTests(unittest.TestCase):
         base = json.loads(VALID_ENRICHMENT_JSON)
         return [json.dumps({**base, "purpose": f"Purpose {i}."}) for i in range(3)]
 
-    def test_gate4_passes_with_resource_warning_when_headroom_low_but_functional_ok(self):
-        results = [_gen_result(text, free=0.2) for text in self._distinct_enrichment_jsons()]
+    def test_gate4_passes_regardless_of_low_headroom(self):
+        # A low free_after_gib on a successfully completed function must never
+        # fail (or warn on) GATE 4 -- three functions that actually completed
+        # is what GATE 4 tests, not a theoretical GPU-headroom estimate.
+        results = [_gen_result(text, free=0.05) for text in self._distinct_enrichment_jsons()]
         with mock.patch.object(models, "generate_text", side_effect=results):
             result = enrichment.gate4_three_functions(self.ctx, self.handle, self.gen, self.snap)
         self.assertTrue(result["passed"])
-        self.assertEqual(result["details"]["status"], "PASSED WITH RESOURCE WARNING")
-        self.assertFalse(result["details"]["resource_warnings"]["largest_prompt_headroom_ok"])
-        self.assertTrue(result["details"]["checks"]["all_three_completed"])
+        self.assertEqual(result["details"]["status"], "PASSED")
+        self.assertNotIn("resource_warnings", result["details"])
         self.assertNotIn("largest_prompt_headroom_ok", result["details"]["checks"])
+        self.assertNotIn("largest_prompt_headroom_ok", result["details"])
 
     def test_gate4_passes_cleanly_when_headroom_is_fine(self):
         results = [_gen_result(text, free=5.0) for text in self._distinct_enrichment_jsons()]

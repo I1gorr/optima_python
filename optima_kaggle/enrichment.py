@@ -88,6 +88,15 @@ def build_bounded_messages(function: dict[str, Any], tokenizer: Any, spec: Any,
         # every function in a file. Per-function structure is already
         # available via function["llvm"]["basic_blocks"]/["cfg"].
         view["llvm_ir"] = ""
+        # AST/CFG are large compiler structures that are not part of the
+        # "useful local information" a function-level enrichment prompt
+        # needs (name, qualified name, parameters, return type, source,
+        # short calls list); excluding them by default -- rather than only
+        # as a fallback once over budget -- is what keeps typical prompts in
+        # the few-hundred-to-~1500-token range instead of the 3000+ tokens
+        # they reached when AST/CFG were included by default.
+        view["ast"] = ""
+        view["cfg"] = ""
 
     messages = build_enrichment_messages(view)
     input_tokens = _count_tokens(tokenizer, messages, spec)
@@ -120,6 +129,23 @@ def build_bounded_messages(function: dict[str, Any], tokenizer: Any, spec: Any,
         f"Function {function.get('id')} still needs {input_tokens} tokens "
         f"(limit {spec.max_input_tokens}) after applying every reduction: {reductions}."
     )
+
+
+def _fully_reduced_view(function: dict[str, Any]) -> dict[str, Any]:
+    """The most aggressive per-function reduction: every compiler-structural
+    field dropped and source code cut to 1500 characters. Used only for the
+    one-time OOM-recovery retry in ``enrich_one`` -- not a normal step of the
+    ``build_bounded_messages`` reduction ladder, and not applied by default.
+    """
+    from optima.enricher import _trim_source
+
+    view = dict(function)
+    view["llvm_ir"] = ""
+    view["ast"] = ""
+    view["cfg"] = ""
+    view["calls"] = ""
+    view["source_code"] = _trim_source(view.get("source_code") or "", 1500)
+    return view
 
 
 def _log_attempt(path: Path, *, function_id: str, attempt: int, category: str, reason: str,
@@ -224,11 +250,59 @@ def enrich_one(handle: Any, function: dict[str, Any], gen: GenerationSettings,
                          category="cuda_oom", reason=str(exc), input_tokens=input_tokens,
                          output_tokens=None, latency_s=None, finish_reason=None,
                          peak_allocated_gib=None, prompt_reductions=reductions, raw_response=None)
-            raise GenerationOOMError(
-                f"CUDA OOM generating for function {function.get('id')} "
-                f"(input_tokens={input_tokens}, max_new_tokens={max_new_tokens}). "
-                f"Aborting this model's run rather than continuing with corrupted state."
-            ) from exc
+            # OOM is a resource issue, not a content-quality issue: give it one
+            # dedicated recovery retry with the most-reduced prompt and a
+            # halved output budget, independent of the JSON-repair retry loop
+            # above. Only if THAT also OOMs do we decide, from how much VRAM
+            # actually came back after cleanup, whether to fail just this one
+            # function (GPU is healthy) or abort the whole run (it is not).
+            retry_max_new_tokens = max(128, max_new_tokens // 2)
+            retry_input_tokens = input_tokens
+            try:
+                retry_view = _fully_reduced_view(function)
+                retry_messages, retry_input_tokens, retry_reductions = build_bounded_messages(
+                    retry_view, handle.tokenizer, handle.spec, gen.prompt_variant
+                )
+                result = models.generate_text(
+                    handle, retry_messages, max_new_tokens=retry_max_new_tokens,
+                    do_sample=gen.do_sample, temperature=gen.temperature, top_p=gen.top_p,
+                )
+            except torch.cuda.OutOfMemoryError as retry_exc:
+                torch.cuda.empty_cache()
+                free_gib_after = min(
+                    torch.cuda.mem_get_info(i)[0] for i in range(torch.cuda.device_count())
+                ) / (1024 ** 3)
+                _log_attempt(
+                    attempts_log_path, function_id=function.get("id", ""), attempt=attempt_index,
+                    category="cuda_oom",
+                    reason=f"OOM persisted after reduced-budget retry (free_after_gib="
+                           f"{free_gib_after:.2f}): {retry_exc}",
+                    input_tokens=retry_input_tokens, output_tokens=None, latency_s=None,
+                    finish_reason=None, peak_allocated_gib=None,
+                    prompt_reductions=reductions + ["oom_retry_fully_reduced"], raw_response=None,
+                )
+                if free_gib_after < 1.0:
+                    raise GenerationOOMError(
+                        f"CUDA OOM persisted for function {function.get('id')} even after a "
+                        f"reduced-budget retry, and only {free_gib_after:.2f} GiB is free "
+                        f"afterward -- the GPU/model state looks unhealthy. Aborting this "
+                        f"model's run rather than continuing on a possibly corrupted state."
+                    ) from retry_exc
+                # The GPU recovered real headroom after cleanup, so this looks
+                # like one unusually expensive function, not a broken model --
+                # fail only this function and let the caller move on.
+                category, reason = (
+                    "cuda_oom",
+                    f"CUDA OOM persisted after a reduced-budget retry: {retry_exc}",
+                )
+                break
+            else:
+                # The reduced retry produced a real result; fall through to the
+                # normal parse/validate logic below exactly as if the first
+                # attempt had succeeded.
+                input_tokens = retry_input_tokens
+                reductions = reductions + ["oom_retry_fully_reduced"] + retry_reductions
+                prompt_reductions = reductions
         except Exception as exc:  # noqa: BLE001 - isolated per-attempt, retried
             category, reason = "generation_error", f"{type(exc).__name__}: {exc}"
             _log_attempt(attempts_log_path, function_id=function.get("id", ""), attempt=attempt_index,
@@ -744,10 +818,6 @@ def gate4_three_functions(ctx: Any, handle: Any, gen: GenerationSettings, snap: 
     purposes_not_all_same = len(set(purposes)) > 1 if len(purposes) > 1 else bool(purposes)
     insufficient_count = sum(1 for p in purposes if p == "Insufficient implementation context.")
 
-    by_tokens = sorted(records, key=lambda pair: pair[1].get("evaluation", {}).get("input_tokens") or 0,
-                       reverse=True)
-    largest_free = by_tokens[0][1].get("evaluation", {}).get("free_after_gib") if by_tokens else None
-
     try:
         _dataset_metrics([{"enrichment": e} for _fn, e in records], 1.0)
         dataset_metrics_ok = True
@@ -756,10 +826,16 @@ def gate4_three_functions(ctx: Any, handle: Any, gen: GenerationSettings, snap: 
         dataset_metrics_ok = False
         dataset_metrics_error = f"{type(exc).__name__}: {exc}"
 
-    # Functional checks decide whether GATE 4 passes: they establish that
-    # enrichment actually works end to end (three real functions, sequentially,
-    # each producing a distinct, schema-valid, correctly-attributed result).
-    functional_checks = {
+    # GATE 4 tests that enrichment actually works end to end: three real
+    # functions, processed sequentially, each producing a distinct,
+    # schema-valid, correctly-attributed result. It intentionally does not
+    # gate on any GPU/headroom metric -- a theoretical "not enough spare
+    # VRAM" estimate is not evidence that enrichment failed, and three
+    # functions that actually completed must not be reported as a gate
+    # failure over it. (GPU telemetry for the model overall is still
+    # available from GATE 1's load report and per-function evaluation
+    # records; it just is not a GATE 4 pass/fail criterion.)
+    checks = {
         "all_three_completed": all_three_completed,
         "purposes_not_all_same": purposes_not_all_same,
         "insufficient_count_below_two": insufficient_count < 2,
@@ -774,43 +850,24 @@ def gate4_three_functions(ctx: Any, handle: Any, gen: GenerationSettings, snap: 
         ),
         "dataset_metrics_roundtrip_ok": dataset_metrics_ok,
     }
-    # Resource warnings never fail the gate on their own: a function that
-    # completed successfully with less than the preferred 0.5 GiB of
-    # post-generation headroom is a real signal worth surfacing (the next,
-    # larger prompt might not be so lucky), not proof that enrichment failed.
-    resource_warnings = {
-        "largest_prompt_headroom_ok": largest_free is None or largest_free >= 0.5,
-    }
-
-    functional_passed = all(functional_checks.values())
-    triggered_warnings = [name for name, ok in resource_warnings.items() if not ok]
-    if functional_passed and not triggered_warnings:
-        status = "PASSED"
-    elif functional_passed:
-        status = "PASSED WITH RESOURCE WARNING"
-    else:
-        status = "FAILED"
+    passed = all(checks.values())
+    status = "PASSED" if passed else "FAILED"
 
     details = {
-        "status": status, "checks": functional_checks, "resource_warnings": resource_warnings,
-        "largest_prompt_free_after_gib": largest_free, "dataset_metrics_error": dataset_metrics_error,
+        "status": status, "checks": checks, "dataset_metrics_error": dataset_metrics_error,
         "functions": [
             {"function_id": fn["id"], "status": e.get("status"), "purpose": e.get("purpose"),
              "failure_category": e.get("evaluation", {}).get("failure_category"),
              "input_tokens": e.get("evaluation", {}).get("input_tokens"),
+             # Informational only (not a check, not a warning, not part of
+             # `passed`): real GPU telemetry per function, for visibility.
              "free_after_gib": e.get("evaluation", {}).get("free_after_gib")}
             for fn, e in records
         ],
     }
     print(f"GATE 4 status: {status}")
-    if triggered_warnings:
-        print(f"  resource warning(s): {triggered_warnings} "
-              f"(largest-prompt free_after_gib={largest_free}); "
-              f"functional checks passed, so the gate still passes.")
     print(json.dumps(details, indent=2, default=str)[:4000])
-    # `passed` (whether record_gate raises GateFailedError) is functional-only;
-    # a resource warning is recorded in `details` but never fails the gate.
-    return record_gate(ctx, handle.spec, gen, "gate4_three_functions", functional_passed, details)
+    return record_gate(ctx, handle.spec, gen, "gate4_three_functions", passed, details)
 
 
 # --------------------------------------------------------------------------
