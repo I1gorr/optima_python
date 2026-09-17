@@ -53,7 +53,8 @@ class ModelSpec:
     single_gpu_tier: str  # "A" (fits 1xT4) | "B" (fits, tight) | "C" (does not fit 1xT4)
     max_input_tokens: int
     revision: Optional[str] = None
-    max_new_tokens: int = 768
+    max_new_tokens: Optional[int] = None  # None = no artificial cap; bounded only by the
+                                           # model's own context window (see max_new_tokens_for_context)
     chat_template_kwargs: dict[str, Any] = field(default_factory=dict)
     strip_think: bool = False
     allow_cpu_offload: bool = False
@@ -171,7 +172,7 @@ def resolve_spec(name_or_slug: str, overrides: Optional[dict[str, Any]] = None,
 
 
 def spec_from_model_id(model_id: str, quantization: str = "nf4",
-                        max_input_tokens: int = 1500, max_new_tokens: int = 256,
+                        max_input_tokens: int = 1500, max_new_tokens: Optional[int] = None,
                         revision: Optional[str] = None,
                         chat_template_kwargs: Optional[dict[str, Any]] = None,
                         strip_think: bool = False,
@@ -181,6 +182,11 @@ def spec_from_model_id(model_id: str, quantization: str = "nf4",
     it" workflow, where nothing consults or refuses on a registry tier.
     ``check_fit()``/``load_model_safe()`` are the same functions either way;
     this only skips the registry lookup that ``resolve_spec()`` does.
+
+    ``max_new_tokens=None`` (the default) means no artificial output cap: the
+    model generates until it emits EOS or exhausts its own context window
+    (``max_new_tokens_for_context``/``generate_text``), which is what a fair
+    model-comparison run wants -- a fixed round number we picked is not.
     """
     from optima.rag.embedding_simple import _slug  # local import: no heavy deps
 
@@ -235,6 +241,28 @@ def estimate_weights_gib(spec: ModelSpec) -> dict[str, Any]:
     }
 
 
+def _model_context_window(config: Any, default: int = 32768) -> int:
+    return (
+        getattr(config, "max_position_embeddings", None)
+        or getattr(config, "n_positions", None)
+        or getattr(config, "max_sequence_length", None)
+        or getattr(config, "seq_length", None)
+        or default
+    )
+
+
+def max_new_tokens_for_context(handle: Any, input_tokens: int, min_new_tokens: int = 256,
+                                safety_margin: int = 64) -> int:
+    """No artificial output cap: let the model generate until it hits its own
+    context window, not a fixed number picked ahead of time. Used by
+    ``enrich_one`` whenever ``GenerationSettings.max_new_tokens`` is ``None``
+    (the default for a pure model-comparison run).
+    """
+    context_window = _model_context_window(handle.model.config)
+    remaining = context_window - input_tokens - safety_margin
+    return max(min_new_tokens, remaining)
+
+
 def required_headroom_gib(spec: ModelSpec, config: Any) -> float:
     num_layers = getattr(config, "num_hidden_layers", None)
     num_kv_heads = getattr(config, "num_key_value_heads", None) or getattr(config, "num_attention_heads", None)
@@ -246,8 +274,14 @@ def required_headroom_gib(spec: ModelSpec, config: Any) -> float:
     if not all([num_layers, num_kv_heads, head_dim]):
         # Conservative fallback when config fields are missing.
         return 3.0
+    max_new_tokens = spec.max_new_tokens
+    if max_new_tokens is None:
+        # No artificial cap: reserve for the worst case, where the model uses
+        # its entire remaining context window for the response, so check_fit()
+        # still reserves real headroom instead of under-counting it.
+        max_new_tokens = max(256, _model_context_window(config) - spec.max_input_tokens)
     kv_bytes_per_token = 2 * num_layers * num_kv_heads * head_dim * 2
-    total_tokens = spec.max_input_tokens + spec.max_new_tokens
+    total_tokens = spec.max_input_tokens + max_new_tokens
     kv_gib = kv_bytes_per_token * total_tokens / (1024 ** 3)
     return round(kv_gib + 1.0 + 0.3, 3)
 

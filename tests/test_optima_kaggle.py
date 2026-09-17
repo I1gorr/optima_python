@@ -355,7 +355,7 @@ class ModelSpecTests(unittest.TestCase):
         self.assertEqual(spec.model_id, "Qwen/Qwen2.5-Coder-7B-Instruct")
         self.assertEqual(spec.quantization, "nf4")
         self.assertEqual(spec.max_input_tokens, 1500)
-        self.assertEqual(spec.max_new_tokens, 256)
+        self.assertIsNone(spec.max_new_tokens)  # no artificial cap by default
         self.assertNotIn(spec.slug, models.MODEL_REGISTRY)  # confirms no registry involvement
         # slug must be self-consistent with ModelSpec's own validation
         models.ModelSpec(slug=spec.slug, model_id=spec.model_id, quantization=spec.quantization,
@@ -546,11 +546,32 @@ class EnrichOneTests(unittest.TestCase):
         # for the upstream bug where it was silently overwritten).
         self.assertIsNotNone(evaluation["failure_reason"])
 
-    def test_schema_invalid_json_is_categorized_correctly(self):
-        bad = json.dumps({"purpose": "x"})  # missing required fields
+    def test_schema_incomplete_json_is_accepted_as_completed_not_rejected(self):
+        # A pure model-comparison run must not retry/reject a genuine,
+        # parseable response just because it does not match the full schema
+        # -- schema conformance is a recorded metric, not a gate.
+        bad = json.dumps({"purpose": "x"})  # missing required fields, but valid JSON
         with mock.patch.object(models, "generate_text", return_value=_gen_result(bad)):
             record = enrichment.enrich_one(self.handle, self.fn, self.gen, self.attempts_log)
-        self.assertEqual(record["evaluation"]["failure_category"], "schema_invalid")
+        self.assertEqual(record["status"], "completed")
+        self.assertIsNone(record["evaluation"]["failure_category"])
+        self.assertTrue(record["evaluation"]["request_success"])
+        self.assertFalse(record["evaluation"]["json_valid"])  # recorded, not gated on
+        self.assertEqual(record["purpose"], "x")  # the model's actual text, unchanged
+        self.assertEqual(record["evaluation"]["retry_count"], 0)  # not retried over schema
+
+    def test_insufficient_context_response_is_preserved_as_completed(self):
+        # The model genuinely writing "Insufficient implementation context."
+        # (the prompt itself suggests this exact phrase when evidence is
+        # thin) is a real, schema-valid answer -- not a rejected response.
+        text = json.dumps({**json.loads(VALID_ENRICHMENT_JSON), "purpose": "Insufficient implementation context.",
+                           "behavior": "Insufficient implementation context."})
+        with mock.patch.object(models, "generate_text", return_value=_gen_result(text)):
+            record = enrichment.enrich_one(self.handle, self.fn, self.gen, self.attempts_log)
+        self.assertEqual(record["status"], "completed")
+        self.assertEqual(record["purpose"], "Insufficient implementation context.")
+        self.assertTrue(record["evaluation"]["json_valid"])
+        self.assertIsNone(record["evaluation"]["failure_category"])
 
     def test_length_finish_with_bad_json_is_output_truncated(self):
         with mock.patch.object(models, "generate_text",
@@ -918,6 +939,91 @@ class GateBehaviorTests(unittest.TestCase):
             enrichment.gate4_three_functions(self.ctx, self.handle, self.gen, self.snap,
                                              max_new_tokens_override=256)
         self.assertEqual(captured, [256, 256, 256])
+
+    def test_gate4_does_not_gate_on_identical_or_insufficient_purposes(self):
+        # A model that answers identically (or with the fallback phrase) for
+        # all three functions is a real, weak-model comparison result -- it
+        # must still pass GATE 4, not be rejected as if it were a failure.
+        same_text = json.dumps({**json.loads(VALID_ENRICHMENT_JSON),
+                                "purpose": "Insufficient implementation context."})
+        with mock.patch.object(models, "generate_text", return_value=_gen_result(same_text)):
+            result = enrichment.gate4_three_functions(self.ctx, self.handle, self.gen, self.snap)
+        self.assertTrue(result["passed"])
+        self.assertNotIn("purposes_not_all_same", result["details"]["checks"])
+        self.assertNotIn("insufficient_count_below_two", result["details"]["checks"])
+
+    # --- run_full_enrichment must not gate on an overall success rate ---
+
+    def _record_all_gates_passed(self):
+        for name in enrichment.REQUIRED_GATES:
+            enrichment.record_gate(self.ctx, self.spec, self.gen, name, True, {})
+
+    def test_run_full_enrichment_completes_even_with_low_success_rate(self):
+        # 5 functions, retries=1 (2 attempts on failure): fn1 fails, fn2
+        # succeeds, fn3+fn4 fail, fn5 succeeds -- success_rate=0.4, well under
+        # the old 0.95 threshold, but never 5 consecutive failures (so this
+        # is not exercising the (still-kept) systemic-failure circuit
+        # breaker, only the removed success-rate gate).
+        responses = iter([
+            _gen_result("not json"), _gen_result("not json"),
+            _gen_result(VALID_ENRICHMENT_JSON),
+            _gen_result("not json"), _gen_result("not json"),
+            _gen_result("not json"), _gen_result("not json"),
+            _gen_result(VALID_ENRICHMENT_JSON),
+        ])
+        self._record_all_gates_passed()
+        with mock.patch.object(models, "generate_text", side_effect=lambda *a, **k: next(responses)):
+            result = enrichment.run_full_enrichment(self.ctx, self.handle, self.gen, self.snap)
+        self.assertFalse(result["partial"])
+        self.assertEqual(result["metrics"]["functions_enriched"], 2)
+        self.assertLess(result["metrics"]["success_rate"], 0.95)
+        # The run finishing is the pass condition; a low success rate is a
+        # recorded comparison result, not a reason to abort the pipeline
+        # before embeddings/retrieval/evaluation can run.
+        self.assertEqual(self.ctx.get_model_status(self.spec.slug), "enrichment_passed")
+
+
+class DynamicMaxNewTokensTests(unittest.TestCase):
+    def test_max_new_tokens_for_context_uses_model_context_window(self):
+        handle = mock.Mock()
+        handle.model.config = mock.Mock(max_position_embeddings=4096, n_positions=None,
+                                        max_sequence_length=None, seq_length=None)
+        result = models.max_new_tokens_for_context(handle, input_tokens=1000, safety_margin=64)
+        self.assertEqual(result, 4096 - 1000 - 64)
+
+    def test_max_new_tokens_for_context_never_goes_below_minimum(self):
+        handle = mock.Mock()
+        handle.model.config = mock.Mock(max_position_embeddings=2048, n_positions=None,
+                                        max_sequence_length=None, seq_length=None)
+        result = models.max_new_tokens_for_context(handle, input_tokens=2000, min_new_tokens=256)
+        self.assertEqual(result, 256)
+
+    def test_enrich_one_uses_dynamic_budget_when_gen_max_new_tokens_is_none(self):
+        root = ARTIFACTS_ROOT / "dynamic_max_new_tokens"
+        if root.exists():
+            shutil.rmtree(root)
+        root.mkdir(parents=True)
+        try:
+            fn = _minimal_base_json(1)["files"][0]["functions"][0]
+            spec = models.ModelSpec(
+                slug="dynamic-budget-model", model_id="fake-org/fake-model", quantization="fp16",
+                single_gpu_tier="A", max_input_tokens=1000, max_new_tokens=None,
+            )
+            handle = _FakeHandle(spec)
+            gen = GenerationSettings(retries=0, max_new_tokens=None)
+            captured = {}
+
+            def _capture(handle, messages, max_new_tokens, **kwargs):
+                captured["max_new_tokens"] = max_new_tokens
+                return _gen_result(VALID_ENRICHMENT_JSON)
+
+            with mock.patch.object(models, "max_new_tokens_for_context", return_value=12345) as fake_dynamic, \
+                 mock.patch.object(models, "generate_text", side_effect=_capture):
+                enrichment.enrich_one(handle, fn, gen, root / "attempts.jsonl")
+            fake_dynamic.assert_called_once()
+            self.assertEqual(captured["max_new_tokens"], 12345)
+        finally:
+            shutil.rmtree(root, ignore_errors=True)
 
 
 if __name__ == "__main__":

@@ -20,7 +20,6 @@ from typing import Any, Optional
 
 from .errors import (
     CheckpointCorruptError,
-    EnrichmentQualityError,
     GateFailedError,
     GenerationOOMError,
     PromptTooLongError,
@@ -203,6 +202,8 @@ def enrich_one(handle: Any, function: dict[str, Any], gen: GenerationSettings,
     generation_success_any = False
     attempts_made = 0
     parsed_enrichment: Optional[dict[str, Any]] = None
+    schema_valid = False
+    max_new_tokens: Optional[int] = None
 
     for attempt_index in range(gen.retries + 1):
         attempts_made = attempt_index + 1
@@ -226,7 +227,16 @@ def enrich_one(handle: Any, function: dict[str, Any], gen: GenerationSettings,
             break
 
         prompt_reductions = reductions
-        max_new_tokens = max_new_tokens_override if max_new_tokens_override is not None else gen.max_new_tokens
+        if max_new_tokens_override is not None:
+            max_new_tokens = max_new_tokens_override
+        elif gen.max_new_tokens is not None:
+            max_new_tokens = gen.max_new_tokens
+        else:
+            # No artificial output cap: let the model use its own remaining
+            # context window rather than a number we picked. Recomputed each
+            # attempt since input_tokens can change (prompt reductions, the
+            # OOM-recovery retry below).
+            max_new_tokens = models.max_new_tokens_for_context(handle, input_tokens)
         if attempt_index > 0 and category in REPAIRABLE_CATEGORIES:
             repair_note = (
                 f"Your previous reply was not valid JSON matching the required "
@@ -236,7 +246,10 @@ def enrich_one(handle: Any, function: dict[str, Any], gen: GenerationSettings,
             messages = [*messages, {"role": "assistant", "content": last_raw},
                         {"role": "user", "content": repair_note}]
             repair_used = True
-            if category == "output_truncated":
+            if category == "output_truncated" and max_new_tokens_override is None and gen.max_new_tokens is not None:
+                # Only a FIXED budget is doubled on retry; a dynamic budget is
+                # already the model's full remaining context, so there is
+                # nothing more to give it.
                 max_new_tokens = min(max_new_tokens * 2, 1536)
 
         try:
@@ -331,18 +344,16 @@ def enrich_one(handle: Any, function: dict[str, Any], gen: GenerationSettings,
                          prompt_reductions=reductions, raw_response=result.text)
             continue
 
-        valid, schema_reason = _valid_enrichment(parsed)
-        if not valid:
-            category = "output_truncated" if result.finish_reason == "length" else "schema_invalid"
-            reason = schema_reason
-            _log_attempt(attempts_log_path, function_id=function.get("id", ""), attempt=attempt_index,
-                         category=category, reason=reason, input_tokens=result.input_tokens,
-                         output_tokens=result.output_tokens, latency_s=result.latency_s,
-                         finish_reason=result.finish_reason, peak_allocated_gib=result.peak_allocated_gib,
-                         prompt_reductions=reductions, raw_response=result.text)
-            continue
-
-        category, reason = "completed", "valid"
+        # A successfully-parsed JSON object is accepted as the model's
+        # genuine response, whether or not it matches the enrichment schema
+        # perfectly. Schema conformance is still computed and recorded
+        # (evaluation.json_valid, field_completeness) as a comparison
+        # metric -- it is never used to retry or replace the model's answer.
+        # The only technical failure is output that could not be parsed as
+        # JSON at all (handled above).
+        schema_valid, schema_reason = _valid_enrichment(parsed)
+        category = "completed"
+        reason = "valid" if schema_valid else f"accepted_with_schema_gap:{schema_reason}"
         parsed_enrichment = parsed
         _log_attempt(attempts_log_path, function_id=function.get("id", ""), attempt=attempt_index,
                      category=category, reason=reason, input_tokens=result.input_tokens,
@@ -365,8 +376,13 @@ def enrich_one(handle: Any, function: dict[str, Any], gen: GenerationSettings,
     }
 
     metrics = {
+        # request_success: did the model produce parseable JSON at all (the
+        # only thing that gates "completed"). json_valid: did that JSON ALSO
+        # match the full enrichment schema -- a recorded comparison metric,
+        # not a gate; a schema-incomplete but parsed response is still
+        # request_success=True.
         "request_success": category == "completed",
-        "json_valid": category == "completed",
+        "json_valid": schema_valid if category == "completed" else False,
         "generation_success": generation_success_any,
         "retry_count": retry_count,
         "latency_seconds": total_latency,
@@ -389,7 +405,7 @@ def enrich_one(handle: Any, function: dict[str, Any], gen: GenerationSettings,
         "prompt_reductions": prompt_reductions,
         "input_tokens": last_input_tokens,
         "max_input_tokens": handle.spec.max_input_tokens,
-        "max_new_tokens": max_new_tokens_override if max_new_tokens_override is not None else gen.max_new_tokens,
+        "max_new_tokens": max_new_tokens,  # the actual budget used on the last attempt (may be dynamic)
     }
 
     load_report = getattr(handle, "load_report", None) or {}
@@ -738,7 +754,7 @@ def gate2_trivial(ctx: Any, handle: Any, gen: GenerationSettings) -> dict[str, A
 def gate3_one_function(ctx: Any, handle: Any, gen: GenerationSettings, snap: Any,
                         smoke_function_ids: Optional[list[str]] = None,
                         max_new_tokens_override: Optional[int] = None) -> dict[str, Any]:
-    from colab.colab_pipeline import _valid_enrichment, flatten_functions, load_json
+    from colab.colab_pipeline import flatten_functions, load_json
 
     _require_handle(handle, "gate3_one_function")
     base = load_json(snap.path)
@@ -754,11 +770,13 @@ def gate3_one_function(ctx: Any, handle: Any, gen: GenerationSettings, snap: Any
     ckpt.append(fn["id"], enrichment)
 
     evaluation = enrichment.get("evaluation", {})
-    schema_valid, _reason = _valid_enrichment(enrichment)
+    # Technical smoke test only: did generation run and produce parseable
+    # JSON that the model finished on its own (not cut off)? Whether that
+    # JSON matches the full schema (evaluation["json_valid"]) is recorded
+    # below for visibility, not required to pass -- a model's genuine,
+    # schema-incomplete answer is not a gate failure.
     passed = (
         enrichment.get("status") == "completed"
-        and evaluation.get("json_valid") is True
-        and schema_valid
         and (evaluation.get("input_tokens") or 0) > 0
         and (evaluation.get("output_tokens") or 0) > 0
         and evaluation.get("finish_reason") == "eos"
@@ -784,9 +802,10 @@ def gate3_one_function(ctx: Any, handle: Any, gen: GenerationSettings, snap: Any
 def gate4_three_functions(ctx: Any, handle: Any, gen: GenerationSettings, snap: Any,
                            smoke_function_ids: Optional[list[str]] = None,
                            max_new_tokens_override: Optional[int] = None) -> dict[str, Any]:
-    """``max_new_tokens_override`` bounds the actual generation budget for
-    this smoke test (e.g. a conservative 256 instead of the full run's 768)
-    without changing ``gen``/``config_hash`` -- see ``enrich_one`` docstring.
+    """``max_new_tokens_override``, if given, bounds the actual generation
+    budget for this smoke test without changing ``gen``/``config_hash`` --
+    see ``enrich_one`` docstring. Left as ``None`` by default, matching the
+    full run: no artificial cap.
     """
     from optima.enricher import _dataset_metrics
     from colab.colab_pipeline import flatten_functions, load_json
@@ -809,14 +828,15 @@ def gate4_three_functions(ctx: Any, handle: Any, gen: GenerationSettings, snap: 
         records.append((fn, enrichment))
 
     def _ok(e: dict[str, Any]) -> bool:
-        return e.get("status") == "completed" and e.get("evaluation", {}).get("json_valid") is True
+        # Technical success only: did the model produce parseable JSON at
+        # all? Whether it matches the schema, and what it actually said
+        # (including "Insufficient implementation context." or three
+        # near-identical purposes), is recorded, never gated on -- a genuine
+        # answer, however weak, is the comparison result, not a failure.
+        return e.get("status") == "completed"
 
     completed = [(fn, e) for fn, e in records if _ok(e)]
     all_three_completed = len(completed) == len(records) == 3
-
-    purposes = [e.get("purpose") for _fn, e in completed]
-    purposes_not_all_same = len(set(purposes)) > 1 if len(purposes) > 1 else bool(purposes)
-    insufficient_count = sum(1 for p in purposes if p == "Insufficient implementation context.")
 
     try:
         _dataset_metrics([{"enrichment": e} for _fn, e in records], 1.0)
@@ -826,19 +846,17 @@ def gate4_three_functions(ctx: Any, handle: Any, gen: GenerationSettings, snap: 
         dataset_metrics_ok = False
         dataset_metrics_error = f"{type(exc).__name__}: {exc}"
 
-    # GATE 4 tests that enrichment actually works end to end: three real
-    # functions, processed sequentially, each producing a distinct,
-    # schema-valid, correctly-attributed result. It intentionally does not
-    # gate on any GPU/headroom metric -- a theoretical "not enough spare
-    # VRAM" estimate is not evidence that enrichment failed, and three
-    # functions that actually completed must not be reported as a gate
-    # failure over it. (GPU telemetry for the model overall is still
-    # available from GATE 1's load report and per-function evaluation
-    # records; it just is not a GATE 4 pass/fail criterion.)
+    # GATE 4 tests only that enrichment technically works end to end: three
+    # real functions, processed sequentially, each producing parseable JSON
+    # attributed to the right model, with the metrics the comparison table
+    # needs. It never judges the CONTENT of that JSON -- not schema
+    # completeness, not whether purposes differ, not GPU/headroom estimates.
+    # A model that answers "Insufficient implementation context." for all
+    # three, or gives three near-identical answers, still passes GATE 4;
+    # that is the comparison result, recorded in `functions` below, not a
+    # gate failure.
     checks = {
         "all_three_completed": all_three_completed,
-        "purposes_not_all_same": purposes_not_all_same,
-        "insufficient_count_below_two": insufficient_count < 2,
         "model_field_correct": all(e.get("model") == handle.spec.model_id for _fn, e in records),
         "metadata_present": all(
             isinstance(e.get("evaluation", {}).get("retry_count"), int)
@@ -857,8 +875,10 @@ def gate4_three_functions(ctx: Any, handle: Any, gen: GenerationSettings, snap: 
         "status": status, "checks": checks, "dataset_metrics_error": dataset_metrics_error,
         "functions": [
             {"function_id": fn["id"], "status": e.get("status"), "purpose": e.get("purpose"),
+             "json_valid": e.get("evaluation", {}).get("json_valid"),
              "failure_category": e.get("evaluation", {}).get("failure_category"),
              "input_tokens": e.get("evaluation", {}).get("input_tokens"),
+             "output_tokens": e.get("evaluation", {}).get("output_tokens"),
              # Informational only (not a check, not a warning, not part of
              # `passed`): real GPU telemetry per function, for visibility.
              "free_after_gib": e.get("evaluation", {}).get("free_after_gib")}
@@ -875,8 +895,14 @@ def gate4_three_functions(ctx: Any, handle: Any, gen: GenerationSettings, snap: 
 # --------------------------------------------------------------------------
 
 def run_full_enrichment(ctx: Any, handle: Any, gen: GenerationSettings, snap: Any,
-                         max_consecutive_failures: int = 5, materialize_every: int = 10,
-                         min_success_rate: float = 0.95) -> dict[str, Any]:
+                         max_consecutive_failures: int = 5, materialize_every: int = 10) -> dict[str, Any]:
+    """Note: this does not gate on an overall success rate. A model that
+    genuinely fails on many functions is a real comparison result, not a
+    reason to abort the run and block embeddings/retrieval/evaluation from
+    seeing what it did produce. ``max_consecutive_failures`` remains as a
+    circuit breaker for a different situation -- the GPU/model becoming
+    unresponsive mid-run -- not a judgment on output quality.
+    """
     _require_handle(handle, "run_full_enrichment")
     require_all_gates_passed(ctx, handle.spec, gen)
 
@@ -952,17 +978,13 @@ def run_full_enrichment(ctx: Any, handle: Any, gen: GenerationSettings, snap: An
     print(f"FULL ENRICHMENT [{slug}] done: success_rate={success_rate:.3f}, "
           f"failure_categories={categories}")
 
-    if success_rate >= min_success_rate:
-        ctx.set_model_status(slug, "enrichment_passed",
-                             {"success_rate": success_rate, "enriched_json": str(out_path)})
-    else:
-        ctx.set_model_status(slug, "enrichment_failed",
-                             {"success_rate": success_rate, "enriched_json": str(out_path)})
-        raise EnrichmentQualityError(
-            f"{slug} finished with success_rate={success_rate:.3f} < "
-            f"{min_success_rate}. failure_categories={categories}. "
-            f"See {out_path} and {attempts_log}."
-        )
+    # The run completing (not partial) is itself the pass condition. A low
+    # success_rate is recorded and printed, not treated as a pipeline
+    # failure -- it is exactly the kind of result a model comparison exists
+    # to capture, and must not block embeddings/retrieval/evaluation from
+    # running on whatever this model actually produced.
+    ctx.set_model_status(slug, "enrichment_passed",
+                         {"success_rate": success_rate, "enriched_json": str(out_path)})
 
     return {
         "enriched_json": out_path, "metrics": metrics, "partial": partial,
@@ -973,8 +995,7 @@ def run_full_enrichment(ctx: Any, handle: Any, gen: GenerationSettings, snap: An
 def run_model_queue(ctx: Any, model_queue: list[str], gen_settings_factory: Any, bnb_status: Any,
                      num_gpus: Optional[int] = None, stop_on_failure: bool = True,
                      allow_infeasible: bool = False, delete_cache_after_unload: bool = True,
-                     max_consecutive_failures: int = 5, materialize_every: int = 10,
-                     min_success_rate: float = 0.95) -> dict[str, Any]:
+                     max_consecutive_failures: int = 5, materialize_every: int = 10) -> dict[str, Any]:
     """Run check_fit -> load -> gates 1-4 -> full enrichment -> unload for
     each queued model slug, using the exact same functions the single-model
     notebook cells use. ``num_gpus`` defaults to ``torch.cuda.device_count()``
@@ -1004,7 +1025,7 @@ def run_model_queue(ctx: Any, model_queue: list[str], gen_settings_factory: Any,
             gate3_one_function(ctx, handle, gen, ctx.base)
             gate4_three_functions(ctx, handle, gen, ctx.base)
             full = run_full_enrichment(ctx, handle, gen, ctx.base, max_consecutive_failures,
-                                       materialize_every, min_success_rate)
+                                       materialize_every)
             results[slug] = {"status": "enrichment_passed", **full}
         except Exception as exc:  # noqa: BLE001 - per-model isolation is the point of this loop
             results[slug] = {"status": "failed", "error": f"{type(exc).__name__}: {exc}"}
