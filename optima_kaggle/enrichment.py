@@ -142,11 +142,19 @@ def _log_attempt(path: Path, *, function_id: str, attempt: int, category: str, r
 
 
 def enrich_one(handle: Any, function: dict[str, Any], gen: GenerationSettings,
-                attempts_log_path: Path) -> dict[str, Any]:
+                attempts_log_path: Path, max_new_tokens_override: Optional[int] = None) -> dict[str, Any]:
     """Enrich one function with the taxonomy A-H (module docstring in the
     architecture plan). Raises GenerationOOMError immediately on CUDA OOM
     (no retry, no swallowing); every other failure is recorded on the
     function record and the raw model output is preserved.
+
+    ``max_new_tokens_override``, when given, replaces ``gen.max_new_tokens``
+    for the actual generation call only -- ``gen`` itself (and therefore
+    ``config_hash``/checkpoint identity) is untouched. This lets a smoke-test
+    gate use a smaller, conservative generation budget than the full run
+    without the gate being recorded under a different config_hash than the
+    full run it is meant to unlock (``require_all_gates_passed`` compares
+    config_hash across gates and the full run).
     """
     import torch
 
@@ -192,7 +200,7 @@ def enrich_one(handle: Any, function: dict[str, Any], gen: GenerationSettings,
             break
 
         prompt_reductions = reductions
-        max_new_tokens = gen.max_new_tokens
+        max_new_tokens = max_new_tokens_override if max_new_tokens_override is not None else gen.max_new_tokens
         if attempt_index > 0 and category in REPAIRABLE_CATEGORIES:
             repair_note = (
                 f"Your previous reply was not valid JSON matching the required "
@@ -307,7 +315,7 @@ def enrich_one(handle: Any, function: dict[str, Any], gen: GenerationSettings,
         "prompt_reductions": prompt_reductions,
         "input_tokens": last_input_tokens,
         "max_input_tokens": handle.spec.max_input_tokens,
-        "max_new_tokens": gen.max_new_tokens,
+        "max_new_tokens": max_new_tokens_override if max_new_tokens_override is not None else gen.max_new_tokens,
     }
 
     load_report = getattr(handle, "load_report", None) or {}
@@ -654,7 +662,8 @@ def gate2_trivial(ctx: Any, handle: Any, gen: GenerationSettings) -> dict[str, A
 
 
 def gate3_one_function(ctx: Any, handle: Any, gen: GenerationSettings, snap: Any,
-                        smoke_function_ids: Optional[list[str]] = None) -> dict[str, Any]:
+                        smoke_function_ids: Optional[list[str]] = None,
+                        max_new_tokens_override: Optional[int] = None) -> dict[str, Any]:
     from colab.colab_pipeline import _valid_enrichment, flatten_functions, load_json
 
     _require_handle(handle, "gate3_one_function")
@@ -667,7 +676,7 @@ def gate3_one_function(ctx: Any, handle: Any, gen: GenerationSettings, snap: Any
                          "model_slug": handle.spec.slug, "created_at": _now_iso()})
 
     attempts_log = ctx.logs_dir / handle.spec.slug / "attempts.jsonl"
-    enrichment = enrich_one(handle, fn, gen, attempts_log)
+    enrichment = enrich_one(handle, fn, gen, attempts_log, max_new_tokens_override=max_new_tokens_override)
     ckpt.append(fn["id"], enrichment)
 
     evaluation = enrichment.get("evaluation", {})
@@ -699,7 +708,12 @@ def gate3_one_function(ctx: Any, handle: Any, gen: GenerationSettings, snap: Any
 
 
 def gate4_three_functions(ctx: Any, handle: Any, gen: GenerationSettings, snap: Any,
-                           smoke_function_ids: Optional[list[str]] = None) -> dict[str, Any]:
+                           smoke_function_ids: Optional[list[str]] = None,
+                           max_new_tokens_override: Optional[int] = None) -> dict[str, Any]:
+    """``max_new_tokens_override`` bounds the actual generation budget for
+    this smoke test (e.g. a conservative 256 instead of the full run's 768)
+    without changing ``gen``/``config_hash`` -- see ``enrich_one`` docstring.
+    """
     from optima.enricher import _dataset_metrics
     from colab.colab_pipeline import flatten_functions, load_json
 
@@ -716,7 +730,7 @@ def gate4_three_functions(ctx: Any, handle: Any, gen: GenerationSettings, snap: 
     attempts_log = ctx.logs_dir / handle.spec.slug / "attempts.jsonl"
     records: list[tuple[dict[str, Any], dict[str, Any]]] = []
     for fn in selected:
-        enrichment = enrich_one(handle, fn, gen, attempts_log)
+        enrichment = enrich_one(handle, fn, gen, attempts_log, max_new_tokens_override=max_new_tokens_override)
         ckpt.append(fn["id"], enrichment)
         records.append((fn, enrichment))
 

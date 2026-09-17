@@ -827,6 +827,39 @@ class GateBehaviorTests(unittest.TestCase):
         self.assertEqual(record["evaluation"]["gpu_count_used"], 2)
         self.assertFalse(record["evaluation"]["used_cpu_offload"])
 
+    # --- GATE 4's conservative generation budget must not perturb config_hash ---
+
+    def test_gate4_max_new_tokens_override_is_passed_to_generation_without_changing_config_hash(self):
+        fn = _minimal_base_json(1)["files"][0]["functions"][0]
+        captured_kwargs = {}
+
+        def _capture(handle, messages, max_new_tokens, **kwargs):
+            captured_kwargs["max_new_tokens"] = max_new_tokens
+            return _gen_result(VALID_ENRICHMENT_JSON)
+
+        expected_hash = enrichment.config_hash(self.spec, self.gen)
+        with mock.patch.object(models, "generate_text", side_effect=_capture):
+            record = enrichment.enrich_one(self.handle, fn, self.gen, self.root / "attempts.jsonl",
+                                           max_new_tokens_override=256)
+        self.assertEqual(captured_kwargs["max_new_tokens"], 256)
+        self.assertEqual(record["evaluation"]["context_metrics"]["max_new_tokens"], 256)
+        # gen.max_new_tokens itself, and therefore config_hash, is untouched.
+        self.assertEqual(self.gen.max_new_tokens, 32)
+        self.assertEqual(enrichment.config_hash(self.spec, self.gen), expected_hash)
+
+    def test_gate4_three_functions_honors_max_new_tokens_override(self):
+        captured = []
+        texts = self._distinct_enrichment_jsons()
+
+        def _capture(handle, messages, max_new_tokens, **kwargs):
+            captured.append(max_new_tokens)
+            return _gen_result(texts[len(captured) - 1])
+
+        with mock.patch.object(models, "generate_text", side_effect=_capture):
+            enrichment.gate4_three_functions(self.ctx, self.handle, self.gen, self.snap,
+                                             max_new_tokens_override=256)
+        self.assertEqual(captured, [256, 256, 256])
+
 
 if __name__ == "__main__":
     unittest.main()
