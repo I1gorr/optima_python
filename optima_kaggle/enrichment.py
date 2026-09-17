@@ -2,8 +2,10 @@
 a checkpointed/resumable full run, and the four smoke-test gates.
 
 Reuses (never reimplements): ``colab.colab_pipeline.build_enrichment_messages``,
-``_valid_enrichment``, ``_fallback``, ``_parse_json_object``, ``_trim_source``,
-and ``optima.enricher._evaluation`` / ``_dataset_metrics``.
+``_valid_enrichment``, ``_parse_json_object``, ``_trim_source``, and
+``optima.enricher._evaluation`` / ``_dataset_metrics``. Unlike
+``colab_pipeline._fallback``, an unrecovered response here never fabricates
+placeholder content -- see ``_no_content_enrichment`` below.
 """
 
 from __future__ import annotations
@@ -165,6 +167,21 @@ def _log_attempt(path: Path, *, function_id: str, attempt: int, category: str, r
         os.fsync(handle.fileno())
 
 
+def _no_content_enrichment(model_id: str) -> dict[str, Any]:
+    """The result recorded when no JSON could be recovered from the model's
+    response (or generation itself never produced any response). Unlike
+    ``colab_pipeline._fallback``, this never invents placeholder content --
+    no "Insufficient implementation context.", no fabricated purpose/
+    behavior/etc. The function is never discarded: this dict still carries
+    ``usage``/``evaluation`` (added by the caller) so it stays in the
+    checkpoint and materialized artifact exactly like a completed one, it
+    just has no semantic fields the model did not actually produce. The
+    model's exact raw text is preserved separately (``evaluation.
+    raw_response`` / the materialized ``raw_llm_response`` field), not here.
+    """
+    return {"model": model_id, "status": "failed", "json_parse_status": "failed"}
+
+
 def enrich_one(handle: Any, function: dict[str, Any], gen: GenerationSettings,
                 attempts_log_path: Path, max_new_tokens_override: Optional[int] = None) -> dict[str, Any]:
     """Enrich one function with the taxonomy A-H (module docstring in the
@@ -182,7 +199,7 @@ def enrich_one(handle: Any, function: dict[str, Any], gen: GenerationSettings,
     """
     import torch
 
-    from colab.colab_pipeline import _fallback, _parse_json_object, _valid_enrichment
+    from colab.colab_pipeline import _parse_json_object, _valid_enrichment
     from optima.enricher import _evaluation
 
     from . import models
@@ -201,6 +218,7 @@ def enrich_one(handle: Any, function: dict[str, Any], gen: GenerationSettings,
     generation_success_any = False
     attempts_made = 0
     parsed_enrichment: Optional[dict[str, Any]] = None
+    parse_source: Optional[str] = None
     schema_valid = False
     max_new_tokens: Optional[int] = None
 
@@ -346,14 +364,17 @@ def enrich_one(handle: Any, function: dict[str, Any], gen: GenerationSettings,
         # A successfully-parsed JSON object is accepted as the model's
         # genuine response, whether or not it matches the enrichment schema
         # perfectly. Schema conformance is still computed and recorded
-        # (evaluation.json_valid, field_completeness) as a comparison
-        # metric -- it is never used to retry or replace the model's answer.
-        # The only technical failure is output that could not be parsed as
-        # JSON at all (handled above).
+        # separately (evaluation.schema_valid, field_completeness) as a
+        # comparison metric -- it is never used to retry or replace the
+        # model's answer. The only technical failure is output that could
+        # not be parsed/recovered as JSON at all (handled above);
+        # evaluation.json_valid tracks exactly that recovery, not schema
+        # conformance -- see the "json_valid" vs "schema_valid" comment below.
         schema_valid, schema_reason = _valid_enrichment(parsed)
         category = "completed"
         reason = "valid" if schema_valid else f"accepted_with_schema_gap:{schema_reason}"
         parsed_enrichment = parsed
+        parse_source = parse_reason
         _log_attempt(attempts_log_path, function_id=function.get("id", ""), attempt=attempt_index,
                      category=category, reason=reason, input_tokens=result.input_tokens,
                      output_tokens=result.output_tokens, latency_s=result.latency_s,
@@ -363,9 +384,20 @@ def enrich_one(handle: Any, function: dict[str, Any], gen: GenerationSettings,
 
     retry_count = max(0, attempts_made - 1)
     if category == "completed" and parsed_enrichment is not None:
-        result_enrichment = {**parsed_enrichment, "model": handle.spec.model_id, "status": "completed"}
+        result_enrichment = {
+            **parsed_enrichment, "model": handle.spec.model_id,
+            "status": "completed", "json_parse_status": "recovered",
+        }
     else:
-        result_enrichment = _fallback(reason, handle.spec.model_id, retry_count)
+        # Never fabricate content: no "Insufficient implementation context.",
+        # no placeholder purpose/behavior/etc. The function is kept (this
+        # dict still carries usage/evaluation below so it is never dropped
+        # from the checkpoint or the materialized artifact) but simply has
+        # no semantic fields the model did not actually produce. The exact
+        # raw response is preserved separately in evaluation.raw_response
+        # (and materialize() mirrors it to the function-level
+        # raw_llm_response field) regardless of this outcome.
+        result_enrichment = _no_content_enrichment(handle.spec.model_id)
 
     total_tokens = (last_input_tokens or 0) + total_output_tokens if (last_input_tokens or total_output_tokens) else None
     result_enrichment["usage"] = {
@@ -375,13 +407,19 @@ def enrich_one(handle: Any, function: dict[str, Any], gen: GenerationSettings,
     }
 
     metrics = {
-        # request_success: did the model produce parseable JSON at all (the
-        # only thing that gates "completed"). json_valid: did that JSON ALSO
-        # match the full enrichment schema -- a recorded comparison metric,
-        # not a gate; a schema-incomplete but parsed response is still
-        # request_success=True.
+        # request_success / json_valid: did the model's response get
+        # recovered as JSON at all (raw, Markdown-fenced, or extracted from
+        # surrounding text) -- the only thing that gates "completed". These
+        # two are intentionally the SAME truth value: a response that could
+        # not be parsed as JSON by ANY means is the only "not json_valid"
+        # case. (A previous version tied json_valid to full schema
+        # conformance instead, which silently produced a json_valid_rate far
+        # below success_rate for the same run -- schema conformance is
+        # tracked separately below as schema_valid, and is never a gate.)
         "request_success": category == "completed",
-        "json_valid": schema_valid if category == "completed" else False,
+        "json_valid": category == "completed",
+        "schema_valid": schema_valid if category == "completed" else False,
+        "json_recovery_method": parse_source if category == "completed" else None,
         "generation_success": generation_success_any,
         "retry_count": retry_count,
         "latency_seconds": total_latency,
@@ -413,7 +451,9 @@ def enrich_one(handle: Any, function: dict[str, Any], gen: GenerationSettings,
         "failure_category": None if category == "completed" else category,
         "failure_reason": None if category == "completed" else reason,
         "finish_reason": last_finish_reason,
-        "raw_response": None if category == "completed" else (last_raw or None),
+        # Always preserved -- success or failure -- never just on failure:
+        # this is the exact text the model produced, for every function.
+        "raw_response": last_raw or None,
         "repair_used": repair_used,
         "peak_allocated_gib": last_peak_gib,
         "free_after_gib": last_free_gib,
@@ -549,6 +589,26 @@ def materialize(ctx: Any, snap: Any, spec: Any, gen: GenerationSettings, ckpt: C
         fn["enrichment"] = enrichment
         evaluation = enrichment.get("evaluation", {})
         usage = enrichment.get("usage", {})
+        # Always present, success or failure -- the model's exact response,
+        # never fabricated or rewritten. Mirrors evaluation.raw_response at
+        # the function's top level so it is trivial to find without knowing
+        # the nested evaluation shape.
+        fn["raw_llm_response"] = evaluation.get("raw_response")
+        # Per-function metadata (distinct from the dataset-level
+        # result["enrichment_metadata"] set below): status is whether
+        # generation itself completed; json_parse_status is whether that
+        # response was recovered as JSON -- these are deliberately separate,
+        # since a completed generation can still fail JSON recovery.
+        fn["enrichment_metadata"] = {
+            "status": enrichment.get("status"),
+            "json_parse_status": enrichment.get("json_parse_status"),
+            "model": enrichment.get("model"),
+            "failure_category": evaluation.get("failure_category"),
+            "failure_reason": evaluation.get("failure_reason"),
+            "json_recovery_method": evaluation.get("json_recovery_method"),
+            "schema_valid": evaluation.get("schema_valid"),
+            "repair_used": evaluation.get("repair_used"),
+        }
         total_input_tokens += usage.get("prompt_tokens") or 0
         total_output_tokens += usage.get("completion_tokens") or 0
         total_inference_seconds += evaluation.get("latency_seconds") or 0

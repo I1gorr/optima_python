@@ -12,6 +12,29 @@ from langchain_core.documents import Document
 logger = logging.getLogger(__name__)
 
 
+def _stringify(value: Any) -> str:
+    """Render any JSON-shaped value (str/number/bool/dict/list/None) as
+    plain text for an embedding document, instead of assuming every
+    enrichment field is a flat string or a list of strings. An unrestricted
+    LLM may legitimately return structured values -- e.g.
+    ``"inputs": [{"name": "board", "type": "Board*"}]`` -- and that must
+    still become readable text, never a rejected/dropped function.
+    """
+    if value is None:
+        return ""
+    if isinstance(value, str):
+        return value
+    if isinstance(value, (int, float, bool)):
+        return str(value)
+    if isinstance(value, dict):
+        parts = [f"{key}: {_stringify(val)}" for key, val in value.items()]
+        return ", ".join(part for part in parts if part and not part.endswith(": "))
+    if isinstance(value, (list, tuple)):
+        parts = [_stringify(item) for item in value]
+        return "; ".join(part for part in parts if part)
+    return str(value)
+
+
 class OptimaDocumentConstructor:
     """Constructs LangChain Documents from Optima JSON files."""
 
@@ -129,7 +152,7 @@ class OptimaDocumentConstructor:
                     elif param_name:
                         param_strs.append(param_name)
                 if param_strs:
-                    content_parts.append(f"Parameters: {', '.join(param_strs)}")
+                    content_parts.append(f"Parameters: {_stringify(param_strs)}")
 
             # Add source location info
             if source_location:
@@ -173,71 +196,77 @@ class OptimaDocumentConstructor:
                 calls = call_graph.get("calls", [])
                 called_by = call_graph.get("called_by", [])
                 if calls:
-                    content_parts.append(f"Calls: {', '.join(calls)}")
+                    content_parts.append(f"Calls: {_stringify(calls)}")
                 if called_by:
-                    content_parts.append(f"Called By: {', '.join(called_by)}")
+                    content_parts.append(f"Called By: {_stringify(called_by)}")
 
             # Add dependencies
             dependencies = func_data.get("dependencies", [])
             if dependencies:
-                content_parts.append(f"Dependencies: {', '.join(dependencies)}")
+                content_parts.append(f"Dependencies: {_stringify(dependencies)}")
 
             # Add semantic enrichment fields if available and mode allows
             if enrichment_model and self.representation_mode in ["enriched", "semantic", "hybrid"]:
                 # Purpose
                 purpose = func_data.get("purpose", "")
                 if purpose:
-                    content_parts.append(f"Purpose: {purpose}")
+                    content_parts.append(f"Purpose: {_stringify(purpose)}")
 
                 # Behavior
                 behavior = func_data.get("behavior", "")
                 if behavior:
-                    content_parts.append(f"Behavior: {behavior}")
+                    content_parts.append(f"Behavior: {_stringify(behavior)}")
 
                 # Summary
                 summary = func_data.get("summary", "")
                 if summary:
-                    content_parts.append(f"Summary: {summary}")
+                    content_parts.append(f"Summary: {_stringify(summary)}")
 
-                # Inputs
+                # Inputs -- may be a flat list of strings, or (an
+                # unrestricted LLM may return this) a list of structured
+                # objects like [{"name": "board", "type": "Board*"}].
                 inputs = func_data.get("inputs", [])
                 if inputs:
-                    content_parts.append(f"Inputs: {', '.join(inputs)}")
+                    content_parts.append(f"Inputs: {_stringify(inputs)}")
 
                 # Outputs
                 outputs = func_data.get("outputs", [])
                 if outputs:
-                    content_parts.append(f"Outputs: {', '.join(outputs)}")
+                    content_parts.append(f"Outputs: {_stringify(outputs)}")
 
                 # Side effects
                 side_effects = func_data.get("side_effects", [])
                 if side_effects:
-                    content_parts.append(f"Side Effects: {', '.join(side_effects)}")
+                    content_parts.append(f"Side Effects: {_stringify(side_effects)}")
 
                 # Concepts
                 concepts = func_data.get("concepts", [])
                 if concepts:
-                    content_parts.append(f"Concepts: {', '.join(concepts)}")
+                    content_parts.append(f"Concepts: {_stringify(concepts)}")
 
                 # Keywords
                 keywords = func_data.get("keywords", [])
                 if keywords:
-                    content_parts.append(f"Keywords: {', '.join(keywords)}")
+                    content_parts.append(f"Keywords: {_stringify(keywords)}")
 
                 # Algorithm
                 algorithm = func_data.get("algorithm", "")
                 if algorithm:
-                    content_parts.append(f"Algorithm: {algorithm}")
+                    content_parts.append(f"Algorithm: {_stringify(algorithm)}")
 
-                # Complexity
+                # Complexity -- normally {"time": ..., "space": ...}, but
+                # rendered safely even if the model returned something else.
                 complexity = func_data.get("complexity", {})
                 if complexity:
-                    time_complexity = complexity.get("time", "")
-                    space_complexity = complexity.get("space", "")
-                    if time_complexity:
-                        content_parts.append(f"Time Complexity: {time_complexity}")
-                    if space_complexity:
-                        content_parts.append(f"Space Complexity: {space_complexity}")
+                    if isinstance(complexity, dict):
+                        time_complexity = complexity.get("time", "")
+                        space_complexity = complexity.get("space", "")
+                        if time_complexity:
+                            content_parts.append(f"Time Complexity: {_stringify(time_complexity)}")
+                        if space_complexity:
+                            content_parts.append(f"Space Complexity: {_stringify(space_complexity)}")
+                    else:
+                        content_parts.append(f"Complexity: {_stringify(complexity)}")
 
             # For semantic-only mode, focus primarily on semantic content
             if self.representation_mode == "semantic":
@@ -245,36 +274,39 @@ class OptimaDocumentConstructor:
                 # Keep only semantic-enriched content for semantic-only mode
                 purpose = func_data.get("purpose", "")
                 if purpose:
-                    semantic_parts.append(f"Purpose: {purpose}")
+                    semantic_parts.append(f"Purpose: {_stringify(purpose)}")
 
                 behavior = func_data.get("behavior", "")
                 if behavior:
-                    semantic_parts.append(f"Behavior: {behavior}")
+                    semantic_parts.append(f"Behavior: {_stringify(behavior)}")
 
                 summary = func_data.get("summary", "")
                 if summary:
-                    semantic_parts.append(f"Summary: {summary}")
+                    semantic_parts.append(f"Summary: {_stringify(summary)}")
 
                 concepts = func_data.get("concepts", [])
                 if concepts:
-                    semantic_parts.append(f"Concepts: {', '.join(concepts)}")
+                    semantic_parts.append(f"Concepts: {_stringify(concepts)}")
 
                 keywords = func_data.get("keywords", [])
                 if keywords:
-                    semantic_parts.append(f"Keywords: {', '.join(keywords)}")
+                    semantic_parts.append(f"Keywords: {_stringify(keywords)}")
 
                 algorithm = func_data.get("algorithm", "")
                 if algorithm:
-                    semantic_parts.append(f"Algorithm: {algorithm}")
+                    semantic_parts.append(f"Algorithm: {_stringify(algorithm)}")
 
                 complexity = func_data.get("complexity", {})
                 if complexity:
-                    time_complexity = complexity.get("time", "")
-                    space_complexity = complexity.get("space", "")
-                    if time_complexity:
-                        semantic_parts.append(f"Time Complexity: {time_complexity}")
-                    if space_complexity:
-                        semantic_parts.append(f"Space Complexity: {space_complexity}")
+                    if isinstance(complexity, dict):
+                        time_complexity = complexity.get("time", "")
+                        space_complexity = complexity.get("space", "")
+                        if time_complexity:
+                            semantic_parts.append(f"Time Complexity: {_stringify(time_complexity)}")
+                        if space_complexity:
+                            semantic_parts.append(f"Space Complexity: {_stringify(space_complexity)}")
+                    else:
+                        semantic_parts.append(f"Complexity: {_stringify(complexity)}")
 
                 # If we have semantic content, use it; otherwise fall back to basic info
                 if semantic_parts:
@@ -308,7 +340,8 @@ class OptimaDocumentConstructor:
             metadata["complexity_category"] = self._determine_complexity_category(func_data)
             metadata["function_type"] = self._determine_function_type(func_data)
             metadata["graph_complexity"] = self._determine_graph_complexity(func_data)
-            metadata["dependency_count"] = len(func_data.get("dependencies", []))
+            _dependencies = func_data.get("dependencies")
+            metadata["dependency_count"] = len(_dependencies) if isinstance(_dependencies, (list, dict, str)) else 0
 
             # Create document
             document = Document(
@@ -320,7 +353,38 @@ class OptimaDocumentConstructor:
 
         except Exception as e:
             logger.error(f"Error constructing document for function {func_data.get('id', 'unknown')}: {e}")
-            return None
+            # Never drop a base function from the corpus over an
+            # unexpected enrichment-field shape: fall back to a minimal,
+            # base-only document (identity + source) rather than returning
+            # None, so "one document per base function" holds even when
+            # something about this function's data could not be rendered
+            # as intended. The error is recorded in metadata, not hidden.
+            fallback_id = func_data.get("id", "")
+            if not fallback_id:
+                return None
+            fallback_content = "\n\n".join(part for part in [
+                f"Function: {func_data.get('name', '')}",
+                f"Qualified Name: {func_data.get('qualified_name', '')}",
+                f"Source Code:\n{func_data.get('source_code')}" if func_data.get("source_code") else "",
+            ] if part)
+            return Document(
+                page_content=fallback_content or f"Function: {func_data.get('name', '')}",
+                metadata={
+                    "function_id": fallback_id,
+                    "function_name": func_data.get("name", ""),
+                    "qualified_name": func_data.get("qualified_name", ""),
+                    "file_path": file_path,
+                    "file_name": file_name,
+                    "relative_path": relative_path,
+                    "project_name": project_name,
+                    "project_root": project_root,
+                    "language": language,
+                    "corpus_type": "enriched" if enrichment_model else "raw",
+                    "enrichment_model": enrichment_model if enrichment_model else "none",
+                    "representation_mode": self.representation_mode,
+                    "document_construction_error": str(e),
+                },
+            )
 
     def _determine_complexity_category(self, func_data: Dict[str, Any]) -> str:
         """Determine complexity category based on available metrics."""

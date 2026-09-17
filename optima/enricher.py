@@ -951,12 +951,34 @@ def _dataset_metrics(functions: List[Dict[str, Any]], elapsed: float) -> Dict[st
     evaluations = [f["enrichment"]["evaluation"] for f in functions if "enrichment" in f]
     total = len(functions)
     successes = sum(e["request_success"] for e in evaluations)
+    # json_valid is defined identically to request_success (JSON recovered
+    # by any means -- raw, Markdown-fenced, or extracted from surrounding
+    # text), never full schema conformance -- see enrich_one()'s comment.
+    # schema_valid (below) is the separate, stricter, purely observational
+    # metric that used to be mislabeled json_valid.
     valid = sum(e["json_valid"] for e in evaluations)
+    schema_valid_count = sum(1 for e in evaluations if e.get("schema_valid"))
     latencies = [e["latency_seconds"] for e in evaluations]
     fields = ["purpose", "behavior", "summary", "inputs", "outputs", "side_effects",
               "dependencies", "concepts", "keywords", "algorithm", "complexity"]
     def rate(field):
         return sum(e["field_completeness"].get(field, False) for e in evaluations) / len(evaluations) if evaluations else 0
+
+    # JSON-recovery method breakdown -- only meaningful for successful
+    # (json_valid) requests; json_recovery_method is None/absent otherwise.
+    # These are strictly a partition of `successes`, plus the explicit
+    # unrecoverable count (identical to failed_requests, named for clarity
+    # in the JSON-recovery context specifically).
+    raw_json_valid_count = sum(1 for e in evaluations if e.get("json_recovery_method") == "json")
+    markdown_json_recovered_count = sum(
+        1 for e in evaluations if e.get("json_recovery_method") == "markdown_wrapped_json"
+    )
+    surrounding_text_recovered_count = sum(
+        1 for e in evaluations if e.get("json_recovery_method") == "surrounding_text"
+    )
+    json_repair_count = sum(1 for e in evaluations if e.get("request_success") and e.get("repair_used"))
+    unrecoverable_json_count = sum(1 for e in evaluations if not e.get("request_success"))
+
     return {
         "functions_total": total,
         "functions_enriched": successes,
@@ -966,6 +988,13 @@ def _dataset_metrics(functions: List[Dict[str, Any]], elapsed: float) -> Dict[st
         "failed_requests": total - successes,
         "success_rate": successes / total if total else 0,
         "json_valid_rate": valid / total if total else 0,
+        "raw_json_valid_count": raw_json_valid_count,
+        "markdown_json_recovered_count": markdown_json_recovered_count,
+        "surrounding_text_recovered_count": surrounding_text_recovered_count,
+        "json_repair_count": json_repair_count,
+        "unrecoverable_json_count": unrecoverable_json_count,
+        "schema_valid_count": schema_valid_count,
+        "schema_valid_rate": schema_valid_count / total if total else 0,
         "retry_rate": sum(e["retry_count"] > 0 for e in evaluations) / total if total else 0,
         "failure_rate": (total - successes) / total if total else 0,
         "average_latency_seconds": statistics.mean(latencies) if latencies else 0,

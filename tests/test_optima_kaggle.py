@@ -533,6 +533,14 @@ class EnrichOneTests(unittest.TestCase):
         with mock.patch.object(models, "generate_text", return_value=_gen_result(fenced)):
             record = enrichment.enrich_one(self.handle, self.fn, self.gen, self.attempts_log)
         self.assertEqual(record["status"], "completed")
+        self.assertTrue(record["evaluation"]["json_valid"])
+        self.assertEqual(record["evaluation"]["json_recovery_method"], "markdown_wrapped_json")
+
+    def test_raw_response_is_preserved_on_success_too(self):
+        # For every function, success or failure -- not just on failure.
+        with mock.patch.object(models, "generate_text", return_value=_gen_result(VALID_ENRICHMENT_JSON)):
+            record = enrichment.enrich_one(self.handle, self.fn, self.gen, self.attempts_log)
+        self.assertEqual(record["evaluation"]["raw_response"], VALID_ENRICHMENT_JSON)
 
     def test_garbage_output_exhausts_retries_and_preserves_raw_response(self):
         with mock.patch.object(models, "generate_text", return_value=_gen_result("not json at all")):
@@ -546,17 +554,36 @@ class EnrichOneTests(unittest.TestCase):
         # for the upstream bug where it was silently overwritten).
         self.assertIsNotNone(evaluation["failure_reason"])
 
+    def test_unrecoverable_json_never_fabricates_placeholder_content(self):
+        # No "Insufficient implementation context.", no invented fields --
+        # the function is kept (status/evaluation/usage are still present,
+        # so it is never dropped from the checkpoint), but nothing here
+        # claims to be content the model actually produced.
+        with mock.patch.object(models, "generate_text", return_value=_gen_result("not json at all")):
+            record = enrichment.enrich_one(self.handle, self.fn, self.gen, self.attempts_log)
+        self.assertNotIn("purpose", record)
+        self.assertNotIn("behavior", record)
+        dumped = json.dumps(record)
+        self.assertNotIn("Insufficient implementation context.", dumped)
+        self.assertEqual(record["json_parse_status"], "failed")
+        self.assertFalse(record["evaluation"]["json_valid"])
+        self.assertFalse(record["evaluation"]["schema_valid"])
+
     def test_schema_incomplete_json_is_accepted_as_completed_not_rejected(self):
         # A pure model-comparison run must not retry/reject a genuine,
         # parseable response just because it does not match the full schema
-        # -- schema conformance is a recorded metric, not a gate.
+        # -- schema conformance (schema_valid) is a recorded metric, not a
+        # gate, and is distinct from json_valid: json_valid means the
+        # response was recovered as JSON at all (it was, here), regardless
+        # of whether it matches the full enrichment schema.
         bad = json.dumps({"purpose": "x"})  # missing required fields, but valid JSON
         with mock.patch.object(models, "generate_text", return_value=_gen_result(bad)):
             record = enrichment.enrich_one(self.handle, self.fn, self.gen, self.attempts_log)
         self.assertEqual(record["status"], "completed")
         self.assertIsNone(record["evaluation"]["failure_category"])
         self.assertTrue(record["evaluation"]["request_success"])
-        self.assertFalse(record["evaluation"]["json_valid"])  # recorded, not gated on
+        self.assertTrue(record["evaluation"]["json_valid"])  # JSON was recovered
+        self.assertFalse(record["evaluation"]["schema_valid"])  # but schema-incomplete; recorded, not gated on
         self.assertEqual(record["purpose"], "x")  # the model's actual text, unchanged
         self.assertEqual(record["evaluation"]["retry_count"], 0)  # not retried over schema
 
@@ -737,6 +764,44 @@ class MaterializeTests(unittest.TestCase):
         self.assertEqual(materialized["enrichment_metrics"]["functions_total"], 2)
         self.assertEqual(materialized["enrichment_metrics"]["functions_enriched"], 2)
         self.assertEqual(materialized["enrichment_metadata"]["model_slug"], self.spec.slug)
+
+        for fn in flatten_functions(materialized):
+            self.assertEqual(fn["raw_llm_response"], VALID_ENRICHMENT_JSON)
+            self.assertEqual(fn["enrichment_metadata"]["status"], "completed")
+            self.assertEqual(fn["enrichment_metadata"]["json_parse_status"], "recovered")
+            self.assertEqual(fn["enrichment_metadata"]["json_recovery_method"], "json")
+
+    def test_materialize_json_valid_rate_matches_success_rate_when_all_failures_are_invalid_json(self):
+        # Regression for the bug where json_valid_rate (tied to full schema
+        # conformance) diverged wildly from success_rate (tied to whether
+        # JSON was recovered at all) even though every failure in the run
+        # was exactly an invalid_json one -- the two must agree in that case.
+        from colab.colab_pipeline import flatten_functions, load_json
+
+        ckpt = Checkpoint(self.ctx.enriched_dir / f"{self.spec.slug}.checkpoint.jsonl")
+        ckpt.open_or_create({"base_sha256": self.snap.sha256,
+                             "config_hash": enrichment.config_hash(self.spec, self.gen),
+                             "created_at": "now"})
+
+        base = load_json(self.snap.path)
+        functions = flatten_functions(base)
+        handle = _FakeHandle(self.spec)
+        attempts_log = self.ctx.logs_dir / self.spec.slug / "attempts.jsonl"
+        responses = [_gen_result(VALID_ENRICHMENT_JSON), _gen_result("not json at all")]
+        with mock.patch.object(models, "generate_text", side_effect=lambda *a, **k: responses.pop(0)):
+            for fn in functions:
+                record = enrichment.enrich_one(handle, fn, self.gen, attempts_log)
+                ckpt.append(fn["id"], record)
+
+        out_path = enrichment.materialize(self.ctx, self.snap, self.spec, self.gen, ckpt,
+                                          elapsed=1.0, partial=False)
+        metrics = load_json(out_path)["enrichment_metrics"]
+        self.assertEqual(metrics["successful_requests"], 1)
+        self.assertEqual(metrics["failed_requests"], 1)
+        self.assertAlmostEqual(metrics["success_rate"], metrics["json_valid_rate"])
+        self.assertEqual(metrics["raw_json_valid_count"], 1)
+        self.assertEqual(metrics["markdown_json_recovered_count"], 0)
+        self.assertEqual(metrics["unrecoverable_json_count"], 1)
 
 
 class RetrievalEvalTests(unittest.TestCase):
