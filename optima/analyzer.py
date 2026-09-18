@@ -534,16 +534,26 @@ class FunctionInfo:
 
 
 def _discover_include_dirs(project_path: Path) -> List[str]:
-    """Discover absolute project directories that may contain included headers."""
+    """Discover absolute project directories that may contain included headers.
+
+    Only the project root and directories literally named 'include'/'src' are
+    added as global -I search roots. A same-directory quoted #include already
+    resolves without any -I entry (the preprocessor always searches the
+    including file's own directory first), so granting every header-bearing
+    subdirectory its own global -I root is unnecessary and actively harmful:
+    on a large project it lets a deeply-nested internal header shadow a
+    same-named standard-library header for unrelated files elsewhere in the
+    tree (e.g. OpenSSL's include/internal/time.h — meant to be reached only
+    as "internal/time.h" relative to the include/ root — was matching bare
+    #include <time.h> in other files once include/internal itself was added
+    as a top-level -I root, silently corrupting struct timeval).
+    """
     project_path = project_path.resolve()
     include_dirs = {str(project_path)}
-    header_extensions = {'.h', '.hpp', '.hh', '.hxx'}
 
     for root, dirs, files in os.walk(project_path):
         root_path = Path(root).resolve()
         if root_path.name.lower() in {'include', 'src'}:
-            include_dirs.add(str(root_path))
-        if any(Path(file).suffix.lower() in header_extensions for file in files):
             include_dirs.add(str(root_path))
 
     return sorted(include_dirs)
