@@ -7,8 +7,13 @@ import argparse
 import sys
 import os
 from pathlib import Path
-from .analyzer import analyze_project
+from .analyzer import analyze_project, safe_slug
 from .enricher import enrich_analysis
+
+# Default local output layout: optima_outputs/base/<test-suite>/base.json --
+# one base.json per test-suite directory, so parsing a second test suite
+# never overwrites the first. Only used when -o/--output is omitted.
+DEFAULT_BASE_OUTPUT_ROOT = Path("optima_outputs") / "base"
 
 def main():
     parser = argparse.ArgumentParser(
@@ -27,8 +32,11 @@ def main():
     )
     analyze_parser.add_argument(
         '-o', '--output',
-        default='output',
-        help='Output directory (default: output)'
+        default=None,
+        help=(
+            'Output directory (default: optima_outputs/base/<test-suite>, '
+            'where <test-suite> is a safe slug of the project directory name)'
+        )
     )
     
     # enrich command
@@ -104,21 +112,28 @@ def main():
 def analyze_command(args):
     """Handle the analyze subcommand"""
     project_path = Path(args.project_path).resolve()
-    requested_output = Path(args.output).resolve()
-    output_dir = requested_output if requested_output.suffix.lower() != '.json' else requested_output.parent
-    
+
     if not project_path.exists():
         print(f"Error: Project path '{project_path}' does not exist", file=sys.stderr)
         return 1
-    
+
     if not project_path.is_dir():
         print(f"Error: Project path '{project_path}' is not a directory", file=sys.stderr)
         return 1
-    
+
+    test_suite = safe_slug(project_path.name)
+
+    if args.output is None:
+        output_dir = (Path.cwd() / DEFAULT_BASE_OUTPUT_ROOT / test_suite).resolve()
+    else:
+        requested_output = Path(args.output).resolve()
+        output_dir = requested_output if requested_output.suffix.lower() != '.json' else requested_output.parent
+
     # Create output directory
     output_dir.mkdir(parents=True, exist_ok=True)
-    
+
     print(f"Analyzing project: {project_path}")
+    print(f"Test suite: {test_suite}")
     print(f"Output directory: {output_dir}")
     
     try:

@@ -374,6 +374,7 @@ def build_comparison(ctx: Any, matrices: dict[str, Any], corpora: list[str],
                 raw_metrics = raw_lookup.get((mode, alias), {})
                 model_settings = settings.get(slug, {})
                 rows.append({
+                    "dataset": ctx.dataset,
                     "base_sha12": ctx.base.sha256[:12], "base_url": ctx.base.url,
                     "optima_commit": ctx.optima_commit,
                     "benchmark_sha256": bench["manifest"].get("sha256"),

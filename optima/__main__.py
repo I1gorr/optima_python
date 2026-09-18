@@ -35,8 +35,11 @@ def main():
     )
     analyze_parser.add_argument(
         '-o', '--output',
-        default='output',
-        help='Output directory (default: output)'
+        default=None,
+        help=(
+            'Output directory (default: optima_outputs/base/<test-suite>, '
+            'where <test-suite> is a safe slug of the project directory name)'
+        )
     )
     analyze_parser.set_defaults(func=analyze_command)
 

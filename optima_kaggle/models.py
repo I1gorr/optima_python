@@ -12,8 +12,6 @@ from __future__ import annotations
 
 import gc
 import json
-import os
-import tempfile
 import time
 from dataclasses import dataclass, field, replace
 from typing import Any, Optional
@@ -228,19 +226,12 @@ MODEL_REGISTRY: dict[str, ModelSpec] = {
         model_id="Qwen/Qwen3-30B-A3B",
         quantization="nf4",
         single_gpu_tier="C",
-        max_input_tokens=1500,
-        max_new_tokens=1024,
+        max_input_tokens=4096,
         chat_template_kwargs={"enable_thinking": False},
         strip_think=True,
-        allow_cpu_offload=True,
         notes=(
-            "30B total-parameter MoE with approximately 3B active parameters "
-            "per token; nf4 weights (~55 GiB) do not fit in 2xT4 combined "
-            "VRAM (~28 GiB), so allow_cpu_offload=True lets "
-            "check_fit()/load_model_safe() fall back to a real GPU+CPU(+disk) "
-            "Accelerate placement instead of refusing the model outright. A "
-            "bounded max_new_tokens keeps the KV-cache headroom reservation "
-            "from ballooning to the model's full context window."
+            "30B total-parameter MoE with approximately 3B active "
+            "parameters per token."
         ),
     ),
 
@@ -283,19 +274,11 @@ MODEL_REGISTRY: dict[str, ModelSpec] = {
         model_id="deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
         quantization="nf4",
         single_gpu_tier="C",
-        max_input_tokens=1500,
-        max_new_tokens=1024,
+        max_input_tokens=4096,
         strip_think=True,
-        allow_cpu_offload=True,
         notes=(
-            "32B reasoning-distilled Qwen model. Requires multi-GPU sharding "
-            "and, on tight VRAM (e.g. 2xT4), CPU offload; allow_cpu_offload="
-            "True so check_fit()/load_model_safe() may fall back to it "
-            "instead of refusing the model outright. A bounded max_new_tokens "
-            "keeps the KV-cache headroom reservation from ballooning to the "
-            "model's full context window, which is what previously made even "
-            "the GPU-only sharded estimate fail. Long reasoning traces "
-            "require stripping (strip_think=True)."
+            "32B reasoning-distilled Qwen model. Requires multi-GPU "
+            "sharding. Long reasoning traces may require stripping."
         ),
     ),
 
@@ -742,19 +725,12 @@ def check_fit(spec: ModelSpec, num_gpus: Optional[int] = None,
                      "Some modules are dispatched on the CPU or the disk"
                      for a 4-bit model (4-bit modules cannot be CPU/disk
                      offloaded without ``llm_int8_enable_fp32_cpu_offload``,
-                     which ``load_model_safe`` only sets on its explicit
-                     CPU-offload fallback attempts, never on this one).
+                     which this pipeline deliberately does not set).
     3. sharded_cpu_offload - only if allow_cpu_offload; GPUs + a bounded
                      slice of free CPU RAM hold the weights. Orders of
                      magnitude slower; a documented last resort, not a
                      default path.
-
-    Raises ModelDoesNotFitError if none of the above fit. This is a fit
-    ESTIMATE only, not a determination that inference is impossible:
-    ``load_model_safe`` treats an ``allow_cpu_offload=True`` model's
-    ``ModelDoesNotFitError`` here as a reason to still attempt a real,
-    Accelerate-automatic load rather than an unconditional refusal -- see
-    its docstring.
+    Raises ModelDoesNotFitError if none of the above fit.
     """
     import torch
 
@@ -849,21 +825,6 @@ def check_fit(spec: ModelSpec, num_gpus: Optional[int] = None,
     )
 
 
-def _cpu_offload_max_memory(fit: FitReport, num_gpus: int) -> dict[Any, str]:
-    """Build a ``device_map="auto"`` ``max_memory`` dict that adds a bounded
-    CPU RAM budget on top of whatever GPU budget ``check_fit()`` already
-    computed. Used both for ``check_fit()``'s own tier-3 sharded_cpu_offload
-    placement and for ``load_model_safe()``'s real-load fallback attempt
-    after a GPU-only attempt actually OOMs.
-    """
-    max_memory = {i: f"{fit.budget_gib[i]:.2f}GiB" for i in range(num_gpus) if fit.budget_gib[i] > 0}
-    cpu_budget_gib = fit.cpu_budget_gib
-    if cpu_budget_gib is None:
-        cpu_budget_gib = (environment.cpu_free_ram_gib() or 0.0) * 0.7
-    max_memory["cpu"] = f"{cpu_budget_gib:.2f}GiB"
-    return max_memory
-
-
 def check_disk_for_download(spec: ModelSpec, hf_home: Optional[str] = None) -> dict[str, Any]:
     from huggingface_hub import HfApi
 
@@ -901,24 +862,13 @@ class ModelHandle:
 
 def load_model_safe(spec: ModelSpec, bnb_status: Optional["environment.BnbStatus"] = None) -> ModelHandle:
     """Load a single causal LM instance with explicit device placement -- one
-    GPU when the model fits alone (``num_gpus == 1``), ``device_map=
+    GPU when the model fits alone (``num_gpus == 1``), or ``device_map=
     "balanced"`` across every visible GPU (with an explicit, pre-computed,
-    GPU-only ``max_memory``) when it needs sharding, or a CPU-offloaded
-    ``device_map="auto"`` placement as a last resort -- plus full post-load
-    verification. Never falls back from nf4 to fp16.
-
-    Loading is a small ordered ladder of REAL attempts, not a single
-    estimate-based decision: ``check_fit()``'s placement is tried first; if
-    ``spec.allow_cpu_offload`` is set and that attempt actually raises a CUDA
-    OOM, a CPU-offload attempt is tried next before giving up. If
-    ``check_fit()`` cannot find ANY placement that fits its own (necessarily
-    conservative) estimate, a fit ESTIMATE failure is still not treated as
-    "inference is impossible": when ``spec.allow_cpu_offload`` is set, one
-    last-resort attempt is made anyway, via Accelerate's own automatic
-    ``device_map="auto"`` placement. Only when every attempt actually fails
-    to initialize the model is ``ModelLoadError`` raised, and it carries
-    every attempt's real error -- this never silently swallows a real OOM,
-    and never reports "loaded" without a real, verified model in hand.
+    GPU-only ``max_memory``) otherwise -- plus full post-load verification.
+    "balanced" never spills a module to CPU/disk, which quantized (nf4)
+    weights cannot tolerate; there is no CPU/disk fallback path here except
+    the separate, opt-in ``sharded_cpu_offload`` placement. Never falls back
+    from nf4 to fp16.
     """
     import torch
     from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
@@ -929,32 +879,7 @@ def load_model_safe(spec: ModelSpec, bnb_status: Optional["environment.BnbStatus
             f"CUDA is unavailable; cannot load {spec.model_id}.", category="load_failed",
         )
 
-    forced_fallback = False
-    try:
-        fit = check_fit(spec, num_gpus=num_gpus)
-    except ModelDoesNotFitError as exc:
-        if not spec.allow_cpu_offload:
-            raise
-        estimate = estimate_weights_gib(spec)
-        total_headroom_gib = required_headroom_gib(spec, estimate["config"])
-        free_gib = [torch.cuda.mem_get_info(i)[0] / (1024 ** 3) for i in range(num_gpus)]
-        per_gpu_reserved_gib = [max(1.0, total_headroom_gib / num_gpus) for _ in range(num_gpus)]
-        cpu_budget_gib = (environment.cpu_free_ram_gib() or 0.0) * 0.7
-        print(f"WARNING: the pre-load fit ESTIMATE says {spec.slug} does not fit even "
-              f"with CPU offload budgeted in ({exc}). allow_cpu_offload=True for this "
-              f"model, so a REAL load is still attempted via Accelerate's automatic "
-              f"device_map=\"auto\" placement as a last resort -- an overly "
-              f"conservative estimate must not, by itself, declare inference "
-              f"impossible. If this real attempt also fails, THAT failure (not this "
-              f"estimate) is what gets reported below.")
-        fit = FitReport(
-            num_gpus=num_gpus, free_gib=free_gib, per_gpu_reserved_gib=per_gpu_reserved_gib,
-            budget_gib=[0.0] * num_gpus, weights_gib=estimate["weights_gib"],
-            total_headroom_gib=total_headroom_gib, placement="sharded_cpu_offload",
-            fits=False, max_memory=None, cpu_budget_gib=cpu_budget_gib,
-        )
-        forced_fallback = True
-
+    fit = check_fit(spec, num_gpus=num_gpus)
     check_disk_for_download(spec)
 
     if spec.quantization == "nf4":
@@ -987,135 +912,61 @@ def load_model_safe(spec: ModelSpec, bnb_status: Optional["environment.BnbStatus
     major, _minor = torch.cuda.get_device_capability(0)
     dtype = torch.bfloat16 if major >= 8 else torch.float16
 
-    # Only ever used by an "auto" (CPU-offload) attempt below: Accelerate
-    # requires an ``offload_folder`` whenever a module needs to spill past
-    # GPU+CPU RAM to disk. Created unconditionally (cheap) so a model whose
-    # weights exceed even the CPU RAM budget (e.g. a large MoE like
-    # Qwen3-30B-A3B on 2xT4) has real disk offload available as the final
-    # rung of the ladder, instead of failing purely because CPU RAM alone
-    # was not enough -- never used by the GPU-only "balanced"/single_gpu
-    # attempts, which must never spill outside the GPUs they were budgeted for.
-    offload_folder = os.path.join(tempfile.gettempdir(), "optima_offload", spec.slug)
-    os.makedirs(offload_folder, exist_ok=True)
-
-    # Build the ordered ladder of REAL load attempts -- (label, device_map,
-    # max_memory, force_fp32_cpu_offload_quant). Each is actually tried, in
-    # order, until one succeeds; only spec.allow_cpu_offload adds a CPU
-    # fallback after a GPU-only attempt.
-    attempts: list[tuple[str, Any, Optional[dict[Any, str]], bool]] = []
     if fit.placement == "single_gpu":
-        attempts.append(("single_gpu", {"": fit.chosen_gpu}, None, False))
-        if spec.allow_cpu_offload:
-            attempts.append(
-                ("cpu_offload_fallback", "auto", _cpu_offload_max_memory(fit, num_gpus), True)
-            )
+        device_map: Any = {"": fit.chosen_gpu}
     elif fit.placement == "sharded":
         # GPU-only multi-GPU placement: "balanced" is restricted to the GPU
         # devices in max_memory and never spills a module to CPU/disk when a
         # per-GPU budget is tight -- unlike device_map="auto", which treats
-        # CPU/disk as ordinary fallback targets and previously produced
-        # "Some modules are dispatched on the CPU or the disk" for a 4-bit
-        # model (4-bit modules cannot be CPU/disk offloaded without
-        # llm_int8_enable_fp32_cpu_offload, which is only set below, on the
-        # CPU-offload fallback attempt -- never on this GPU-only one).
-        attempts.append(("sharded_gpu_only", "balanced", fit.max_memory, False))
-        if spec.allow_cpu_offload:
-            attempts.append((
-                "sharded_cpu_offload_fallback", "auto",
-                _cpu_offload_max_memory(fit, num_gpus), True,
-            ))
+        # CPU/disk as ordinary fallback targets and is what previously
+        # produced "Some modules are dispatched on the CPU or the disk" for
+        # this 4-bit model (4-bit modules cannot be CPU/disk offloaded
+        # without llm_int8_enable_fp32_cpu_offload, which is deliberately
+        # never set here -- see check_fit()'s docstring).
+        device_map = "balanced"
     else:
-        # "sharded_cpu_offload": either check_fit()'s own tier-3 estimate (has
-        # a real max_memory, including "cpu"), or the forced last-resort
-        # fallback built above when even that estimate said the model would
-        # not fit -- there, max_memory is left None so Accelerate's own
-        # automatic placement (which is not bound by our conservative
-        # estimate) gets to decide for itself. "balanced" would refuse CPU
-        # entirely, so "auto" is used here, and only reached when
-        # allow_cpu_offload was explicitly set.
-        max_memory = None if forced_fallback else fit.max_memory
-        attempts.append(("sharded_cpu_offload", "auto", max_memory, True))
+        # "sharded_cpu_offload": the one placement that deliberately wants
+        # CPU included, via the explicit "cpu" entry in fit.max_memory --
+        # "balanced" would refuse that entirely, so "auto" is still correct
+        # here, and only reached when allow_cpu_offload was explicitly set.
+        device_map = "auto"
 
-    load_errors: list[str] = []
-    model = None
-    used_label: Optional[str] = None
-    load_seconds = 0.0
-    for label, device_map, max_memory, force_fp32_cpu_offload in attempts:
-        load_kwargs: dict[str, Any] = {
-            "revision": spec.revision, "device_map": device_map, "low_cpu_mem_usage": True,
-            "attn_implementation": "sdpa",
-        }
-        if max_memory is not None:
-            load_kwargs["max_memory"] = max_memory
-        if device_map == "auto":
-            # Accelerate-supported disk-offload safety net: only reachable by
-            # a CPU-offload attempt (never the GPU-only ones above), and only
-            # actually used by Accelerate if the CPU RAM budget itself is not
-            # enough -- a no-op otherwise. offload_state_dict streams shards
-            # through CPU RAM instead of materializing the whole checkpoint
-            # at once, which matters for a model this large on limited RAM.
-            load_kwargs["offload_folder"] = offload_folder
-            load_kwargs["offload_state_dict"] = True
-        try:
-            from transformers import __version__ as _tf_version
-            if tuple(int(p) for p in _tf_version.split(".")[:2]) >= (4, 56):
-                load_kwargs["dtype"] = dtype
-            else:
-                load_kwargs["torch_dtype"] = dtype
-        except Exception:  # noqa: BLE001 - best-effort version detection
+    load_kwargs: dict[str, Any] = {
+        "revision": spec.revision, "device_map": device_map, "low_cpu_mem_usage": True,
+        "attn_implementation": "sdpa",
+    }
+    if fit.placement != "single_gpu":
+        load_kwargs["max_memory"] = fit.max_memory
+    try:
+        from transformers import __version__ as _tf_version
+        if tuple(int(p) for p in _tf_version.split(".")[:2]) >= (4, 56):
+            load_kwargs["dtype"] = dtype
+        else:
             load_kwargs["torch_dtype"] = dtype
+    except Exception:  # noqa: BLE001 - best-effort version detection
+        load_kwargs["torch_dtype"] = dtype
 
-        if spec.quantization == "nf4":
-            load_kwargs["quantization_config"] = BitsAndBytesConfig(
-                load_in_4bit=True, bnb_4bit_quant_type="nf4",
-                bnb_4bit_compute_dtype=torch.float16, bnb_4bit_use_double_quant=True,
-                llm_int8_enable_fp32_cpu_offload=force_fp32_cpu_offload,
-            )
-
-        print(f"LOAD ATTEMPT [{label}] for {spec.slug}: device_map={device_map!r}"
-              + (f", max_memory={max_memory}" if max_memory is not None else ", max_memory=<auto>"))
-        start = time.perf_counter()
-        try:
-            model = AutoModelForCausalLM.from_pretrained(spec.model_id, **load_kwargs)
-            load_seconds = time.perf_counter() - start
-            used_label = label
-            break
-        except torch.cuda.OutOfMemoryError as exc:
-            _cleanup_gpu()
-            load_errors.append(f"[{label}] CUDA OOM: {exc}")
-        except (OSError, ValueError, RuntimeError) as exc:
-            _cleanup_gpu()
-            load_errors.append(f"[{label}] {type(exc).__name__}: {exc}")
-
-    if model is None:
-        category = "cuda_oom_on_load" if any("CUDA OOM" in e for e in load_errors) else "load_failed"
-        print(
-            "MODEL LOAD SUMMARY:\n"
-            f"  Model:              {spec.model_id}\n"
-            f"  Quantization:       {spec.quantization}\n"
-            f"  GPU count:          {num_gpus}\n"
-            f"  Offload directory:  {offload_folder}\n"
-            f"  Attempts tried:     {[a[0] for a in attempts]}\n"
-            f"  Actual load success: False"
+    if spec.quantization == "nf4":
+        load_kwargs["quantization_config"] = BitsAndBytesConfig(
+            load_in_4bit=True, bnb_4bit_quant_type="nf4",
+            bnb_4bit_compute_dtype=torch.float16, bnb_4bit_use_double_quant=True,
         )
+
+    start = time.perf_counter()
+    try:
+        model = AutoModelForCausalLM.from_pretrained(spec.model_id, **load_kwargs)
+    except torch.cuda.OutOfMemoryError as exc:
+        _cleanup_gpu()
         raise ModelLoadError(
-            f"Every load attempt failed for {spec.model_id} ({spec.quantization}). "
-            f"This is a REAL loader failure, not a fit-estimate refusal -- attempts "
-            f"tried in order: {[a[0] for a in attempts]}.\n" + "\n".join(load_errors),
-            category=category,
-        )
-    if load_errors:
-        print(f"NOTE: {spec.slug} needed {len(load_errors)} fallback attempt(s) before "
-              f"succeeding with [{used_label}]. Earlier attempt failures:\n"
-              + "\n".join(load_errors))
-
-    # Record the placement that ACTUALLY worked -- may differ from
-    # check_fit()'s first choice when an earlier, faster attempt OOM'd and a
-    # later, CPU-offloaded attempt is what actually succeeded.
-    if used_label in ("cpu_offload_fallback", "sharded_cpu_offload_fallback", "sharded_cpu_offload"):
-        fit.placement = "sharded_cpu_offload"
-    elif used_label == "sharded_gpu_only":
-        fit.placement = "sharded"
+            f"CUDA OOM while loading {spec.model_id} ({spec.quantization}): {exc}",
+            category="cuda_oom_on_load",
+        ) from exc
+    except (OSError, ValueError, RuntimeError) as exc:
+        raise ModelLoadError(
+            f"Failed to load {spec.model_id} ({spec.quantization}): {exc}",
+            category="load_failed",
+        ) from exc
+    load_seconds = time.perf_counter() - start
 
     model.eval()
     resolved_device_map = getattr(model, "hf_device_map", None) or {"": fit.chosen_gpu or 0}
@@ -1132,19 +983,15 @@ def load_model_safe(spec: ModelSpec, bnb_status: Optional["environment.BnbStatus
     }
     allowed = {i for i in range(num_gpus)} | {f"cuda:{i}" for i in range(num_gpus)}
     if fit.placement == "sharded_cpu_offload":
-        # Both CPU and disk are legitimate here -- offload_folder was passed
-        # to this attempt precisely so Accelerate could spill past CPU RAM
-        # if it had to. Never allowed on the GPU-only "balanced"/single_gpu
-        # placements, which never receive an offload_folder in the first place.
-        allowed = allowed | {"cpu", "disk"}
+        allowed = allowed | {"cpu"}
     bad_devices = {v for v in resolved_device_map.values() if v not in allowed}
     if bad_devices:
         del model
         _cleanup_gpu()
         raise ModelLoadError(
             f"{spec.model_id} was placed on unsupported devices {bad_devices} "
-            f"(CPU/disk offload is only allowed when placement=="
-            f"'sharded_cpu_offload', currently {fit.placement!r}).",
+            f"(disk offload is never supported; CPU offload is only allowed "
+            f"when placement=='sharded_cpu_offload', currently {fit.placement!r}).",
             category="load_failed",
         )
 
@@ -1206,7 +1053,6 @@ def load_model_safe(spec: ModelSpec, bnb_status: Optional["environment.BnbStatus
         i: round(torch.cuda.memory_allocated(i) / (1024 ** 3), 3) for i in range(num_gpus)
     }
 
-    used_cpu_offload = fit.placement == "sharded_cpu_offload"
     load_report = {
         "load_seconds": round(load_seconds, 2), "footprint_gib": round(footprint_gib, 3),
         "allocated_gib": round(allocated_gib, 3), "free_gib": round(free_gib_after, 3),
@@ -1216,28 +1062,9 @@ def load_model_safe(spec: ModelSpec, bnb_status: Optional["environment.BnbStatus
         "device_map_summary": {str(k): str(v) for k, v in resolved_device_map.items()},
         "has_linear4bit": spec.quantization == "nf4",
         "gpu_placement": fit.placement, "gpu_count_used": len(gpu_indices_used) or 1,
-        "used_cpu_offload": used_cpu_offload,
-        "offload_folder": offload_folder if used_cpu_offload else None,
-        "load_attempt_used": used_label,
-        "load_fallback_errors": load_errors,  # never hidden: earlier real failures, if any
+        "used_cpu_offload": fit.placement == "sharded_cpu_offload",
         "fit_report": vars(fit),
     }
-    # One consolidated block covering every field needed to tell what
-    # actually happened at a glance (model/quantization/placement/CPU
-    # offload/offload directory/allocation/success), on top of the detailed
-    # device-map and per-GPU prints above.
-    print(
-        "MODEL LOAD SUMMARY:\n"
-        f"  Model:              {spec.model_id}\n"
-        f"  Quantization:       {spec.quantization}\n"
-        f"  GPU count:          {num_gpus}\n"
-        f"  Device map:         {load_report['device_map_summary']}\n"
-        f"  GPU memory alloc:   {per_gpu_allocated_gib}\n"
-        f"  CPU offloading:     {used_cpu_offload}\n"
-        f"  Offload directory:  {load_report['offload_folder']}\n"
-        f"  Load attempt used:  {used_label}\n"
-        f"  Actual load success: True"
-    )
     print(f"MODEL LOADED: {spec.slug} in {load_report['load_seconds']}s, "
           f"placement={fit.placement}, gpus_used={sorted(gpu_indices_used) or [0]}, "
           f"footprint={load_report['footprint_gib']} GiB, free_after={load_report['free_gib']} GiB")

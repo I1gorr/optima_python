@@ -17,6 +17,17 @@ import clang.cindex
 from clang.cindex import CursorKind, TypeKind, StorageClass
 
 
+def safe_slug(name: str) -> str:
+    """Turn a project/directory name into a stable, filesystem- and
+    corpus-safe identifier (used as the test-suite/dataset name so base.json
+    outputs for different test suites never collide). Matches the slug
+    convention already used for model/embedding identifiers elsewhere in
+    Optima (``optima.rag.embedding_simple._slug``).
+    """
+    slug = re.sub(r"[^a-zA-Z0-9._-]+", "-", str(name).strip()).strip("-").lower()
+    return slug or "project"
+
+
 def _find_libclang() -> Optional[Path]:
     """Locate the native libclang shared library without assuming a version.
 
@@ -807,6 +818,11 @@ def analyze_project(project_path: Path, output_dir: Path) -> Path:
     base_json = {
         "project": {
             "name": project_path.name,
+            # Stable identifier for this test-suite/project directory, used
+            # downstream (optima_kaggle.snapshot) to keep each test suite's
+            # base.json and experiment outputs in their own directory rather
+            # than an absolute path, which is not a safe/portable identifier.
+            "test_suite": safe_slug(project_path.name),
             "root": str(project_path),
             "language": "cpp"
         },

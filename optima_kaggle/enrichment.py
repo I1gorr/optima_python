@@ -631,13 +631,16 @@ def materialize(ctx: Any, snap: Any, spec: Any, gen: GenerationSettings, ckpt: C
         "used_cpu_offload": load_report.get("used_cpu_offload", False),
     }
     result["experiment"] = {
-        "model": spec.model_id, "temperature": gen.temperature if gen.do_sample else None,
+        "dataset": getattr(snap, "dataset", None), "model": spec.model_id,
+        "model_slug": spec.slug, "quantization": spec.quantization,
+        "temperature": gen.temperature if gen.do_sample else None,
         "do_sample": gen.do_sample, "batch_size": 1, "prompt_version": "v2",
         "prompt_variant": gen.prompt_variant, "schema_version": "v1",
         "base_json_url": snap.url, "base_sha256": snap.sha256,
         "config_hash": config_hash(spec, gen), "optima_commit": getattr(ctx, "optima_commit", None),
         "max_new_tokens": gen.max_new_tokens, "retries": gen.retries,
         "max_input_tokens": spec.max_input_tokens,
+        "output_dir": str(getattr(ctx, "run_dir", "")) or None,
     }
     metrics = _dataset_metrics(functions, elapsed)
     metrics["failure_categories"] = failure_categories

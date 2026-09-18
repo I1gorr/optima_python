@@ -17,6 +17,7 @@ __pycache__/
 
 # Reproducible experiment outputs and downloaded indexes
 colab_outputs/
+optima_outputs/
 rag_report/
 output/rag_report/
 evaluation_results/

@@ -197,6 +197,127 @@ class SnapshotDownloadTests(unittest.TestCase):
         self.assertEqual(json.loads(snap.path.read_text())["project"]["name"], "test")
 
 
+class LoadBaseSnapshotTests(unittest.TestCase):
+    """load_base_snapshot() is the dataset/test-suite-aware entry point:
+    accepts a local BASE_JSON path or a URL, and keys the run directory by
+    dataset (from project.test_suite/project.name) rather than only by
+    content hash, so different test suites never collide.
+    """
+
+    root = ARTIFACTS_ROOT / "load_base_snapshot"
+
+    def setUp(self):
+        if self.root.exists():
+            shutil.rmtree(self.root)
+        self.root.mkdir(parents=True)
+
+    def tearDown(self):
+        shutil.rmtree(self.root, ignore_errors=True)
+
+    def _write_local(self, name: str, data: dict) -> Path:
+        path = self.root / "inputs" / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(data), encoding="utf-8")
+        return path
+
+    def test_dataset_slug_comes_from_test_suite_field(self):
+        data = _minimal_base_json()
+        data["project"]["test_suite"] = "Chess Engine"
+        path = self._write_local("base.json", data)
+        snap = snapshot.load_base_snapshot(str(path), self.root / "outputs")
+        self.assertEqual(snap.dataset, "chess-engine")
+        self.assertEqual(snap.run_dir, self.root / "outputs" / "runs" / "chess-engine")
+        self.assertTrue(snap.path.exists())
+
+    def test_dataset_slug_falls_back_to_project_name(self):
+        data = _minimal_base_json()  # project.name == "test", no test_suite field
+        path = self._write_local("base.json", data)
+        snap = snapshot.load_base_snapshot(str(path), self.root / "outputs")
+        self.assertEqual(snap.dataset, "test")
+
+    def test_dataset_slug_falls_back_to_parent_directory_when_unnamed(self):
+        data = _minimal_base_json()
+        data["project"] = {}
+        path = self._write_local("project-a/base.json", data)
+        snap = snapshot.load_base_snapshot(str(path), self.root / "outputs")
+        self.assertEqual(snap.dataset, "project-a")
+
+    def test_explicit_dataset_overrides_detection(self):
+        data = _minimal_base_json()
+        data["project"]["test_suite"] = "chess-engine"
+        path = self._write_local("base.json", data)
+        snap = snapshot.load_base_snapshot(str(path), self.root / "outputs", dataset="custom-name")
+        self.assertEqual(snap.dataset, "custom-name")
+
+    def test_local_source_file_is_copied_not_moved(self):
+        """A local BASE_JSON may point at a read-only Kaggle input mount --
+        it must only ever be read/copied, never unlinked or moved."""
+        data = _minimal_base_json()
+        path = self._write_local("base.json", data)
+        content_before = path.read_bytes()
+        snapshot.load_base_snapshot(str(path), self.root / "outputs")
+        self.assertTrue(path.exists())
+        self.assertEqual(path.read_bytes(), content_before)
+
+    def test_two_datasets_do_not_collide(self):
+        data_a = _minimal_base_json(function_count=2)
+        data_a["project"]["test_suite"] = "chess-engine"
+        data_b = _minimal_base_json(function_count=4)
+        data_b["project"]["test_suite"] = "project-a"
+        path_a = self._write_local("a.json", data_a)
+        path_b = self._write_local("b.json", data_b)
+        output_root = self.root / "outputs"
+
+        snap_a = snapshot.load_base_snapshot(str(path_a), output_root)
+        snap_b = snapshot.load_base_snapshot(str(path_b), output_root)
+
+        self.assertNotEqual(snap_a.run_dir, snap_b.run_dir)
+        self.assertTrue(snap_a.path.exists())
+        self.assertTrue(snap_b.path.exists())
+        self.assertEqual(len(json.loads(snap_a.path.read_text())["files"][0]["functions"]), 2)
+        self.assertEqual(len(json.loads(snap_b.path.read_text())["files"][0]["functions"]), 4)
+
+    def test_reloading_same_dataset_with_same_content_is_idempotent(self):
+        data = _minimal_base_json()
+        data["project"]["test_suite"] = "chess-engine"
+        path = self._write_local("base.json", data)
+        output_root = self.root / "outputs"
+        first = snapshot.load_base_snapshot(str(path), output_root)
+        second = snapshot.load_base_snapshot(str(path), output_root)
+        self.assertEqual(first.path, second.path)
+        self.assertEqual(first.sha256, second.sha256)
+
+    def test_reloading_same_dataset_with_different_content_raises(self):
+        data1 = _minimal_base_json(function_count=1)
+        data1["project"]["test_suite"] = "chess-engine"
+        data2 = _minimal_base_json(function_count=2)
+        data2["project"]["test_suite"] = "chess-engine"
+        path1 = self._write_local("v1.json", data1)
+        path2 = self._write_local("v2.json", data2)
+        output_root = self.root / "outputs"
+        snapshot.load_base_snapshot(str(path1), output_root)
+        with self.assertRaises(BaseJsonError):
+            snapshot.load_base_snapshot(str(path2), output_root)
+
+    def test_missing_local_path_raises(self):
+        with self.assertRaises(BaseJsonError):
+            snapshot.load_base_snapshot(str(self.root / "does-not-exist.json"), self.root / "outputs")
+
+    def test_expected_sha256_mismatch_raises_for_local_path(self):
+        path = self._write_local("base.json", _minimal_base_json())
+        with self.assertRaises(BaseJsonError):
+            snapshot.load_base_snapshot(str(path), self.root / "outputs", expected_sha256="0" * 64)
+
+    def test_url_input_is_dataset_addressed(self):
+        data = _minimal_base_json()
+        data["project"]["test_suite"] = "chess-engine"
+        path = self._write_local("base.json", data)
+        url = path.resolve().as_uri()
+        snap = snapshot.load_base_snapshot(url, self.root / "outputs")
+        self.assertEqual(snap.dataset, "chess-engine")
+        self.assertEqual(snap.run_dir, self.root / "outputs" / "runs" / "chess-engine")
+
+
 class SnapshotValidateTests(unittest.TestCase):
     root = ARTIFACTS_ROOT / "snapshot_validate"
 
@@ -456,109 +577,6 @@ class ModelFitTests(unittest.TestCase):
             from optima_kaggle.errors import InsufficientDiskError
             with self.assertRaises(InsufficientDiskError):
                 models.check_disk_for_download(spec)
-
-
-class ModelLoadSafeFallbackTests(unittest.TestCase):
-    """load_model_safe() must actually ATTEMPT a real load, and (only when
-    allow_cpu_offload=True) retry with CPU offload after a real CUDA OOM,
-    rather than deciding placement purely from check_fit()'s estimate.
-    Every torch.cuda.* call is monkeypatched so this runs identically with
-    or without a real GPU present.
-    """
-
-    @staticmethod
-    def _fake_config():
-        return mock.Mock(num_hidden_layers=2, num_key_value_heads=2, hidden_size=64,
-                          num_attention_heads=2, head_dim=32, _commit_hash="deadbeef")
-
-    def _fake_loaded_model(self, device_map):
-        model = mock.Mock()
-        model.eval.return_value = model
-        model.hf_device_map = device_map
-        model.modules.return_value = []  # fp16: no Linear4bit check performed
-        model.get_memory_footprint.return_value = 2 * 1024 ** 3
-        model.config = self._fake_config()
-        model.get_input_embeddings.return_value = mock.Mock(weight=mock.Mock(device="cpu"))
-        return model
-
-    def test_falls_back_to_cpu_offload_after_a_real_oom_when_allowed(self):
-        import torch
-
-        spec = _fake_spec(quantization="fp16", allow_cpu_offload=True)
-        fake_model = self._fake_loaded_model({"model.embed_tokens": 0, "model.layers.10": "cpu"})
-
-        with mock.patch("torch.cuda.device_count", return_value=1), \
-             mock.patch("torch.cuda.mem_get_info", return_value=(7 * 1024 ** 3, 8 * 1024 ** 3)), \
-             mock.patch("torch.cuda.get_device_capability", return_value=(7, 5)), \
-             mock.patch("torch.cuda.memory_allocated", return_value=0), \
-             mock.patch("torch.cuda.is_available", return_value=False), \
-             mock.patch.object(models, "estimate_weights_gib",
-                                return_value=ModelFitTests._fake_estimate(1.0)), \
-             mock.patch.object(environment, "cpu_free_ram_gib", return_value=32.0), \
-             mock.patch.object(models, "check_disk_for_download", return_value={}), \
-             mock.patch("transformers.AutoTokenizer.from_pretrained", return_value=FakeTokenizer()), \
-             mock.patch("transformers.AutoModelForCausalLM.from_pretrained",
-                         side_effect=[torch.cuda.OutOfMemoryError("simulated oom"), fake_model]):
-            handle = models.load_model_safe(spec, bnb_status=None)
-
-        self.assertIs(handle.model, fake_model)
-        self.assertEqual(handle.load_report["gpu_placement"], "sharded_cpu_offload")
-        self.assertTrue(handle.load_report["used_cpu_offload"])
-        self.assertEqual(handle.load_report["load_attempt_used"], "cpu_offload_fallback")
-        self.assertEqual(len(handle.load_report["load_fallback_errors"]), 1)
-        self.assertIn("CUDA OOM", handle.load_report["load_fallback_errors"][0])
-
-    def test_does_not_fall_back_to_cpu_offload_when_not_allowed(self):
-        import torch
-
-        from optima_kaggle.errors import ModelLoadError
-
-        spec = _fake_spec(quantization="fp16", allow_cpu_offload=False)
-
-        with mock.patch("torch.cuda.device_count", return_value=1), \
-             mock.patch("torch.cuda.mem_get_info", return_value=(7 * 1024 ** 3, 8 * 1024 ** 3)), \
-             mock.patch("torch.cuda.get_device_capability", return_value=(7, 5)), \
-             mock.patch("torch.cuda.is_available", return_value=False), \
-             mock.patch.object(models, "estimate_weights_gib",
-                                return_value=ModelFitTests._fake_estimate(1.0)), \
-             mock.patch.object(models, "check_disk_for_download", return_value={}), \
-             mock.patch("transformers.AutoTokenizer.from_pretrained", return_value=FakeTokenizer()), \
-             mock.patch("transformers.AutoModelForCausalLM.from_pretrained",
-                         side_effect=torch.cuda.OutOfMemoryError("simulated oom")) as from_pretrained:
-            with self.assertRaises(ModelLoadError):
-                models.load_model_safe(spec, bnb_status=None)
-            from_pretrained.assert_called_once()  # no second (CPU-offload) attempt was made
-
-    def test_forced_last_resort_load_is_attempted_when_estimate_says_no_fit(self):
-        """Even when check_fit() itself raises ModelDoesNotFitError (no
-        placement -- GPU-only or CPU-offload-budgeted -- satisfies the
-        estimate), allow_cpu_offload=True must still trigger one real,
-        Accelerate-automatic load attempt rather than refusing outright.
-        """
-        import torch
-
-        spec = _fake_spec(quantization="fp16", allow_cpu_offload=True)
-        fake_model = self._fake_loaded_model({"model.embed_tokens": "cpu"})
-
-        with mock.patch("torch.cuda.device_count", return_value=1), \
-             mock.patch("torch.cuda.mem_get_info", return_value=(3 * 1024 ** 3, 8 * 1024 ** 3)), \
-             mock.patch("torch.cuda.get_device_capability", return_value=(7, 5)), \
-             mock.patch("torch.cuda.memory_allocated", return_value=0), \
-             mock.patch("torch.cuda.is_available", return_value=False), \
-             mock.patch.object(models, "estimate_weights_gib",
-                                return_value=ModelFitTests._fake_estimate(100.0)), \
-             mock.patch.object(environment, "cpu_free_ram_gib", return_value=32.0), \
-             mock.patch.object(models, "check_disk_for_download", return_value={}), \
-             mock.patch("transformers.AutoTokenizer.from_pretrained", return_value=FakeTokenizer()), \
-             mock.patch("transformers.AutoModelForCausalLM.from_pretrained",
-                         return_value=fake_model) as from_pretrained:
-            handle = models.load_model_safe(spec, bnb_status=None)
-
-        from_pretrained.assert_called_once()
-        called_kwargs = from_pretrained.call_args.kwargs
-        self.assertEqual(called_kwargs["device_map"], "auto")
-        self.assertNotIn("max_memory", called_kwargs)  # left to Accelerate's own placement
-        self.assertEqual(handle.load_report["gpu_placement"], "sharded_cpu_offload")
 
 
 class BuildBoundedMessagesTests(unittest.TestCase):
