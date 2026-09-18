@@ -50,6 +50,17 @@ def main():
             'files) the default quiet mode avoids flooding the terminal.'
         )
     )
+    analyze_parser.add_argument(
+        '--exclude',
+        nargs='+',
+        default=None,
+        metavar='DIR',
+        help=(
+            'Directory name(s) to skip at any depth under project_path '
+            '(e.g. --exclude test fuzz demos). Matched case-insensitively '
+            'against the bare directory name.'
+        )
+    )
     analyze_parser.set_defaults(func=analyze_command)
 
     # enrich command

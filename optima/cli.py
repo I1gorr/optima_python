@@ -47,6 +47,17 @@ def main():
             'files) the default quiet mode avoids flooding the terminal.'
         )
     )
+    analyze_parser.add_argument(
+        '--exclude',
+        nargs='+',
+        default=None,
+        metavar='DIR',
+        help=(
+            'Directory name(s) to skip at any depth under project_path '
+            '(e.g. --exclude test fuzz demos). Matched case-insensitively '
+            'against the bare directory name.'
+        )
+    )
 
     # enrich command
     enrich_parser = subparsers.add_parser(
@@ -146,7 +157,9 @@ def analyze_command(args):
     print(f"Output directory: {output_dir}")
     
     try:
-        base_json_path = analyze_project(project_path, output_dir, verbose=args.verbose)
+        base_json_path = analyze_project(
+            project_path, output_dir, verbose=args.verbose, exclude_dirs=args.exclude
+        )
         print(f"Analysis complete. Base JSON saved to: {base_json_path}")
         print(f"To enrich with LM Studio, run:")
         print(f"  optima enrich {base_json_path}")

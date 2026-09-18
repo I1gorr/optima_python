@@ -475,7 +475,7 @@ class FunctionInfo:
         }
 
 
-def _discover_include_dirs(project_path: Path) -> List[str]:
+def _discover_include_dirs(project_path: Path, exclude_dirs: Optional[Set[str]] = None) -> List[str]:
     """Discover absolute project directories that may contain included headers.
 
     Only the project root and directories literally named 'include'/'src' are
@@ -492,8 +492,10 @@ def _discover_include_dirs(project_path: Path) -> List[str]:
     """
     project_path = project_path.resolve()
     include_dirs = {str(project_path)}
+    exclude_dirs = exclude_dirs or set()
 
     for root, dirs, files in os.walk(project_path):
+        dirs[:] = [d for d in dirs if d.lower() not in exclude_dirs]
         root_path = Path(root).resolve()
         if root_path.name.lower() in {'include', 'src'}:
             include_dirs.add(str(root_path))
@@ -619,7 +621,12 @@ def _compile_translation_unit(
     return compiled
 
 
-def analyze_project(project_path: Path, output_dir: Path, verbose: bool = False) -> Path:
+def analyze_project(
+    project_path: Path,
+    output_dir: Path,
+    verbose: bool = False,
+    exclude_dirs: Optional[List[str]] = None,
+) -> Path:
     """Analyze a C/C++ project and generate base.json.
 
     By default, progress is a single updating line and per-file parse
@@ -629,13 +636,19 @@ def analyze_project(project_path: Path, output_dir: Path, verbose: bool = False)
     enough to make some terminal emulators (VS Code/VSCodium's integrated
     terminal included) hang or crash well before the run finishes. Pass
     verbose=True to restore the full per-file/per-diagnostic output.
+
+    exclude_dirs prunes any directory whose bare name matches (case
+    insensitive) at any depth under project_path -- e.g. ["test", "fuzz",
+    "demos"] to skip OpenSSL's test suite, fuzzers, and demo programs and
+    analyze only the library itself.
     """
     project_path = project_path.resolve()
     output_dir = output_dir.resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
+    exclude_names = {d.lower() for d in (exclude_dirs or [])}
 
     index = clang.cindex.Index.create()
-    include_dirs = _discover_include_dirs(project_path)
+    include_dirs = _discover_include_dirs(project_path, exclude_names)
     compile_cache: Dict[str, Dict[str, str]] = {}
     clang_args = ['-std=c++17']
     # libclang's own header search can disagree with the system's default one
@@ -653,6 +666,7 @@ def analyze_project(project_path: Path, output_dir: Path, verbose: bool = False)
     extensions = {'.c', '.cpp', '.cc', '.cxx', '.h', '.hpp', '.hh', '.hxx'}
     source_files = []
     for root, dirs, files in os.walk(project_path):
+        dirs[:] = [d for d in dirs if d.lower() not in exclude_names]
         for file in files:
             if Path(file).suffix in extensions:
                 source_files.append(Path(root) / file)
