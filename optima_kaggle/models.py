@@ -12,6 +12,8 @@ from __future__ import annotations
 
 import gc
 import json
+import os
+import tempfile
 import time
 from dataclasses import dataclass, field, replace
 from typing import Any, Optional
@@ -226,12 +228,19 @@ MODEL_REGISTRY: dict[str, ModelSpec] = {
         model_id="Qwen/Qwen3-30B-A3B",
         quantization="nf4",
         single_gpu_tier="C",
-        max_input_tokens=4096,
+        max_input_tokens=1500,
+        max_new_tokens=1024,
         chat_template_kwargs={"enable_thinking": False},
         strip_think=True,
+        allow_cpu_offload=True,
         notes=(
-            "30B total-parameter MoE with approximately 3B active "
-            "parameters per token."
+            "30B total-parameter MoE with approximately 3B active parameters "
+            "per token; nf4 weights (~55 GiB) do not fit in 2xT4 combined "
+            "VRAM (~28 GiB), so allow_cpu_offload=True lets "
+            "check_fit()/load_model_safe() fall back to a real GPU+CPU(+disk) "
+            "Accelerate placement instead of refusing the model outright. A "
+            "bounded max_new_tokens keeps the KV-cache headroom reservation "
+            "from ballooning to the model's full context window."
         ),
     ),
 
@@ -978,6 +987,17 @@ def load_model_safe(spec: ModelSpec, bnb_status: Optional["environment.BnbStatus
     major, _minor = torch.cuda.get_device_capability(0)
     dtype = torch.bfloat16 if major >= 8 else torch.float16
 
+    # Only ever used by an "auto" (CPU-offload) attempt below: Accelerate
+    # requires an ``offload_folder`` whenever a module needs to spill past
+    # GPU+CPU RAM to disk. Created unconditionally (cheap) so a model whose
+    # weights exceed even the CPU RAM budget (e.g. a large MoE like
+    # Qwen3-30B-A3B on 2xT4) has real disk offload available as the final
+    # rung of the ladder, instead of failing purely because CPU RAM alone
+    # was not enough -- never used by the GPU-only "balanced"/single_gpu
+    # attempts, which must never spill outside the GPUs they were budgeted for.
+    offload_folder = os.path.join(tempfile.gettempdir(), "optima_offload", spec.slug)
+    os.makedirs(offload_folder, exist_ok=True)
+
     # Build the ordered ladder of REAL load attempts -- (label, device_map,
     # max_memory, force_fp32_cpu_offload_quant). Each is actually tried, in
     # order, until one succeeds; only spec.allow_cpu_offload adds a CPU
@@ -1027,6 +1047,15 @@ def load_model_safe(spec: ModelSpec, bnb_status: Optional["environment.BnbStatus
         }
         if max_memory is not None:
             load_kwargs["max_memory"] = max_memory
+        if device_map == "auto":
+            # Accelerate-supported disk-offload safety net: only reachable by
+            # a CPU-offload attempt (never the GPU-only ones above), and only
+            # actually used by Accelerate if the CPU RAM budget itself is not
+            # enough -- a no-op otherwise. offload_state_dict streams shards
+            # through CPU RAM instead of materializing the whole checkpoint
+            # at once, which matters for a model this large on limited RAM.
+            load_kwargs["offload_folder"] = offload_folder
+            load_kwargs["offload_state_dict"] = True
         try:
             from transformers import __version__ as _tf_version
             if tuple(int(p) for p in _tf_version.split(".")[:2]) >= (4, 56):
@@ -1060,6 +1089,15 @@ def load_model_safe(spec: ModelSpec, bnb_status: Optional["environment.BnbStatus
 
     if model is None:
         category = "cuda_oom_on_load" if any("CUDA OOM" in e for e in load_errors) else "load_failed"
+        print(
+            "MODEL LOAD SUMMARY:\n"
+            f"  Model:              {spec.model_id}\n"
+            f"  Quantization:       {spec.quantization}\n"
+            f"  GPU count:          {num_gpus}\n"
+            f"  Offload directory:  {offload_folder}\n"
+            f"  Attempts tried:     {[a[0] for a in attempts]}\n"
+            f"  Actual load success: False"
+        )
         raise ModelLoadError(
             f"Every load attempt failed for {spec.model_id} ({spec.quantization}). "
             f"This is a REAL loader failure, not a fit-estimate refusal -- attempts "
@@ -1094,15 +1132,19 @@ def load_model_safe(spec: ModelSpec, bnb_status: Optional["environment.BnbStatus
     }
     allowed = {i for i in range(num_gpus)} | {f"cuda:{i}" for i in range(num_gpus)}
     if fit.placement == "sharded_cpu_offload":
-        allowed = allowed | {"cpu"}
+        # Both CPU and disk are legitimate here -- offload_folder was passed
+        # to this attempt precisely so Accelerate could spill past CPU RAM
+        # if it had to. Never allowed on the GPU-only "balanced"/single_gpu
+        # placements, which never receive an offload_folder in the first place.
+        allowed = allowed | {"cpu", "disk"}
     bad_devices = {v for v in resolved_device_map.values() if v not in allowed}
     if bad_devices:
         del model
         _cleanup_gpu()
         raise ModelLoadError(
             f"{spec.model_id} was placed on unsupported devices {bad_devices} "
-            f"(disk offload is never supported; CPU offload is only allowed "
-            f"when placement=='sharded_cpu_offload', currently {fit.placement!r}).",
+            f"(CPU/disk offload is only allowed when placement=="
+            f"'sharded_cpu_offload', currently {fit.placement!r}).",
             category="load_failed",
         )
 
@@ -1164,6 +1206,7 @@ def load_model_safe(spec: ModelSpec, bnb_status: Optional["environment.BnbStatus
         i: round(torch.cuda.memory_allocated(i) / (1024 ** 3), 3) for i in range(num_gpus)
     }
 
+    used_cpu_offload = fit.placement == "sharded_cpu_offload"
     load_report = {
         "load_seconds": round(load_seconds, 2), "footprint_gib": round(footprint_gib, 3),
         "allocated_gib": round(allocated_gib, 3), "free_gib": round(free_gib_after, 3),
@@ -1173,11 +1216,28 @@ def load_model_safe(spec: ModelSpec, bnb_status: Optional["environment.BnbStatus
         "device_map_summary": {str(k): str(v) for k, v in resolved_device_map.items()},
         "has_linear4bit": spec.quantization == "nf4",
         "gpu_placement": fit.placement, "gpu_count_used": len(gpu_indices_used) or 1,
-        "used_cpu_offload": fit.placement == "sharded_cpu_offload",
+        "used_cpu_offload": used_cpu_offload,
+        "offload_folder": offload_folder if used_cpu_offload else None,
         "load_attempt_used": used_label,
         "load_fallback_errors": load_errors,  # never hidden: earlier real failures, if any
         "fit_report": vars(fit),
     }
+    # One consolidated block covering every field needed to tell what
+    # actually happened at a glance (model/quantization/placement/CPU
+    # offload/offload directory/allocation/success), on top of the detailed
+    # device-map and per-GPU prints above.
+    print(
+        "MODEL LOAD SUMMARY:\n"
+        f"  Model:              {spec.model_id}\n"
+        f"  Quantization:       {spec.quantization}\n"
+        f"  GPU count:          {num_gpus}\n"
+        f"  Device map:         {load_report['device_map_summary']}\n"
+        f"  GPU memory alloc:   {per_gpu_allocated_gib}\n"
+        f"  CPU offloading:     {used_cpu_offload}\n"
+        f"  Offload directory:  {load_report['offload_folder']}\n"
+        f"  Load attempt used:  {used_label}\n"
+        f"  Actual load success: True"
+    )
     print(f"MODEL LOADED: {spec.slug} in {load_report['load_seconds']}s, "
           f"placement={fit.placement}, gpus_used={sorted(gpu_indices_used) or [0]}, "
           f"footprint={load_report['footprint_gib']} GiB, free_after={load_report['free_gib']} GiB")
