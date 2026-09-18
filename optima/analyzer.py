@@ -621,11 +621,122 @@ def _compile_translation_unit(
     return compiled
 
 
+def _finalize_and_write(
+    output_file: Path,
+    project_path: Path,
+    processed_files: List[Path],
+    all_functions: List["FunctionInfo"],
+    function_map: Dict[str, "FunctionInfo"],
+    functions_by_file: Dict[str, List["FunctionInfo"]],
+    class_cursor_map: Dict[str, clang.cindex.Cursor],
+) -> None:
+    """Resolve calls/called_by/classes from whatever has been parsed so far
+    and atomically (re)write base.json.
+
+    Safe to call repeatedly as a checkpoint during a long run, not just once
+    at the end: a call to a function in a file not yet parsed simply stays
+    unresolved until a later checkpoint sees it. Writing base.json only once,
+    after every file in a multi-thousand-file project has already been
+    parsed and compiled, means a crash on the very last file (an OOM kill,
+    a terminal dying, anything that isn't a clean Python exception) loses
+    every function extracted up to that point. Calling this after each file
+    instead means only the file being parsed when a crash happens is lost.
+
+    The write itself is to a temp file followed by os.replace so a crash
+    mid-write never leaves a truncated, unparseable base.json on disk.
+    """
+    for func in all_functions:
+        func.calls = _extract_calls(func.cursor, function_map, str(project_path))
+        func.dependencies = _extract_dependencies(func.cursor, project_path)
+
+    called_by_map: Dict[str, List[Dict[str, Any]]] = {}
+    for func in all_functions:
+        for call in func.calls:
+            if call.get("resolved") and call.get("id"):
+                called_by_map.setdefault(call["id"], []).append({
+                    "id": func.id, "name": func.name, "qualified_name": func.qualified_name,
+                })
+    for func in all_functions:
+        func.called_by = called_by_map.get(func.id, [])
+
+    method_ids_by_class: Dict[str, List[str]] = {}
+    for func in all_functions:
+        if func.class_id:
+            method_ids_by_class.setdefault(func.class_id, []).append(func.id)
+
+    classes_by_file: Dict[str, List[Dict[str, Any]]] = {}
+    for class_id, class_cursor in class_cursor_map.items():
+        class_dict = _class_cursor_to_dict(
+            class_cursor, class_id, str(project_path), method_ids_by_class.get(class_id, [])
+        )
+        classes_by_file.setdefault(class_dict["source_location"]["file"], []).append(class_dict)
+
+    all_files = []
+    for file_path in processed_files:
+        relative_path = os.path.relpath(file_path, project_path)
+        file_info = {
+            "id": f"file::{relative_path}",
+            "path": relative_path,
+            "name": file_path.name,
+            "relative_path": relative_path,
+            "language": "cpp" if file_path.suffix.lower() in {'.cpp', '.cc', '.cxx', '.hpp', '.hh', '.hxx'} else "c",
+            "functions": [f.to_dict() for f in functions_by_file.get(relative_path, [])],
+            "classes": classes_by_file.get(relative_path, []),
+        }
+        all_files.append(file_info)
+
+    call_graph_nodes = []
+    call_graph_edges = []
+    for func in all_functions:
+        call_graph_nodes.append({"id": func.id, "name": func.name, "qualified_name": func.qualified_name})
+        for call in func.calls:
+            if call.get("resolved"):
+                call_graph_edges.append({"from": func.id, "to": call["id"]})
+
+    call_graph = {"nodes": call_graph_nodes, "edges": call_graph_edges}
+
+    base_json = {
+        "project": {
+            "name": project_path.name,
+            # Stable identifier for this test-suite/project directory, used
+            # downstream (optima_kaggle.snapshot) to keep each test suite's
+            # base.json and experiment outputs in their own directory rather
+            # than an absolute path, which is not a safe/portable identifier.
+            "test_suite": safe_slug(project_path.name),
+            "root": str(project_path),
+            "language": "cpp"
+        },
+        "files": all_files,
+        "graph": {
+            "function_nodes": [
+                {
+                    "id": func.id,
+                    "type": "function",
+                    "name": func.name,
+                    "qualified_name": func.qualified_name,
+                    "file": func.relative_path,
+                    "start_line": func.source_location["start_line"],
+                    "end_line": func.source_location["end_line"],
+                }
+                for func in all_functions
+            ],
+            "call_edges": call_graph_edges,
+        },
+        "call_graph": call_graph
+    }
+
+    tmp_path = output_file.with_suffix(output_file.suffix + ".tmp")
+    with open(tmp_path, 'w') as f:
+        json.dump(base_json, f, indent=2)
+    os.replace(tmp_path, output_file)
+
+
 def analyze_project(
     project_path: Path,
     output_dir: Path,
     verbose: bool = False,
     exclude_dirs: Optional[List[str]] = None,
+    checkpoint_every: int = 20,
 ) -> Path:
     """Analyze a C/C++ project and generate base.json.
 
@@ -672,13 +783,14 @@ def analyze_project(
                 source_files.append(Path(root) / file)
 
     # We'll store all functions and files
-    all_files = []
     all_functions = []  # Flat list of all functions for call graph
     function_map = {}  # Map from function ID to FunctionInfo
     functions_by_file: Dict[str, List[FunctionInfo]] = {}
     class_cursor_map: Dict[str, clang.cindex.Cursor] = {}  # class id -> defining cursor
     excluded_system_functions = set()
+    processed_files: List[Path] = []
 
+    output_file = output_dir / "base.json"
     total_files = len(source_files)
     files_with_errors = 0
     for index_in_source, file_path in enumerate(source_files, start=1):
@@ -688,6 +800,10 @@ def analyze_project(
             rel = file_path.relative_to(project_path)
             sys.stdout.write(f"\rParsing {index_in_source}/{total_files}: {rel}" + " " * 20)
             sys.stdout.flush()
+        # Recorded before the parse attempt so a file that fails to parse
+        # (e.g. a header clang can't compile standalone) still gets an empty
+        # entry in base.json instead of silently vanishing from it entirely.
+        processed_files.append(file_path)
         try:
             parse_args = list(clang_args)
             if file_path.suffix.lower() == '.c':
@@ -742,97 +858,21 @@ def analyze_project(
             func.enrich_with_llvm(compiled["ir"], compiled["status"], compiled["error"])
             functions_by_file.setdefault(func.relative_path, []).append(func)
 
-    # Resolve source-level calls after the complete project function inventory exists.
-    for func in all_functions:
-        func.calls = _extract_calls(func.cursor, function_map, str(project_path))
-        func.dependencies = _extract_dependencies(func.cursor, project_path)
+        if checkpoint_every > 0 and (
+            index_in_source % checkpoint_every == 0 or index_in_source == total_files
+        ):
+            _finalize_and_write(
+                output_file, project_path, processed_files,
+                all_functions, function_map, functions_by_file, class_cursor_map,
+            )
 
-    # Invert resolved calls into called_by so each function also knows its callers
-    # (previously always empty — nothing populated it after being initialized).
-    called_by_map: Dict[str, List[Dict[str, Any]]] = {}
-    for func in all_functions:
-        for call in func.calls:
-            if call.get("resolved") and call.get("id"):
-                called_by_map.setdefault(call["id"], []).append({
-                    "id": func.id, "name": func.name, "qualified_name": func.qualified_name,
-                })
-    for func in all_functions:
-        func.called_by = called_by_map.get(func.id, [])
-
-    # Link each class to the methods that named it as their enclosing class.
-    method_ids_by_class: Dict[str, List[str]] = {}
-    for func in all_functions:
-        if func.class_id:
-            method_ids_by_class.setdefault(func.class_id, []).append(func.id)
-
-    classes_by_file: Dict[str, List[Dict[str, Any]]] = {}
-    for class_id, class_cursor in class_cursor_map.items():
-        class_dict = _class_cursor_to_dict(
-            class_cursor, class_id, str(project_path), method_ids_by_class.get(class_id, [])
-        )
-        classes_by_file.setdefault(class_dict["source_location"]["file"], []).append(class_dict)
-
-    for file_path in source_files:
-        relative_path = os.path.relpath(file_path, project_path)
-        file_info = {
-            "id": f"file::{relative_path}",
-            "path": relative_path,
-            "name": file_path.name,
-            "relative_path": relative_path,
-            "language": "cpp" if file_path.suffix.lower() in {'.cpp', '.cc', '.cxx', '.hpp', '.hh', '.hxx'} else "c",
-            "functions": [f.to_dict() for f in functions_by_file.get(relative_path, [])],
-            "classes": classes_by_file.get(relative_path, []),
-        }
-        all_files.append(file_info)
-
-    # Build call graph (project-level)
-    call_graph_nodes = []
-    call_graph_edges = []
-    for func in all_functions:
-        call_graph_nodes.append({"id": func.id, "name": func.name, "qualified_name": func.qualified_name})
-        for call in func.calls:
-            if call.get("resolved"):
-                call_graph_edges.append({"from": func.id, "to": call["id"]})
-
-    call_graph = {
-        "nodes": call_graph_nodes,
-        "edges": call_graph_edges
-    }
-
-    # Build base.json structure
-    base_json = {
-        "project": {
-            "name": project_path.name,
-            # Stable identifier for this test-suite/project directory, used
-            # downstream (optima_kaggle.snapshot) to keep each test suite's
-            # base.json and experiment outputs in their own directory rather
-            # than an absolute path, which is not a safe/portable identifier.
-            "test_suite": safe_slug(project_path.name),
-            "root": str(project_path),
-            "language": "cpp"
-        },
-        "files": all_files,
-        "graph": {
-            "function_nodes": [
-                {
-                    "id": func.id,
-                    "type": "function",
-                    "name": func.name,
-                    "qualified_name": func.qualified_name,
-                    "file": func.relative_path,
-                    "start_line": func.source_location["start_line"],
-                    "end_line": func.source_location["end_line"],
-                }
-                for func in all_functions
-            ],
-            "call_edges": call_graph_edges,
-        },
-        "call_graph": call_graph
-    }
-
-    output_file = output_dir / "base.json"
-    with open(output_file, 'w') as f:
-        json.dump(base_json, f, indent=2)
+    # Always finish with one last checkpoint so the file on disk reflects
+    # the complete, fully call-resolved result even if checkpoint_every
+    # didn't line up with total_files (or checkpointing was disabled).
+    _finalize_and_write(
+        output_file, project_path, processed_files,
+        all_functions, function_map, functions_by_file, class_cursor_map,
+    )
 
     successful_compilations = sum(result["status"] == "compiled" for result in compile_cache.values())
     failed_compilations = sum(
@@ -865,7 +905,7 @@ def analyze_project(
     print(f"System functions excluded: {len(excluded_system_functions)}")
     print(f"LLVM functions matched: {matched_functions}")
     print(f"Functions with source ranges: {sum(bool(func.source_location['start_line'] and func.source_location['end_line']) for func in all_functions)}")
-    print(f"Project headers analyzed: {sum(Path(f).suffix.lower() in {'.h', '.hpp', '.hh', '.hxx'} for f in [x['relative_path'] for x in all_files])}")
+    print(f"Project headers analyzed: {sum(f.suffix.lower() in {'.h', '.hpp', '.hh', '.hxx'} for f in processed_files)}")
     print(f"Functions with CFG: {matched_functions}")
     print(f"Basic blocks: {basic_blocks}")
     print(f"CFG edges: {cfg_edges}")

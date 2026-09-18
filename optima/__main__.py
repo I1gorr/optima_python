@@ -61,6 +61,18 @@ def main():
             'against the bare directory name.'
         )
     )
+    analyze_parser.add_argument(
+        '--checkpoint-every',
+        type=int,
+        default=20,
+        metavar='N',
+        help=(
+            'Rewrite base.json to disk after every N files (default: 20), '
+            'not only once at the end, so a crash partway through a large '
+            'project loses at most the last N files instead of everything. '
+            '0 disables checkpointing (only writes once, at the end).'
+        )
+    )
     analyze_parser.set_defaults(func=analyze_command)
 
     # enrich command
