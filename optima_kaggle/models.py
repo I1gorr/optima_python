@@ -76,70 +76,440 @@ class ModelSpec:
 # runs a meta-device parameter count against the config actually resolved
 # from Hugging Face at call time, and is aware of every visible GPU.
 MODEL_REGISTRY: dict[str, ModelSpec] = {
+
+    # ============================================================
+    # QWEN 2.5
+    # ============================================================
+
+    "qwen25-1.5b-instruct-fp16": ModelSpec(
+        slug="qwen25-1.5b-instruct-fp16",
+        model_id="Qwen/Qwen2.5-1.5B-Instruct",
+        quantization="fp16",
+        single_gpu_tier="A",
+        max_input_tokens=6144,
+        notes="Small Qwen2.5 instruction baseline.",
+    ),
+
     "qwen25-3b-instruct-fp16": ModelSpec(
-        slug="qwen25-3b-instruct-fp16", model_id="Qwen/Qwen2.5-3B-Instruct",
-        quantization="fp16", single_gpu_tier="A", max_input_tokens=6144,
-        notes="Control model; works without bitsandbytes (~6.2 GiB weights).",
+        slug="qwen25-3b-instruct-fp16",
+        model_id="Qwen/Qwen2.5-3B-Instruct",
+        quantization="fp16",
+        single_gpu_tier="A",
+        max_input_tokens=6144,
+        notes="Control model; works without bitsandbytes.",
     ),
+
     "qwen25-7b-instruct-nf4": ModelSpec(
-        slug="qwen25-7b-instruct-nf4", model_id="Qwen/Qwen2.5-7B-Instruct",
-        quantization="nf4", single_gpu_tier="A", max_input_tokens=6144,
-        notes="~5.5 GiB in nf4. Recommended default first model. Fits a single "
-              "T4 even in a 2-GPU session (check_fit() picks single_gpu placement).",
+        slug="qwen25-7b-instruct-nf4",
+        model_id="Qwen/Qwen2.5-7B-Instruct",
+        quantization="nf4",
+        single_gpu_tier="A",
+        max_input_tokens=6144,
+        notes="General-purpose 7B instruction model.",
     ),
+
     "qwen25-coder-7b-instruct-nf4": ModelSpec(
-        slug="qwen25-coder-7b-instruct-nf4", model_id="Qwen/Qwen2.5-Coder-7B-Instruct",
-        quantization="nf4", single_gpu_tier="A", max_input_tokens=6144,
-        notes="Code-specialized 7B.",
+        slug="qwen25-coder-7b-instruct-nf4",
+        model_id="Qwen/Qwen2.5-Coder-7B-Instruct",
+        quantization="nf4",
+        single_gpu_tier="A",
+        max_input_tokens=6144,
+        notes="Code-specialized 7B model.",
     ),
+
     "qwen25-14b-instruct-nf4": ModelSpec(
-        slug="qwen25-14b-instruct-nf4", model_id="Qwen/Qwen2.5-14B-Instruct",
-        quantization="nf4", single_gpu_tier="B", max_input_tokens=4096,
-        notes="~9.5-10 GiB in nf4; tight headroom on one 14.56 GiB T4, "
-              "comfortable if allowed to shard across two.",
+        slug="qwen25-14b-instruct-nf4",
+        model_id="Qwen/Qwen2.5-14B-Instruct",
+        quantization="nf4",
+        single_gpu_tier="B",
+        max_input_tokens=4096,
+        notes="General-purpose 14B model.",
     ),
+
     "qwen25-coder-14b-instruct-nf4": ModelSpec(
-        slug="qwen25-coder-14b-instruct-nf4", model_id="Qwen/Qwen2.5-Coder-14B-Instruct",
-        quantization="nf4", single_gpu_tier="B", max_input_tokens=4096,
-        notes="Code-specialized 14B; same headroom profile as qwen25-14b.",
+        slug="qwen25-coder-14b-instruct-nf4",
+        model_id="Qwen/Qwen2.5-Coder-14B-Instruct",
+        quantization="nf4",
+        single_gpu_tier="B",
+        max_input_tokens=4096,
+        notes="Code-specialized 14B model.",
     ),
-    "qwen3-14b-nf4": ModelSpec(
-        slug="qwen3-14b-nf4", model_id="Qwen/Qwen3-14B",
-        quantization="nf4", single_gpu_tier="B", max_input_tokens=4096,
-        chat_template_kwargs={"enable_thinking": False}, strip_think=True,
-        notes="Needs transformers>=4.51 (NOT CONFIRMED on Kaggle's preinstalled version).",
-    ),
+
     "qwen25-32b-instruct-nf4": ModelSpec(
-        slug="qwen25-32b-instruct-nf4", model_id="Qwen/Qwen2.5-32B-Instruct",
-        quantization="nf4", single_gpu_tier="C", max_input_tokens=4096,
-        notes="~18-19 GiB in nf4. Does not fit 1xT4; fits across 2xT4 (29.1 GiB "
-              "combined) via sharded device_map='balanced'. Refused on a single-GPU "
-              "session unless ALLOW_INFEASIBLE; on a 2-GPU session it is allowed "
-              "through to the real check_fit() gate.",
+        slug="qwen25-32b-instruct-nf4",
+        model_id="Qwen/Qwen2.5-32B-Instruct",
+        quantization="nf4",
+        single_gpu_tier="C",
+        max_input_tokens=4096,
+        notes="Large 32B model; requires multi-GPU sharding.",
     ),
-    "qwen3-30b-a3b-nf4": ModelSpec(
-        slug="qwen3-30b-a3b-nf4", model_id="Qwen/Qwen3-30B-A3B",
-        quantization="nf4", single_gpu_tier="C", max_input_tokens=4096,
-        notes="MoE, ~30B total params (only ~3B active per token) -- nf4 storage "
-              "is driven by total params (every expert must reside somewhere), "
-              "~16-17 GiB estimated. Whether bitsandbytes quantizes the "
-              "fused-expert Linear layers the same way as a dense model is NOT "
-              "CONFIRMED; the Linear4bit presence check after loading verifies "
-              "this at runtime. Infeasible on 1xT4; expected to fit across 2xT4, "
-              "confirmed at runtime by check_fit(), not assumed here.",
-    ),
-    "deepseek-r1-distill-qwen-32b-nf4": ModelSpec(
-        slug="deepseek-r1-distill-qwen-32b-nf4", model_id="deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
-        quantization="nf4", single_gpu_tier="C", max_input_tokens=4096,
+
+    # ============================================================
+    # QWEN 3
+    # ============================================================
+
+    "qwen3-0.6b-fp16": ModelSpec(
+        slug="qwen3-0.6b-fp16",
+        model_id="Qwen/Qwen3-0.6B",
+        quantization="fp16",
+        single_gpu_tier="A",
+        max_input_tokens=6144,
+        chat_template_kwargs={"enable_thinking": False},
         strip_think=True,
-        notes="Same dense architecture/size class as Qwen2.5-32B (~18-19 GiB "
-              "nf4); fits across 2xT4. Still emits long <think>...</think> "
-              "output that conflicts with bounded JSON -- strip_think=True is "
-              "set, and expect more retries/output_truncated at the default "
-              "max_new_tokens.",
+        notes="Small Qwen3 baseline.",
+    ),
+
+    "qwen3-1.7b-fp16": ModelSpec(
+        slug="qwen3-1.7b-fp16",
+        model_id="Qwen/Qwen3-1.7B",
+        quantization="fp16",
+        single_gpu_tier="A",
+        max_input_tokens=6144,
+        chat_template_kwargs={"enable_thinking": False},
+        strip_think=True,
+        notes="Small Qwen3 model.",
+    ),
+
+    "qwen3-4b-fp16": ModelSpec(
+        slug="qwen3-4b-fp16",
+        model_id="Qwen/Qwen3-4B",
+        quantization="fp16",
+        single_gpu_tier="A",
+        max_input_tokens=6144,
+        chat_template_kwargs={"enable_thinking": False},
+        strip_think=True,
+        notes="4B Qwen3 model.",
+    ),
+
+    "qwen3-8b-nf4": ModelSpec(
+        slug="qwen3-8b-nf4",
+        model_id="Qwen/Qwen3-8B",
+        quantization="nf4",
+        single_gpu_tier="A",
+        max_input_tokens=6144,
+        chat_template_kwargs={"enable_thinking": False},
+        strip_think=True,
+        notes="8B Qwen3 model.",
+    ),
+
+    "qwen3-14b-nf4": ModelSpec(
+        slug="qwen3-14b-nf4",
+        model_id="Qwen/Qwen3-14B",
+        quantization="nf4",
+        single_gpu_tier="B",
+        max_input_tokens=4096,
+        chat_template_kwargs={"enable_thinking": False},
+        strip_think=True,
+        notes="14B Qwen3 model.",
+    ),
+
+    "qwen3-30b-a3b-nf4": ModelSpec(
+        slug="qwen3-30b-a3b-nf4",
+        model_id="Qwen/Qwen3-30B-A3B",
+        quantization="nf4",
+        single_gpu_tier="C",
+        max_input_tokens=4096,
+        chat_template_kwargs={"enable_thinking": False},
+        strip_think=True,
+        notes=(
+            "30B total-parameter MoE with approximately 3B active "
+            "parameters per token. Verify NF4 Linear4bit coverage at runtime."
+        ),
+    ),
+
+    # ============================================================
+    # DEEPSEEK
+    # ============================================================
+
+    "deepseek-r1-distill-qwen-1.5b-fp16": ModelSpec(
+        slug="deepseek-r1-distill-qwen-1.5b-fp16",
+        model_id="deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",
+        quantization="fp16",
+        single_gpu_tier="A",
+        max_input_tokens=6144,
+        strip_think=True,
+        notes="Small reasoning-distilled model.",
+    ),
+
+    "deepseek-r1-distill-qwen-7b-nf4": ModelSpec(
+        slug="deepseek-r1-distill-qwen-7b-nf4",
+        model_id="deepseek-ai/DeepSeek-R1-Distill-Qwen-7B",
+        quantization="nf4",
+        single_gpu_tier="A",
+        max_input_tokens=6144,
+        strip_think=True,
+        notes="7B reasoning-distilled model.",
+    ),
+
+    "deepseek-r1-distill-qwen-14b-nf4": ModelSpec(
+        slug="deepseek-r1-distill-qwen-14b-nf4",
+        model_id="deepseek-ai/DeepSeek-R1-Distill-Qwen-14B",
+        quantization="nf4",
+        single_gpu_tier="B",
+        max_input_tokens=4096,
+        strip_think=True,
+        notes="14B reasoning-distilled model.",
+    ),
+
+    "deepseek-r1-distill-qwen-32b-nf4": ModelSpec(
+        slug="deepseek-r1-distill-qwen-32b-nf4",
+        model_id="deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
+        quantization="nf4",
+        single_gpu_tier="C",
+        max_input_tokens=4096,
+        strip_think=True,
+        notes=(
+            "32B reasoning-distilled model. Long reasoning output may "
+            "increase retries and output truncation."
+        ),
+    ),
+
+    "deepseek-r1-distill-llama-8b-nf4": ModelSpec(
+        slug="deepseek-r1-distill-llama-8b-nf4",
+        model_id="deepseek-ai/DeepSeek-R1-Distill-Llama-8B",
+        quantization="nf4",
+        single_gpu_tier="A",
+        max_input_tokens=6144,
+        strip_think=True,
+        notes="8B reasoning-distilled Llama model.",
+    ),
+
+    # ============================================================
+    # IBM GRANITE
+    # ============================================================
+
+    "granite-3.3-2b-instruct-fp16": ModelSpec(
+        slug="granite-3.3-2b-instruct-fp16",
+        model_id="ibm-granite/granite-3.3-2b-instruct",
+        quantization="fp16",
+        single_gpu_tier="A",
+        max_input_tokens=6144,
+        notes="Small Granite instruction model.",
+    ),
+
+    "granite-3.3-8b-instruct-nf4": ModelSpec(
+        slug="granite-3.3-8b-instruct-nf4",
+        model_id="ibm-granite/granite-3.3-8b-instruct",
+        quantization="nf4",
+        single_gpu_tier="A",
+        max_input_tokens=6144,
+        notes="8B Granite instruction model used in Optima.",
+    ),
+
+    # ============================================================
+    # MISTRAL / MINISTRAL
+    # ============================================================
+
+    "ministral-3-3b-fp16": ModelSpec(
+        slug="ministral-3-3b-fp16",
+        model_id="mistralai/Ministral-3-3B",
+        quantization="fp16",
+        single_gpu_tier="A",
+        max_input_tokens=6144,
+        notes="3B Ministral model used in Optima experiments.",
+    ),
+
+    "ministral-8b-instruct-nf4": ModelSpec(
+        slug="ministral-8b-instruct-nf4",
+        model_id="mistralai/Ministral-8B-Instruct-2410",
+        quantization="nf4",
+        single_gpu_tier="A",
+        max_input_tokens=6144,
+        notes="8B Ministral instruction model.",
+    ),
+
+    "mistral-7b-instruct-nf4": ModelSpec(
+        slug="mistral-7b-instruct-nf4",
+        model_id="mistralai/Mistral-7B-Instruct-v0.3",
+        quantization="nf4",
+        single_gpu_tier="A",
+        max_input_tokens=6144,
+        notes="Classic 7B Mistral instruction baseline.",
+    ),
+
+    "mistral-small-24b-instruct-nf4": ModelSpec(
+        slug="mistral-small-24b-instruct-nf4",
+        model_id="mistralai/Mistral-Small-24B-Instruct-2501",
+        quantization="nf4",
+        single_gpu_tier="C",
+        max_input_tokens=4096,
+        notes="24B Mistral instruction model.",
+    ),
+
+    # ============================================================
+    # MICROSOFT PHI
+    # ============================================================
+
+    "phi3-mini-4k-instruct-fp16": ModelSpec(
+        slug="phi3-mini-4k-instruct-fp16",
+        model_id="microsoft/Phi-3-mini-4k-instruct",
+        quantization="fp16",
+        single_gpu_tier="A",
+        max_input_tokens=4096,
+        notes="3.8B Phi-3 instruction baseline.",
+    ),
+
+    "phi4-mini-reasoning-fp16": ModelSpec(
+        slug="phi4-mini-reasoning-fp16",
+        model_id="microsoft/Phi-4-mini-reasoning",
+        quantization="fp16",
+        single_gpu_tier="A",
+        max_input_tokens=6144,
+        strip_think=True,
+        notes="Reasoning model previously used in Optima.",
+    ),
+
+    "phi4-nf4": ModelSpec(
+        slug="phi4-nf4",
+        model_id="microsoft/phi-4",
+        quantization="nf4",
+        single_gpu_tier="B",
+        max_input_tokens=4096,
+        notes="14B Phi-4 instruction/reasoning model.",
+    ),
+
+    # ============================================================
+    # META LLAMA
+    # ============================================================
+
+    "llama32-1b-instruct-fp16": ModelSpec(
+        slug="llama32-1b-instruct-fp16",
+        model_id="meta-llama/Llama-3.2-1B-Instruct",
+        quantization="fp16",
+        single_gpu_tier="A",
+        max_input_tokens=6144,
+        notes="Small Llama 3.2 baseline.",
+    ),
+
+    "llama32-3b-instruct-fp16": ModelSpec(
+        slug="llama32-3b-instruct-fp16",
+        model_id="meta-llama/Llama-3.2-3B-Instruct",
+        quantization="fp16",
+        single_gpu_tier="A",
+        max_input_tokens=6144,
+        notes="Llama 3.2 3B model used in Optima experiments.",
+    ),
+
+    "llama31-8b-instruct-nf4": ModelSpec(
+        slug="llama31-8b-instruct-nf4",
+        model_id="meta-llama/Llama-3.1-8B-Instruct",
+        quantization="nf4",
+        single_gpu_tier="A",
+        max_input_tokens=6144,
+        notes="Llama 3.1 8B instruction model.",
+    ),
+
+    "llama33-70b-instruct-nf4": ModelSpec(
+        slug="llama33-70b-instruct-nf4",
+        model_id="meta-llama/Llama-3.3-70B-Instruct",
+        quantization="nf4",
+        single_gpu_tier="C",
+        max_input_tokens=4096,
+        notes="Large 70B Llama model; multi-GPU required.",
+    ),
+
+    # ============================================================
+    # GOOGLE GEMMA
+    # ============================================================
+
+    "gemma3-1b-it-fp16": ModelSpec(
+        slug="gemma3-1b-it-fp16",
+        model_id="google/gemma-3-1b-it",
+        quantization="fp16",
+        single_gpu_tier="A",
+        max_input_tokens=6144,
+        notes="Small Gemma 3 instruction model.",
+    ),
+
+    "gemma3-4b-it-fp16": ModelSpec(
+        slug="gemma3-4b-it-fp16",
+        model_id="google/gemma-3-4b-it",
+        quantization="fp16",
+        single_gpu_tier="A",
+        max_input_tokens=6144,
+        notes="4B Gemma 3 instruction model.",
+    ),
+
+    "gemma3-12b-it-nf4": ModelSpec(
+        slug="gemma3-12b-it-nf4",
+        model_id="google/gemma-3-12b-it",
+        quantization="nf4",
+        single_gpu_tier="B",
+        max_input_tokens=4096,
+        notes="12B Gemma 3 instruction model.",
+    ),
+
+    "gemma3-27b-it-nf4": ModelSpec(
+        slug="gemma3-27b-it-nf4",
+        model_id="google/gemma-3-27b-it",
+        quantization="nf4",
+        single_gpu_tier="C",
+        max_input_tokens=4096,
+        notes="27B Gemma 3 instruction model.",
+    ),
+
+    # ============================================================
+    # HUGGING FACE SMOLLM
+    # ============================================================
+
+    "smollm2-360m-instruct-fp16": ModelSpec(
+        slug="smollm2-360m-instruct-fp16",
+        model_id="HuggingFaceTB/SmolLM2-360M-Instruct",
+        quantization="fp16",
+        single_gpu_tier="A",
+        max_input_tokens=4096,
+        notes="Very small instruction baseline.",
+    ),
+
+    "smollm2-1.7b-instruct-fp16": ModelSpec(
+        slug="smollm2-1.7b-instruct-fp16",
+        model_id="HuggingFaceTB/SmolLM2-1.7B-Instruct",
+        quantization="fp16",
+        single_gpu_tier="A",
+        max_input_tokens=6144,
+        notes="1.7B instruction model used in Optima experiments.",
+    ),
+
+    # ============================================================
+    # CODE-SPECIALIZED MODELS
+    # ============================================================
+
+    "starcoder2-3b-fp16": ModelSpec(
+        slug="starcoder2-3b-fp16",
+        model_id="bigcode/starcoder2-3b",
+        quantization="fp16",
+        single_gpu_tier="A",
+        max_input_tokens=4096,
+        notes="3B code-specialized model.",
+    ),
+
+    "starcoder2-7b-nf4": ModelSpec(
+        slug="starcoder2-7b-nf4",
+        model_id="bigcode/starcoder2-7b",
+        quantization="nf4",
+        single_gpu_tier="A",
+        max_input_tokens=4096,
+        notes="7B code-specialized model.",
+    ),
+
+    "starcoder2-15b-nf4": ModelSpec(
+        slug="starcoder2-15b-nf4",
+        model_id="bigcode/starcoder2-15b",
+        quantization="nf4",
+        single_gpu_tier="B",
+        max_input_tokens=4096,
+        notes="15B code-specialized model.",
+    ),
+
+    "codestral-22b-v0.1-nf4": ModelSpec(
+        slug="codestral-22b-v0.1-nf4",
+        model_id="mistralai/Codestral-22B-v0.1",
+        quantization="nf4",
+        single_gpu_tier="C",
+        max_input_tokens=4096,
+        notes="22B code-specialized model.",
     ),
 }
-
 
 def resolve_spec(name_or_slug: str, overrides: Optional[dict[str, Any]] = None,
                   num_gpus: int = 1, allow_infeasible: bool = False) -> ModelSpec:
