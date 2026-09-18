@@ -4,7 +4,7 @@ import json
 import sys
 import os
 import traceback
-sys.path.insert(0, os.path.join(os.path.dirname(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from optima.rag.evaluation import OptimaRetrievalEvaluator, calculate_improvement_over_baseline
 from optima.rag.embedding_simple import OptimaEmbedder

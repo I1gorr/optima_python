@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 # Add the optima package to the path
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from optima.rag.benchmark_generator import validate_benchmark_queries, load_benchmark_queries
 

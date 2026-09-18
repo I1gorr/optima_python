@@ -19,10 +19,13 @@ __pycache__/
 colab_outputs/
 optima_outputs/
 rag_report/
-output/rag_report/
+output/
 evaluation_results/
 
 # Packaging/build products
 build/
 dist/
 *.egg-info/
+
+# Vendored test-suite fixtures (fetched separately, too large for git history)
+optima-test-suite/openssl-master/

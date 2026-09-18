@@ -3,17 +3,18 @@
 import json
 import sys
 import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'optima', 'rag'))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), 'optima', 'rag'))
 
 from benchmark_generator import BenchmarkQueryGenerator
 
 # Load some functions from base.json
-base_path = os.path.join(os.path.dirname(__file__), 'output', 'base.json')
+base_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'output', 'base.json')
 with open(base_path, 'r') as f:
     data = json.load(f)
 
 functions = []
-for file_data in data.get 외부: functions.extend(file_data.get("functions", []))
+for file_data in data.get("files", []):
+    functions.extend(file_data.get("functions", []))
 
 # Take first 10 functions for testing
 test_functions = functions[:10]
