@@ -1,2 +1,0 @@
-rank,enrichment_model,embedding_model,R@1,R@5,R@10,MRR,Hit@5,difficult_R@1,difficult_MRR,overall_score
-1,raw,qwen3-0.6b,0.5066666666666666,0.7603125,0.8303125,0.6726716269841271,0.82125,0.46354166666666663,0.6946112351190475,0.663576

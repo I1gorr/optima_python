@@ -1,6 +1,0 @@
-table,embedding_model,corpus,weighted_overall_score
-best_corpus_per_embedding,bge-small,raw,0.449866
-best_corpus_per_embedding,bge-base,raw,0.50736
-best_corpus_per_embedding,nomic,raw,0.479009
-best_corpus_per_embedding,qwen3-0.6b,raw,0.663576
-best_embedding_per_corpus,qwen3-0.6b,raw,0.663576
