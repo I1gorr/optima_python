@@ -41,6 +41,15 @@ def main():
             'where <test-suite> is a safe slug of the project directory name)'
         )
     )
+    analyze_parser.add_argument(
+        '-v', '--verbose',
+        action='store_true',
+        help=(
+            'Print a line per file and every clang parse diagnostic instead of '
+            'a single updating progress line. On large projects (thousands of '
+            'files) the default quiet mode avoids flooding the terminal.'
+        )
+    )
     analyze_parser.set_defaults(func=analyze_command)
 
     # enrich command

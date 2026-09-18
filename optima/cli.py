@@ -38,7 +38,16 @@ def main():
             'where <test-suite> is a safe slug of the project directory name)'
         )
     )
-    
+    analyze_parser.add_argument(
+        '-v', '--verbose',
+        action='store_true',
+        help=(
+            'Print a line per file and every clang parse diagnostic instead of '
+            'a single updating progress line. On large projects (thousands of '
+            'files) the default quiet mode avoids flooding the terminal.'
+        )
+    )
+
     # enrich command
     enrich_parser = subparsers.add_parser(
         'enrich', 
@@ -137,7 +146,7 @@ def analyze_command(args):
     print(f"Output directory: {output_dir}")
     
     try:
-        base_json_path = analyze_project(project_path, output_dir)
+        base_json_path = analyze_project(project_path, output_dir, verbose=args.verbose)
         print(f"Analysis complete. Base JSON saved to: {base_json_path}")
         print(f"To enrich with LM Studio, run:")
         print(f"  optima enrich {base_json_path}")

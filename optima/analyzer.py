@@ -9,7 +9,6 @@ import shutil
 import subprocess
 import tempfile
 import sys
-import shlex
 import re
 from pathlib import Path
 from typing import List, Dict, Any, Optional, Set
@@ -239,14 +238,6 @@ class FunctionInfo:
         end_line = self.cursor.extent.end.line - 1
         return ''.join(lines[start_line:end_line+1])
 
-    def _get_llvm_ir(self) -> str:
-        # For simplicity, we'll generate LLVM IR for the entire file and return it.
-        # In a more advanced version, we could extract per-function IR.
-        # We'll cache the IR per file to avoid recompiling.
-        if not hasattr(self, '_file_llvm_ir'):
-            self._file_llvm_ir = self._compile_file_to_llvm_ir()
-        return self._file_llvm_ir
-
     def enrich_with_llvm(self, llvm_ir: str, status: str = "compiled", error: str = ""):
         self.llvm_ir = llvm_ir
         self.llvm_status = status
@@ -255,71 +246,6 @@ class FunctionInfo:
             self.analysis_status = "source_only"
             return
         self._build_cfg()
-
-    def _compile_file_to_llvm_ir(self) -> str:
-        cached = self.compile_cache.get(self.file_path)
-        if cached is not None:
-            self.analysis_status = cached["status"]
-            self.compiler_error = cached["error"]
-            return cached["ir"]
-
-        # Use clang to emit LLVM IR for the file
-        is_cxx = Path(self.file_path).suffix.lower() in {'.cpp', '.cc', '.cxx', '.hpp', '.hh', '.hxx'}
-        compiler = 'clang++' if is_cxx else 'clang'
-        standard = '-std=c++17' if is_cxx else '-std=c11'
-        cmd = [
-            compiler,
-            '-S',
-            '-emit-llvm',
-            '-O0',
-            standard,
-        ]
-        for include_dir in self.include_dirs:
-            cmd.extend(['-I', include_dir])
-        cmd.extend([
-            self.file_path,
-            '-o', '-'
-        ])
-        print("DEBUG: LLVM compile command:", " ".join(shlex.quote(arg) for arg in cmd))
-        try:
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-            if result.returncode != 0:
-                self.analysis_status = "compilation_failed"
-                self.compiler_error = result.stderr.strip()
-                self.compile_cache[self.file_path] = {
-                    "ir": "",
-                    "status": self.analysis_status,
-                    "error": self.compiler_error,
-                }
-                print(f"Warning: Failed to compile {self.file_path} to LLVM IR: {result.stderr}", file=sys.stderr)
-                return ""
-            self.analysis_status = "compiled"
-            self.compile_cache[self.file_path] = {
-                "ir": result.stdout,
-                "status": self.analysis_status,
-                "error": "",
-            }
-            return result.stdout
-        except subprocess.TimeoutExpired:
-            self.analysis_status = "compilation_failed"
-            self.compiler_error = "Compiler timed out after 30 seconds."
-            self.compile_cache[self.file_path] = {
-                "ir": "",
-                "status": self.analysis_status,
-                "error": self.compiler_error,
-            }
-            print(f"Warning: Timeout compiling {self.file_path} to LLVM IR", file=sys.stderr)
-            return ""
-        except Exception as e:
-            self.analysis_status = "compilation_failed"
-            self.compiler_error = str(e)
-            self.compile_cache[self.file_path] = {
-                "ir": "",
-                "status": self.analysis_status,
-                "error": self.compiler_error,
-            }
-            print(f"Warning: Exception compiling {self.file_path} to LLVM IR: {e}", file=sys.stderr)
-            return ""
 
     def _get_ast(self) -> Dict[str, Any]:
         # Return a simplified AST representation for the function
@@ -385,13 +311,24 @@ class FunctionInfo:
 
 
     def _build_cfg(self):
-        """Build control-flow graph from LLVM IR."""
+        """Build control-flow graph from LLVM IR.
+
+        self.llvm_ir starts out holding the *entire translation unit's* IR
+        (the same string is handed to every function extracted from that
+        file). It is narrowed to just this function's own block below, on
+        every exit path: left as the whole file it would be duplicated once
+        per function in the final base.json (a file with 30 functions would
+        write ~30 copies of its own IR), which is exactly the kind of
+        multi-GB-output/terminal-flooding blowup a project the size of
+        OpenSSL hits immediately.
+        """
         llvm_ir = self.llvm_ir
         if not llvm_ir:
             return
 
         function_match = self._find_llvm_function(llvm_ir)
         if function_match is None:
+            self.llvm_ir = ""
             self.basic_blocks = []
             self.cfg = {"entry_node": "", "exit_node": "", "nodes": [], "edges": []}
             self.analysis_status = "llvm_function_not_found"
@@ -405,11 +342,16 @@ class FunctionInfo:
         self.llvm_function_name = llvm_name
         func_body = self._extract_llvm_function_body(llvm_ir, match.end())
         if func_body is None:
+            self.llvm_ir = ""
             self.basic_blocks = []
             self.cfg = {"entry_node": "", "exit_node": "", "nodes": [], "edges": []}
             self.analysis_status = "llvm_function_not_found"
             self.compiler_error = "Generated LLVM function body is malformed."
             return
+
+        # Narrow self.llvm_ir to just this function (signature + body) now
+        # that it has been located, instead of leaving the whole file on it.
+        self.llvm_ir = llvm_ir[match.start():match.end()] + func_body + "\n}"
 
         blocks = self._parse_llvm_blocks(func_body)
         if not blocks:
@@ -663,7 +605,6 @@ def _compile_translation_unit(
     for include_dir in include_dirs:
         cmd.extend(['-I', include_dir])
     cmd.extend([path, '-o', '-'])
-    print("DEBUG: LLVM compile command:", " ".join(shlex.quote(arg) for arg in cmd))
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
     except subprocess.TimeoutExpired:
@@ -678,8 +619,17 @@ def _compile_translation_unit(
     return compiled
 
 
-def analyze_project(project_path: Path, output_dir: Path) -> Path:
-    """Analyze a C/C++ project and generate base.json."""
+def analyze_project(project_path: Path, output_dir: Path, verbose: bool = False) -> Path:
+    """Analyze a C/C++ project and generate base.json.
+
+    By default, progress is a single updating line and per-file parse
+    diagnostics are collapsed to an error count — on a project with
+    thousands of files (e.g. OpenSSL), printing a full line per file plus
+    every clang diagnostic produces megabytes of terminal output, which is
+    enough to make some terminal emulators (VS Code/VSCodium's integrated
+    terminal included) hang or crash well before the run finishes. Pass
+    verbose=True to restore the full per-file/per-diagnostic output.
+    """
     project_path = project_path.resolve()
     output_dir = output_dir.resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -715,20 +665,31 @@ def analyze_project(project_path: Path, output_dir: Path) -> Path:
     class_cursor_map: Dict[str, clang.cindex.Cursor] = {}  # class id -> defining cursor
     excluded_system_functions = set()
 
-    for file_path in source_files:
-        print(f"Parsing {file_path}")
+    total_files = len(source_files)
+    files_with_errors = 0
+    for index_in_source, file_path in enumerate(source_files, start=1):
+        if verbose:
+            print(f"Parsing {file_path}")
+        else:
+            rel = file_path.relative_to(project_path)
+            sys.stdout.write(f"\rParsing {index_in_source}/{total_files}: {rel}" + " " * 20)
+            sys.stdout.flush()
         try:
             parse_args = list(clang_args)
             if file_path.suffix.lower() == '.c':
                 parse_args[0] = '-std=c11'
             tu = index.parse(str(file_path), args=parse_args)
         except Exception as e:
-            print(f"Error parsing {file_path}: {e}", file=sys.stderr)
+            print(f"\nError parsing {file_path}: {e}", file=sys.stderr)
             continue
 
         if tu.diagnostics:
-            for diag in tu.diagnostics:
-                print(f"Diagnostic: {diag}", file=sys.stderr)
+            errors = [d for d in tu.diagnostics if d.severity >= clang.cindex.Diagnostic.Error]
+            if errors:
+                files_with_errors += 1
+            if verbose:
+                for diag in tu.diagnostics:
+                    print(f"Diagnostic: {diag}", file=sys.stderr)
 
         # Collect functions from this translation unit
         file_functions = []
@@ -877,7 +838,11 @@ def analyze_project(project_path: Path, output_dir: Path) -> Path:
     virtuals = sum(func.class_info["is_virtual"] for func in all_functions)
     statics = sum(func.class_info["is_static"] for func in all_functions)
     operators = sum(func.class_info["is_operator_overload"] for func in all_functions)
+    if not verbose:
+        sys.stdout.write("\n")
     print(f"Source files discovered: {len(source_files)}")
+    if not verbose:
+        print(f"Files with parse errors: {files_with_errors} (pass verbose=True / --verbose for details)")
     print(f"Classes/structs discovered: {len(class_cursor_map)}")
     print(f"Project functions: {len(all_functions)}")
     print(f"  of which methods: {methods} (constructors: {constructors}, destructors: {destructors}, "
