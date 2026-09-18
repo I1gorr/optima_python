@@ -232,7 +232,7 @@ class FunctionInfo:
     def _get_source_code(self) -> str:
         if not self.cursor.location.file:
             return ""
-        with open(self.cursor.location.file.name, 'r') as f:
+        with open(self.cursor.location.file.name, 'r', encoding='utf-8', errors='replace') as f:
             lines = f.readlines()
         start_line = self.cursor.location.line - 1  # 0-indexed
         end_line = self.cursor.extent.end.line - 1
@@ -806,57 +806,76 @@ def analyze_project(
         processed_files.append(file_path)
         try:
             parse_args = list(clang_args)
-            if file_path.suffix.lower() == '.c':
+            # clang_args defaults to C++ (needed for .cpp/.hpp/... files); C
+            # sources and headers must be parsed as C11 instead, or passing a
+            # C++-only flag like -std=c++17 to a file libclang treats as a C
+            # translation unit (any .c/.h) makes index.parse() raise
+            # TranslationUnitLoadError outright instead of just warning, so
+            # every function in that file is lost rather than just its LLVM
+            # mapping. This previously only special-cased .c, silently
+            # dropping every function defined in a .h file (e.g. static
+            # inline helpers) across the whole project.
+            if file_path.suffix.lower() not in {'.cpp', '.cc', '.cxx', '.hpp', '.hh', '.hxx'}:
                 parse_args[0] = '-std=c11'
             tu = index.parse(str(file_path), args=parse_args)
-        except Exception as e:
-            print(f"\nError parsing {file_path}: {e}", file=sys.stderr)
-            continue
 
-        if tu.diagnostics:
-            errors = [d for d in tu.diagnostics if d.severity >= clang.cindex.Diagnostic.Error]
-            if errors:
-                files_with_errors += 1
-            if verbose:
-                for diag in tu.diagnostics:
-                    print(f"Diagnostic: {diag}", file=sys.stderr)
+            if tu.diagnostics:
+                errors = [d for d in tu.diagnostics if d.severity >= clang.cindex.Diagnostic.Error]
+                if errors:
+                    files_with_errors += 1
+                if verbose:
+                    for diag in tu.diagnostics:
+                        print(f"Diagnostic: {diag}", file=sys.stderr)
 
-        # Collect functions from this translation unit
-        file_functions = []
+            # Collect functions from this translation unit
+            file_functions = []
 
-        def visit_cursor(cursor: clang.cindex.Cursor, parent: Optional[clang.cindex.Cursor] = None):
-            if cursor.kind in CLASS_LIKE_KINDS and cursor.is_definition():
-                if _is_project_owned(cursor, str(project_path)):
-                    class_id = _class_id_for_cursor(cursor, str(project_path))
-                    if class_id and class_id not in class_cursor_map:
-                        class_cursor_map[class_id] = cursor
-            if cursor.kind in FUNCTION_LIKE_KINDS:
-                # Only consider definitions, not just declarations
-                if cursor.is_definition():
+            def visit_cursor(cursor: clang.cindex.Cursor, parent: Optional[clang.cindex.Cursor] = None):
+                if cursor.kind in CLASS_LIKE_KINDS and cursor.is_definition():
                     if _is_project_owned(cursor, str(project_path)):
-                        func_info = FunctionInfo(
-                            cursor, str(file_path), str(project_path),
-                            include_dirs, compile_cache
-                        )
-                        if func_info.id not in function_map:
-                            file_functions.append(func_info)
-                            all_functions.append(func_info)
-                            function_map[func_info.id] = func_info
-                    elif cursor.location.file:
-                        excluded_system_functions.add((
-                            os.path.abspath(os.path.realpath(cursor.location.file.name)),
-                            cursor.location.line,
-                            cursor.spelling
-                        ))
-            # Recurse
-            for child in cursor.get_children():
-                visit_cursor(child, cursor)
+                        class_id = _class_id_for_cursor(cursor, str(project_path))
+                        if class_id and class_id not in class_cursor_map:
+                            class_cursor_map[class_id] = cursor
+                if cursor.kind in FUNCTION_LIKE_KINDS:
+                    # Only consider definitions, not just declarations
+                    if cursor.is_definition():
+                        if _is_project_owned(cursor, str(project_path)):
+                            func_info = FunctionInfo(
+                                cursor, str(file_path), str(project_path),
+                                include_dirs, compile_cache
+                            )
+                            if func_info.id not in function_map:
+                                file_functions.append(func_info)
+                                all_functions.append(func_info)
+                                function_map[func_info.id] = func_info
+                        elif cursor.location.file:
+                            excluded_system_functions.add((
+                                os.path.abspath(os.path.realpath(cursor.location.file.name)),
+                                cursor.location.line,
+                                cursor.spelling
+                            ))
+                # Recurse
+                for child in cursor.get_children():
+                    visit_cursor(child, cursor)
 
-        visit_cursor(tu.cursor)
-        compiled = _compile_translation_unit(file_path, include_dirs, compile_cache)
-        for func in file_functions:
-            func.enrich_with_llvm(compiled["ir"], compiled["status"], compiled["error"])
-            functions_by_file.setdefault(func.relative_path, []).append(func)
+            visit_cursor(tu.cursor)
+            compiled = _compile_translation_unit(file_path, include_dirs, compile_cache)
+            for func in file_functions:
+                func.enrich_with_llvm(compiled["ir"], compiled["status"], compiled["error"])
+                functions_by_file.setdefault(func.relative_path, []).append(func)
+        except Exception as e:
+            # Covers both index.parse() itself and everything derived from
+            # its translation unit (cursor traversal, LLVM compilation): the
+            # libclang bindings decode cursor spellings/diagnostics as strict
+            # UTF-8 (clang/cindex.py's c_interop_string.value), so a source
+            # file with a non-UTF-8 byte anywhere - even deep inside a macro
+            # or comment - can raise UnicodeDecodeError well after parsing
+            # succeeded. Treat that the same as a parse failure: skip the
+            # file rather than aborting the whole run.
+            files_with_errors += 1
+            if verbose:
+                print(f"\nError parsing {file_path}: {e}", file=sys.stderr)
+            continue
 
         if checkpoint_every > 0 and (
             index_in_source % checkpoint_every == 0 or index_in_source == total_files
