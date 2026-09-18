@@ -141,7 +141,7 @@ MODEL_REGISTRY: dict[str, ModelSpec] = {
         quantization="nf4",
         single_gpu_tier="C",
         max_input_tokens=4096,
-        notes="Large 32B model; requires multi-GPU sharding.",
+        notes="32B model; requires multi-GPU sharding.",
     ),
 
     # ============================================================
@@ -213,12 +213,12 @@ MODEL_REGISTRY: dict[str, ModelSpec] = {
         strip_think=True,
         notes=(
             "30B total-parameter MoE with approximately 3B active "
-            "parameters per token. Verify NF4 Linear4bit coverage at runtime."
+            "parameters per token."
         ),
     ),
 
     # ============================================================
-    # DEEPSEEK
+    # DEEPSEEK R1 DISTILL
     # ============================================================
 
     "deepseek-r1-distill-qwen-1.5b-fp16": ModelSpec(
@@ -228,7 +228,7 @@ MODEL_REGISTRY: dict[str, ModelSpec] = {
         single_gpu_tier="A",
         max_input_tokens=6144,
         strip_think=True,
-        notes="Small reasoning-distilled model.",
+        notes="1.5B reasoning-distilled Qwen model.",
     ),
 
     "deepseek-r1-distill-qwen-7b-nf4": ModelSpec(
@@ -238,7 +238,7 @@ MODEL_REGISTRY: dict[str, ModelSpec] = {
         single_gpu_tier="A",
         max_input_tokens=6144,
         strip_think=True,
-        notes="7B reasoning-distilled model.",
+        notes="7B reasoning-distilled Qwen model.",
     ),
 
     "deepseek-r1-distill-qwen-14b-nf4": ModelSpec(
@@ -248,7 +248,7 @@ MODEL_REGISTRY: dict[str, ModelSpec] = {
         single_gpu_tier="B",
         max_input_tokens=4096,
         strip_think=True,
-        notes="14B reasoning-distilled model.",
+        notes="14B reasoning-distilled Qwen model.",
     ),
 
     "deepseek-r1-distill-qwen-32b-nf4": ModelSpec(
@@ -259,8 +259,8 @@ MODEL_REGISTRY: dict[str, ModelSpec] = {
         max_input_tokens=4096,
         strip_think=True,
         notes=(
-            "32B reasoning-distilled model. Long reasoning output may "
-            "increase retries and output truncation."
+            "32B reasoning-distilled Qwen model. Requires multi-GPU "
+            "sharding. Long reasoning traces may require stripping."
         ),
     ),
 
@@ -297,8 +297,17 @@ MODEL_REGISTRY: dict[str, ModelSpec] = {
     ),
 
     # ============================================================
-    # MISTRAL / MINISTRAL
+    # MISTRAL
     # ============================================================
+
+    "mistral-7b-instruct-nf4": ModelSpec(
+        slug="mistral-7b-instruct-nf4",
+        model_id="mistralai/Mistral-7B-Instruct-v0.3",
+        quantization="nf4",
+        single_gpu_tier="A",
+        max_input_tokens=6144,
+        notes="7B Mistral instruction baseline.",
+    ),
 
     "ministral-3-3b-fp16": ModelSpec(
         slug="ministral-3-3b-fp16",
@@ -306,7 +315,7 @@ MODEL_REGISTRY: dict[str, ModelSpec] = {
         quantization="fp16",
         single_gpu_tier="A",
         max_input_tokens=6144,
-        notes="3B Ministral model used in Optima experiments.",
+        notes="3B Ministral model used in Optima.",
     ),
 
     "ministral-8b-instruct-nf4": ModelSpec(
@@ -316,24 +325,6 @@ MODEL_REGISTRY: dict[str, ModelSpec] = {
         single_gpu_tier="A",
         max_input_tokens=6144,
         notes="8B Ministral instruction model.",
-    ),
-
-    "mistral-7b-instruct-nf4": ModelSpec(
-        slug="mistral-7b-instruct-nf4",
-        model_id="mistralai/Mistral-7B-Instruct-v0.3",
-        quantization="nf4",
-        single_gpu_tier="A",
-        max_input_tokens=6144,
-        notes="Classic 7B Mistral instruction baseline.",
-    ),
-
-    "mistral-small-24b-instruct-nf4": ModelSpec(
-        slug="mistral-small-24b-instruct-nf4",
-        model_id="mistralai/Mistral-Small-24B-Instruct-2501",
-        quantization="nf4",
-        single_gpu_tier="C",
-        max_input_tokens=4096,
-        notes="24B Mistral instruction model.",
     ),
 
     # ============================================================
@@ -365,7 +356,7 @@ MODEL_REGISTRY: dict[str, ModelSpec] = {
         quantization="nf4",
         single_gpu_tier="B",
         max_input_tokens=4096,
-        notes="14B Phi-4 instruction/reasoning model.",
+        notes="14B Phi-4 model.",
     ),
 
     # ============================================================
@@ -378,7 +369,7 @@ MODEL_REGISTRY: dict[str, ModelSpec] = {
         quantization="fp16",
         single_gpu_tier="A",
         max_input_tokens=6144,
-        notes="Small Llama 3.2 baseline.",
+        notes="Small Llama 3.2 instruction model.",
     ),
 
     "llama32-3b-instruct-fp16": ModelSpec(
@@ -387,7 +378,7 @@ MODEL_REGISTRY: dict[str, ModelSpec] = {
         quantization="fp16",
         single_gpu_tier="A",
         max_input_tokens=6144,
-        notes="Llama 3.2 3B model used in Optima experiments.",
+        notes="Llama 3.2 3B model used in Optima.",
     ),
 
     "llama31-8b-instruct-nf4": ModelSpec(
@@ -397,15 +388,6 @@ MODEL_REGISTRY: dict[str, ModelSpec] = {
         single_gpu_tier="A",
         max_input_tokens=6144,
         notes="Llama 3.1 8B instruction model.",
-    ),
-
-    "llama33-70b-instruct-nf4": ModelSpec(
-        slug="llama33-70b-instruct-nf4",
-        model_id="meta-llama/Llama-3.3-70B-Instruct",
-        quantization="nf4",
-        single_gpu_tier="C",
-        max_input_tokens=4096,
-        notes="Large 70B Llama model; multi-GPU required.",
     ),
 
     # ============================================================
@@ -449,7 +431,7 @@ MODEL_REGISTRY: dict[str, ModelSpec] = {
     ),
 
     # ============================================================
-    # HUGGING FACE SMOLLM
+    # SMOLLM
     # ============================================================
 
     "smollm2-360m-instruct-fp16": ModelSpec(
@@ -467,11 +449,11 @@ MODEL_REGISTRY: dict[str, ModelSpec] = {
         quantization="fp16",
         single_gpu_tier="A",
         max_input_tokens=6144,
-        notes="1.7B instruction model used in Optima experiments.",
+        notes="1.7B instruction model used in Optima.",
     ),
 
     # ============================================================
-    # CODE-SPECIALIZED MODELS
+    # CODE-SPECIALIZED
     # ============================================================
 
     "starcoder2-3b-fp16": ModelSpec(
@@ -499,15 +481,6 @@ MODEL_REGISTRY: dict[str, ModelSpec] = {
         single_gpu_tier="B",
         max_input_tokens=4096,
         notes="15B code-specialized model.",
-    ),
-
-    "codestral-22b-v0.1-nf4": ModelSpec(
-        slug="codestral-22b-v0.1-nf4",
-        model_id="mistralai/Codestral-22B-v0.1",
-        quantization="nf4",
-        single_gpu_tier="C",
-        max_input_tokens=4096,
-        notes="22B code-specialized model.",
     ),
 }
 
