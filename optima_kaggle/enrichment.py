@@ -555,8 +555,25 @@ class Checkpoint:
         self._records[function_id] = record
 
 
+def build_materialize_state(snap: Any) -> dict[str, Any]:
+    """Load base.json and deep-copy it exactly once, for reuse across every
+    ``materialize()`` call in a run. Pass the returned state into
+    ``materialize(..., state=...)`` so a run with ``MATERIALIZE_EVERY=1`` on
+    a large dataset (thousands of functions) does not re-read base.json from
+    disk and re-deep-copy the whole tree after every single function --
+    that per-call reload+deepcopy is what exhausts host RAM on a large
+    codebase (e.g. openssl) even though it never shows up as "one big load".
+    """
+    from colab.colab_pipeline import flatten_functions, load_json
+
+    base = load_json(snap.path)
+    result = copy.deepcopy(base)
+    return {"result": result, "functions": flatten_functions(result)}
+
+
 def materialize(ctx: Any, snap: Any, spec: Any, gen: GenerationSettings, ckpt: Checkpoint,
-                 elapsed: float, partial: bool, load_report: Optional[dict[str, Any]] = None) -> Path:
+                 elapsed: float, partial: bool, load_report: Optional[dict[str, Any]] = None,
+                 state: Optional[dict[str, Any]] = None) -> Path:
     """Rebuild enhanced_<slug>.json from base.json + the checkpoint. Always
     safe to call (even mid-run): a torn enhanced_*.json can never lose work
     because the checkpoint, not this file, is authoritative.
@@ -566,14 +583,22 @@ def materialize(ctx: Any, snap: Any, spec: Any, gen: GenerationSettings, ckpt: C
     ``used_cpu_offload`` fields are threaded into ``enrichment_metadata``
     below so the multi-GPU placement a model actually used is visible in the
     comparison table (§20), not just its success rate.
+
+    ``state``, from ``build_materialize_state(snap)``, lets a caller that
+    invokes ``materialize()`` many times in one run (``run_full_enrichment``)
+    reuse one already-loaded, already-deep-copied result tree instead of
+    paying a fresh load_json+deepcopy of the entire base.json on every call.
+    Omitting it keeps the old self-contained (load + deepcopy every call)
+    behavior, e.g. for a single one-off call.
     """
     load_report = load_report or {}
-    from colab.colab_pipeline import flatten_functions, load_json, save_json
+    from colab.colab_pipeline import save_json
     from optima.enricher import _dataset_metrics
 
-    base = load_json(snap.path)
-    result = copy.deepcopy(base)
-    functions = flatten_functions(result)
+    if state is None:
+        state = build_materialize_state(snap)
+    result = state["result"]
+    functions = state["functions"]
 
     enriched_count = 0
     failed_count = 0
@@ -1011,6 +1036,17 @@ def run_full_enrichment(ctx: Any, handle: Any, gen: GenerationSettings, snap: An
     print(f"FULL ENRICHMENT [{slug}]: {len(functions)} total, "
           f"{already_completed} already completed, {len(todo)} to do")
 
+    # Built once, from the `base` already loaded above (not a second
+    # load_json), and reused for every materialize() call below. Without
+    # this, MATERIALIZE_EVERY=1 on a large dataset (e.g. openssl) would
+    # re-read base.json from disk and re-deep-copy the whole tree after
+    # EVERY function -- the actual cause of exhausting host RAM, since each
+    # of those reload+deepcopy pairs briefly holds two full copies of the
+    # dataset at once regardless of how small any single function's prompt
+    # is (see build_materialize_state's docstring).
+    materialize_state = {"result": copy.deepcopy(base), "functions": None}
+    materialize_state["functions"] = flatten_functions(materialize_state["result"])
+
     attempts_log = ctx.logs_dir / slug / "attempts.jsonl"
     partial = True
     start = time.perf_counter()
@@ -1028,14 +1064,14 @@ def run_full_enrichment(ctx: Any, handle: Any, gen: GenerationSettings, snap: An
             ckpt.append(fn["id"], enrichment)
             if (index + 1) % materialize_every == 0:
                 materialize(ctx, snap, handle.spec, gen, ckpt, time.perf_counter() - start, partial=True,
-                           load_report=handle.load_report)
+                           load_report=handle.load_report, state=materialize_state)
             if (index + 1) % 10 == 0:
                 environment.gpu_report(f"{slug}: after {index + 1}/{len(todo)}", ctx.gpu_log_path)
         partial = False
     finally:
         elapsed = time.perf_counter() - start
         out_path = materialize(ctx, snap, handle.spec, gen, ckpt, elapsed, partial=partial,
-                              load_report=handle.load_report)
+                              load_report=handle.load_report, state=materialize_state)
         if partial:
             ctx.set_model_status(slug, "enrichment_incomplete", {"enriched_json": str(out_path)})
 
