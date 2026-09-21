@@ -789,16 +789,19 @@ def _require_handle(handle: Any, gate_name: str) -> None:
 
 def gate1_load(ctx: Any, handle: Any, gen: GenerationSettings) -> dict[str, Any]:
     """Also verifies the multi-GPU placement policy in ``models.check_fit``:
-    whenever more than one GPU was visible at fit time, the loaded model
-    must actually hold parameters on more than one GPU (not just GPU 0 with
-    a second GPU left idle). A single-GPU session (``num_gpus == 1``) is
-    unaffected -- there is nothing to shard across.
+    only when ``check_fit`` actually decided on "sharded" placement (the
+    model did not fit on any single visible GPU) must the loaded model hold
+    parameters on more than one GPU. A model that ``check_fit`` placed as
+    "single_gpu" is correct as-is, even in a multi-GPU session -- a model
+    that fits on one GPU is deliberately kept off the others (splitting it
+    would only add cross-GPU transfer overhead to every generation call).
     """
     _require_handle(handle, "gate1_load")
     load_report = handle.load_report
     num_gpus = (load_report.get("fit_report") or {}).get("num_gpus", 1)
+    placement = load_report.get("gpu_placement")
     gpu_count_used = load_report.get("gpu_count_used", 1)
-    multi_gpu_ok = num_gpus < 2 or gpu_count_used >= 2
+    multi_gpu_ok = placement != "sharded" or gpu_count_used >= 2
     details = {**load_report, "num_gpus_visible": num_gpus, "multi_gpu_verified": multi_gpu_ok}
     return record_gate(ctx, handle.spec, gen, "gate1_load", multi_gpu_ok, details)
 

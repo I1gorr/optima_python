@@ -705,13 +705,18 @@ def check_fit(spec: ModelSpec, num_gpus: Optional[int] = None,
     parameter count. This is the sole feasibility gate for a model -- the
     registry's ``single_gpu_tier`` (§6.1) is advisory only.
 
-    This is a *benchmarking* pipeline: whenever more than one GPU is
-    visible, every visible GPU is used to hold this one model instance --
-    never just GPU 0 with a second GPU left idle, even when the model would
-    comfortably fit alone on GPU 0. Decision order:
+    A model that fits on one GPU stays on one GPU, even in a multi-GPU
+    session -- sharding a model's layers across GPUs (naive pipeline
+    parallelism via ``device_map``) is *sequential* during autoregressive
+    generation: only one GPU computes at a time while the other(s) idle,
+    plus a cross-GPU activation transfer at every layer boundary. On
+    PCIe-only pairs with no NVLink (e.g. Kaggle's T4 x2) that overhead is
+    large and buys zero throughput, so sharding is reserved for models that
+    genuinely do not fit on any single visible GPU. Decision order:
 
-    1. single_gpu  - only reachable with exactly one visible GPU: it alone
-                     holds weights + full headroom.
+    1. single_gpu  - the GPU with the most free memory alone holds weights
+                     + full headroom, for ANY number of visible GPUs. Only
+                     when no single GPU suffices do we consider sharding.
     2. sharded     - two or more GPUs are visible and the weights fit across
                      them combined. ``max_memory`` here is each GPU's real
                      safe budget (free VRAM, minus a safety factor, minus
@@ -760,28 +765,30 @@ def check_fit(spec: ModelSpec, num_gpus: Optional[int] = None,
                   f"budget={round(budget_gib[i], 3)} GiB")
         print(f"  decision: placement={placement}, fits={fits}")
 
-    # 1. Single-GPU fit: only considered when exactly one GPU is visible.
-    #    With two or more visible GPUs this branch is skipped entirely --
-    #    see the module-level note above: a second idle GPU is not an
-    #    acceptable placement for this benchmarking pipeline.
-    if num_gpus == 1:
-        single_gpu_margin = free_gib[0] * safety_factor - total_headroom_gib - weights_gib
-        if single_gpu_margin >= 0:
-            report = FitReport(
-                num_gpus=num_gpus, free_gib=free_gib, per_gpu_reserved_gib=per_gpu_reserved_gib,
-                budget_gib=budget_gib, weights_gib=weights_gib, total_headroom_gib=total_headroom_gib,
-                placement="single_gpu", fits=True, chosen_gpu=0, max_memory=None,
-            )
-            _print_table("single_gpu", True)
-            return report
+    # 1. Single-GPU fit: try the GPU with the most free memory, for ANY
+    #    number of visible GPUs. Uses the model's FULL headroom reservation
+    #    (not divided across GPUs) since only this one GPU would hold the
+    #    model. This is checked first and preferred over sharding regardless
+    #    of how many other GPUs are idle -- see the docstring above.
+    best_gpu = max(range(num_gpus), key=lambda i: free_gib[i])
+    single_gpu_margin = free_gib[best_gpu] * safety_factor - total_headroom_gib - weights_gib
+    if single_gpu_margin >= 0:
+        report = FitReport(
+            num_gpus=num_gpus, free_gib=free_gib, per_gpu_reserved_gib=per_gpu_reserved_gib,
+            budget_gib=budget_gib, weights_gib=weights_gib, total_headroom_gib=total_headroom_gib,
+            placement="single_gpu", fits=True, chosen_gpu=best_gpu, max_memory=None,
+        )
+        _print_table("single_gpu", True)
+        return report
 
-    # 2. Sharded fit (num_gpus >= 2): do the GPUs combined (each with its own
-    #    apportioned headroom reservation) hold the weights? Every visible
-    #    GPU's real safe budget is offered to the planner; device_map=
-    #    "balanced" (load_model_safe) is what actually spreads layers across
-    #    all of them instead of filling GPU 0 alone -- max_memory here only
-    #    bounds each GPU so generation headroom is never eaten by weights.
-    elif sum(budget_gib) >= weights_gib:
+    # 2. Sharded fit (num_gpus >= 2): only reached when no single GPU
+    #    sufficed above. Do the GPUs combined (each with its own apportioned
+    #    headroom reservation) hold the weights? Every visible GPU's real
+    #    safe budget is offered to the planner; device_map="balanced"
+    #    (load_model_safe) is what actually spreads layers across all of
+    #    them instead of filling GPU 0 alone -- max_memory here only bounds
+    #    each GPU so generation headroom is never eaten by weights.
+    if sum(budget_gib) >= weights_gib:
         max_memory = {i: f"{budget_gib[i]:.2f}GiB" for i in range(num_gpus) if budget_gib[i] > 0}
         report = FitReport(
             num_gpus=num_gpus, free_gib=free_gib, per_gpu_reserved_gib=per_gpu_reserved_gib,
@@ -862,9 +869,11 @@ class ModelHandle:
 
 def load_model_safe(spec: ModelSpec, bnb_status: Optional["environment.BnbStatus"] = None) -> ModelHandle:
     """Load a single causal LM instance with explicit device placement -- one
-    GPU when the model fits alone (``num_gpus == 1``), or ``device_map=
-    "balanced"`` across every visible GPU (with an explicit, pre-computed,
-    GPU-only ``max_memory``) otherwise -- plus full post-load verification.
+    GPU when the model fits alone (``check_fit`` places it as
+    ``"single_gpu"``, regardless of how many other GPUs are visible), or
+    ``device_map="balanced"`` across every visible GPU (with an explicit,
+    pre-computed, GPU-only ``max_memory``) otherwise -- plus full post-load
+    verification.
     "balanced" never spills a module to CPU/disk, which quantized (nf4)
     weights cannot tolerate; there is no CPU/disk fallback path here except
     the separate, opt-in ``sharded_cpu_offload`` placement. Never falls back
