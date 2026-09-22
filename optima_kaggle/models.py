@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import gc
 import json
+import os
 import time
 from dataclasses import dataclass, field, replace
 from typing import Any, Optional
@@ -27,6 +28,15 @@ from .errors import (
 
 _VALID_SINGLE_GPU_TIERS = ("A", "B", "C")
 _VALID_QUANTS = ("fp16", "nf4", "nf4-prequantized")
+
+
+def _hf_token() -> Optional[str]:
+    """The Hub token for gated repos (e.g. meta-llama/*, or a Mistral
+    research-license checkpoint), read from the environment -- the notebook's
+    config cell sets HF_TOKEN from a Kaggle secret. None is valid and correct
+    for every *public* model; only a gated repo actually needs this set.
+    """
+    return os.environ.get("HF_TOKEN") or None
 
 
 def _device_index(value: Any) -> Optional[int]:
@@ -605,7 +615,9 @@ def estimate_weights_gib(spec: ModelSpec) -> dict[str, Any]:
     from accelerate import init_empty_weights
     from transformers import AutoConfig, AutoModelForCausalLM
 
-    config = AutoConfig.from_pretrained(spec.model_id, revision=spec.revision, trust_remote_code=False)
+    config = AutoConfig.from_pretrained(
+        spec.model_id, revision=spec.revision, trust_remote_code=False, token=_hf_token(),
+    )
     with init_empty_weights():
         model = AutoModelForCausalLM.from_config(config, trust_remote_code=False)
 
@@ -836,7 +848,7 @@ def check_disk_for_download(spec: ModelSpec, hf_home: Optional[str] = None) -> d
     from huggingface_hub import HfApi
 
     api = HfApi()
-    info = api.model_info(spec.model_id, revision=spec.revision, files_metadata=True)
+    info = api.model_info(spec.model_id, revision=spec.revision, files_metadata=True, token=_hf_token())
     total_bytes = sum(
         (sibling.size or 0) for sibling in (info.siblings or [])
         if sibling.rfilename.endswith((".safetensors", ".bin"))
@@ -901,7 +913,9 @@ def load_model_safe(spec: ModelSpec, bnb_status: Optional["environment.BnbStatus
         environment.require_bitsandbytes(bnb_status, spec.slug)
 
     try:
-        tokenizer = AutoTokenizer.from_pretrained(spec.model_id, revision=spec.revision, use_fast=True)
+        tokenizer = AutoTokenizer.from_pretrained(
+            spec.model_id, revision=spec.revision, use_fast=True, token=_hf_token(),
+        )
     except (OSError, ValueError) as exc:
         raise ModelLoadError(
             f"Could not load tokenizer for {spec.model_id!r}: {exc}",
@@ -942,7 +956,7 @@ def load_model_safe(spec: ModelSpec, bnb_status: Optional["environment.BnbStatus
 
     load_kwargs: dict[str, Any] = {
         "revision": spec.revision, "device_map": device_map, "low_cpu_mem_usage": True,
-        "attn_implementation": "sdpa",
+        "attn_implementation": "sdpa", "token": _hf_token(),
     }
     if fit.placement != "single_gpu":
         load_kwargs["max_memory"] = fit.max_memory
