@@ -273,6 +273,7 @@ def enrich_one(handle: Any, function: dict[str, Any], gen: GenerationSettings,
             result = models.generate_text(
                 handle, messages, max_new_tokens=max_new_tokens, do_sample=gen.do_sample,
                 temperature=gen.temperature, top_p=gen.top_p,
+                repetition_penalty=gen.repetition_penalty,
             )
         except torch.cuda.OutOfMemoryError as exc:
             torch.cuda.empty_cache()
@@ -296,6 +297,7 @@ def enrich_one(handle: Any, function: dict[str, Any], gen: GenerationSettings,
                 result = models.generate_text(
                     handle, retry_messages, max_new_tokens=retry_max_new_tokens,
                     do_sample=gen.do_sample, temperature=gen.temperature, top_p=gen.top_p,
+                    repetition_penalty=gen.repetition_penalty,
                 )
             except torch.cuda.OutOfMemoryError as retry_exc:
                 torch.cuda.empty_cache()

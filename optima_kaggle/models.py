@@ -1106,7 +1106,8 @@ def _strip_think(text: str) -> tuple[str, bool]:
 def generate_text(handle: ModelHandle, messages: list[dict[str, str]],
                    max_new_tokens: int, do_sample: bool = False,
                    temperature: Optional[float] = None,
-                   top_p: Optional[float] = None) -> GenerationResult:
+                   top_p: Optional[float] = None,
+                   repetition_penalty: float = 1.0) -> GenerationResult:
     """Run one bounded generation with explicit, model-agnostic decoding
     settings. Does not catch torch.cuda.OutOfMemoryError: callers decide how
     to react (an OOM here aborts the enrichment run rather than being
@@ -1137,7 +1138,7 @@ def generate_text(handle: ModelHandle, messages: list[dict[str, str]],
         torch.cuda.reset_peak_memory_stats(i)
     gen_kwargs: dict[str, Any] = {
         "max_new_tokens": max_new_tokens, "do_sample": do_sample,
-        "repetition_penalty": 1.0, "pad_token_id": tokenizer.pad_token_id,
+        "repetition_penalty": repetition_penalty, "pad_token_id": tokenizer.pad_token_id,
     }
     if do_sample:
         gen_kwargs["temperature"] = temperature
