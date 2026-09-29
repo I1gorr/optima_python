@@ -172,6 +172,15 @@ MODEL_REGISTRY: dict[str, ModelSpec] = {
         notes="32B model; requires multi-GPU sharding.",
     ),
 
+    "qwen25-coder-32b-instruct-nf4": ModelSpec(
+        slug="qwen25-coder-32b-instruct-nf4",
+        model_id="Qwen/Qwen2.5-Coder-32B-Instruct",
+        quantization="nf4",
+        single_gpu_tier="C",
+        max_input_tokens=4096,
+        notes="Code-specialized 32B model; requires multi-GPU sharding.",
+    ),
+
     # ============================================================
     # QWEN 3
     # ============================================================
@@ -364,6 +373,15 @@ MODEL_REGISTRY: dict[str, ModelSpec] = {
         notes="8B Ministral instruction model.",
     ),
 
+    "mistral-small-24b-instruct-nf4": ModelSpec(
+        slug="mistral-small-24b-instruct-nf4",
+        model_id="mistralai/Mistral-Small-24B-Instruct-2501",
+        quantization="nf4",
+        single_gpu_tier="C",
+        max_input_tokens=4096,
+        notes="24B Mistral Small model; requires multi-GPU sharding on 2xT4.",
+    ),
+
     # ============================================================
     # MICROSOFT PHI
     # ============================================================
@@ -546,6 +564,44 @@ MODEL_REGISTRY: dict[str, ModelSpec] = {
         single_gpu_tier="B",
         max_input_tokens=4096,
         notes="15B code-specialized model.",
+    ),
+
+    "codestral-22b-nf4": ModelSpec(
+        slug="codestral-22b-nf4",
+        model_id="mistralai/Codestral-22B-v0.1",
+        quantization="nf4",
+        single_gpu_tier="C",
+        max_input_tokens=4096,
+        notes="22B code-specialized Mistral model; requires multi-GPU sharding on 2xT4.",
+    ),
+
+    # ============================================================
+    # 01.AI YI
+    # ============================================================
+
+    "yi-1.5-34b-chat-nf4": ModelSpec(
+        slug="yi-1.5-34b-chat-nf4",
+        model_id="01-ai/Yi-1.5-34B-Chat",
+        quantization="nf4",
+        single_gpu_tier="C",
+        max_input_tokens=4096,
+        notes="34B Yi 1.5 instruction model; requires multi-GPU sharding on 2xT4.",
+    ),
+
+    # ============================================================
+    # COHERE COMMAND R
+    # ============================================================
+
+    "command-r-35b-nf4": ModelSpec(
+        slug="command-r-35b-nf4",
+        model_id="CohereForAI/c4ai-command-r-v01",
+        quantization="nf4",
+        single_gpu_tier="C",
+        max_input_tokens=4096,
+        notes=(
+            "35B Cohere Command R model; requires multi-GPU sharding on "
+            "2xT4. Near the top of what fits nf4-quantized on 2x16GB T4s."
+        ),
     ),
 }
 
