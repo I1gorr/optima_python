@@ -655,6 +655,8 @@ def spec_from_model_id(model_id: str, quantization: str = "nf4",
     from optima.rag.embedding_simple import _slug  # local import: no heavy deps
 
     slug = _slug(model_id)
+    if quantization is None or str(quantization).lower() in ("none", "no", "off", "bf16", "fp32"):
+        quantization = "fp16"  # "no quantization" == load the weights unquantized
     return ModelSpec(
         slug=slug, model_id=model_id, quantization=quantization,
         single_gpu_tier="B",  # unused for ad hoc specs: check_fit() is the only real gate
