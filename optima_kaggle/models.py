@@ -61,7 +61,7 @@ class ModelSpec:
     model_id: str
     quantization: str  # "fp16" | "nf4" | "nf4-prequantized"
     single_gpu_tier: str  # "A" (fits 1xT4) | "B" (fits, tight) | "C" (does not fit 1xT4)
-    max_input_tokens: int
+    max_input_tokens: Optional[int]  # None = no input cap (prompt is never reduced)
     revision: Optional[str] = None
     max_new_tokens: Optional[int] = None  # None = no artificial cap; bounded only by the
                                            # model's own context window (see max_new_tokens_for_context)
@@ -636,7 +636,7 @@ def resolve_spec(name_or_slug: str, overrides: Optional[dict[str, Any]] = None,
 
 
 def spec_from_model_id(model_id: str, quantization: str = "nf4",
-                        max_input_tokens: int = 1500, max_new_tokens: Optional[int] = None,
+                        max_input_tokens: Optional[int] = 1500, max_new_tokens: Optional[int] = None,
                         revision: Optional[str] = None,
                         chat_template_kwargs: Optional[dict[str, Any]] = None,
                         strip_think: bool = False,
@@ -771,14 +771,14 @@ def required_headroom_gib(spec: ModelSpec, config: Any) -> float:
     if not all([num_layers, num_kv_heads, head_dim]):
         # Conservative fallback when config fields are missing.
         return 3.0
-    max_new_tokens = spec.max_new_tokens
-    if max_new_tokens is None:
-        # No artificial cap: reserve for the worst case, where the model uses
-        # its entire remaining context window for the response, so check_fit()
-        # still reserves real headroom instead of under-counting it.
-        max_new_tokens = max(256, _model_context_window(config) - spec.max_input_tokens)
+    context_window = _model_context_window(config)
     kv_bytes_per_token = 2 * num_layers * num_kv_heads * head_dim * 2
-    total_tokens = spec.max_input_tokens + max_new_tokens
+    if spec.max_input_tokens is None or spec.max_new_tokens is None:
+        # No cap on input and/or output: reserve for the worst case, where
+        # input + output together fill the model's entire context window.
+        total_tokens = max(context_window, (spec.max_input_tokens or 0) + (spec.max_new_tokens or 0))
+    else:
+        total_tokens = spec.max_input_tokens + spec.max_new_tokens
     kv_gib = kv_bytes_per_token * total_tokens / (1024 ** 3)
     return round(kv_gib + 1.0 + 0.3, 3)
 

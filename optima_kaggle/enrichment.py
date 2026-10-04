@@ -101,7 +101,7 @@ def build_bounded_messages(function: dict[str, Any], tokenizer: Any, spec: Any,
     messages = build_enrichment_messages(view)
     input_tokens = _count_tokens(tokenizer, messages, spec)
     reductions: list[str] = []
-    if input_tokens <= spec.max_input_tokens:
+    if spec.max_input_tokens is None or input_tokens <= spec.max_input_tokens:
         return messages, input_tokens, reductions
 
     steps: list[tuple[str, str, Any]] = [
