@@ -759,6 +759,10 @@ def max_new_tokens_for_context(handle: Any, input_tokens: int, min_new_tokens: i
     return max(min_new_tokens, remaining)
 
 
+# KV-cache reservation (tokens) used by check_fit() when input/output are uncapped.
+_UNCAPPED_RESERVE_TOKENS = 16384
+
+
 def required_headroom_gib(spec: ModelSpec, config: Any) -> float:
     config = _text_config(config)
     num_layers = getattr(config, "num_hidden_layers", None)
@@ -774,9 +778,12 @@ def required_headroom_gib(spec: ModelSpec, config: Any) -> float:
     context_window = _model_context_window(config)
     kv_bytes_per_token = 2 * num_layers * num_kv_heads * head_dim * 2
     if spec.max_input_tokens is None or spec.max_new_tokens is None:
-        # No cap on input and/or output: reserve for the worst case, where
-        # input + output together fill the model's entire context window.
-        total_tokens = max(context_window, (spec.max_input_tokens or 0) + (spec.max_new_tokens or 0))
+        # No cap on input and/or output. Reserving the model's full context
+        # window (often 128k-262k tokens) would demand tens of GiB of KV cache
+        # and reject every model on a T4, so reserve for a practical working
+        # window instead; the limit is not enforced, only the pre-load estimate.
+        total_tokens = min(context_window, _UNCAPPED_RESERVE_TOKENS)
+        total_tokens = max(total_tokens, (spec.max_input_tokens or 0) + (spec.max_new_tokens or 0))
     else:
         total_tokens = spec.max_input_tokens + spec.max_new_tokens
     kv_gib = kv_bytes_per_token * total_tokens / (1024 ** 3)
