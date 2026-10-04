@@ -665,21 +665,50 @@ def spec_from_model_id(model_id: str, quantization: str = "nf4",
     )
 
 
+def _text_config(config: Any) -> Any:
+    """The decoder's own config: multimodal wrappers (e.g. Mistral3Config) keep
+    layer/context fields on ``text_config`` rather than at the top level."""
+    return getattr(config, "text_config", None) or config
+
+
+def _auto_model_class(config: Any) -> Any:
+    """AutoModelForCausalLM, unless this config is only registered for the
+    multimodal auto class (e.g. Ministral-3's Mistral3Config, whose
+    checkpoints are image-text-to-text wrappers around a text decoder). The
+    wrapper still generates text-only prompts fine, so fall back to it
+    instead of failing with "Unrecognized configuration class"."""
+    from transformers import AutoModelForCausalLM
+
+    try:
+        if type(config) in AutoModelForCausalLM._model_mapping:
+            return AutoModelForCausalLM
+    except Exception:  # noqa: BLE001 - mapping internals vary by version
+        return AutoModelForCausalLM
+    try:
+        from transformers import AutoModelForImageTextToText
+    except ImportError:
+        return AutoModelForCausalLM
+    if type(config) in AutoModelForImageTextToText._model_mapping:
+        return AutoModelForImageTextToText
+    return AutoModelForCausalLM
+
+
 def estimate_weights_gib(spec: ModelSpec) -> dict[str, Any]:
     """Estimate weight memory using a meta-device model (no weight download)."""
     import torch
     from accelerate import init_empty_weights
-    from transformers import AutoConfig, AutoModelForCausalLM
+    from transformers import AutoConfig
 
     config = AutoConfig.from_pretrained(
         spec.model_id, revision=spec.revision, trust_remote_code=False, token=_hf_token(),
     )
     with init_empty_weights():
-        model = AutoModelForCausalLM.from_config(config, trust_remote_code=False)
+        model = _auto_model_class(config).from_config(config, trust_remote_code=False)
 
     quantizable_params = 0
     other_params = 0
-    tied = bool(getattr(config, "tie_word_embeddings", False))
+    tied = bool(getattr(config, "tie_word_embeddings", False)
+                or getattr(_text_config(config), "tie_word_embeddings", False))
     for name, module in model.named_modules():
         if isinstance(module, torch.nn.Linear):
             is_lm_head = name.endswith("lm_head")
@@ -708,6 +737,7 @@ def estimate_weights_gib(spec: ModelSpec) -> dict[str, Any]:
 
 
 def _model_context_window(config: Any, default: int = 32768) -> int:
+    config = _text_config(config)
     return (
         getattr(config, "max_position_embeddings", None)
         or getattr(config, "n_positions", None)
@@ -730,6 +760,7 @@ def max_new_tokens_for_context(handle: Any, input_tokens: int, min_new_tokens: i
 
 
 def required_headroom_gib(spec: ModelSpec, config: Any) -> float:
+    config = _text_config(config)
     num_layers = getattr(config, "num_hidden_layers", None)
     num_kv_heads = getattr(config, "num_key_value_heads", None) or getattr(config, "num_attention_heads", None)
     hidden_size = getattr(config, "hidden_size", None)
@@ -948,7 +979,7 @@ def load_model_safe(spec: ModelSpec, bnb_status: Optional["environment.BnbStatus
     from nf4 to fp16.
     """
     import torch
-    from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+    from transformers import AutoTokenizer, BitsAndBytesConfig
 
     num_gpus = torch.cuda.device_count()
     if num_gpus == 0:
@@ -1033,7 +1064,11 @@ def load_model_safe(spec: ModelSpec, bnb_status: Optional["environment.BnbStatus
 
     start = time.perf_counter()
     try:
-        model = AutoModelForCausalLM.from_pretrained(spec.model_id, **load_kwargs)
+        from transformers import AutoConfig
+        fit_config = AutoConfig.from_pretrained(
+            spec.model_id, revision=spec.revision, trust_remote_code=False, token=_hf_token(),
+        )
+        model = _auto_model_class(fit_config).from_pretrained(spec.model_id, **load_kwargs)
     except torch.cuda.OutOfMemoryError as exc:
         _cleanup_gpu()
         raise ModelLoadError(
