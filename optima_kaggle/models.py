@@ -752,11 +752,13 @@ def _model_context_window(config: Any, default: int = 32768) -> int:
 def max_new_tokens_for_context(handle: Any, input_tokens: int, min_new_tokens: int = 256,
                                 safety_margin: int = 64) -> int:
     """No artificial output cap: let the model generate until it hits its own
-    context window, not a fixed number picked ahead of time. Used by
-    ``enrich_one`` whenever ``GenerationSettings.max_new_tokens`` is ``None``
-    (the default for a pure model-comparison run).
+    context window, bounded by the KV-cache window ``check_fit`` reserved
+    (``_UNCAPPED_RESERVE_TOKENS``). Past that the cache outgrows the VRAM the
+    fit check budgeted and a runaway generation OOMs. Used by ``enrich_one``
+    whenever ``GenerationSettings.max_new_tokens`` is ``None`` (the default
+    for a pure model-comparison run).
     """
-    context_window = _model_context_window(handle.model.config)
+    context_window = min(_model_context_window(handle.model.config), _UNCAPPED_RESERVE_TOKENS)
     remaining = context_window - input_tokens - safety_margin
     return max(min_new_tokens, remaining)
 

@@ -1184,6 +1184,13 @@ class DynamicMaxNewTokensTests(unittest.TestCase):
         result = models.max_new_tokens_for_context(handle, input_tokens=2000, min_new_tokens=256)
         self.assertEqual(result, 256)
 
+    def test_max_new_tokens_for_context_capped_at_kv_reservation(self):
+        handle = mock.Mock()
+        handle.model.config = mock.Mock(max_position_embeddings=131072, n_positions=None,
+                                        max_sequence_length=None, seq_length=None)
+        result = models.max_new_tokens_for_context(handle, input_tokens=1000, safety_margin=64)
+        self.assertEqual(result, models._UNCAPPED_RESERVE_TOKENS - 1000 - 64)
+
     def test_enrich_one_uses_dynamic_budget_when_gen_max_new_tokens_is_none(self):
         root = ARTIFACTS_ROOT / "dynamic_max_new_tokens"
         if root.exists():
