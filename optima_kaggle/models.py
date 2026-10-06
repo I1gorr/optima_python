@@ -68,6 +68,7 @@ class ModelSpec:
     chat_template_kwargs: dict[str, Any] = field(default_factory=dict)
     strip_think: bool = False
     allow_cpu_offload: bool = False
+    prefer_sharding: bool = False  # split across all visible GPUs even if one GPU could hold the weights
     notes: str = ""
 
     def __post_init__(self) -> None:
@@ -443,6 +444,7 @@ MODEL_REGISTRY: dict[str, ModelSpec] = {
         quantization="fp16",
         single_gpu_tier="A",
         max_input_tokens=6144,
+        prefer_sharding=True,
         notes="Llama 3.2 3B model used in Optima.",
     ),
 
@@ -452,6 +454,7 @@ MODEL_REGISTRY: dict[str, ModelSpec] = {
         quantization="nf4",
         single_gpu_tier="A",
         max_input_tokens=6144,
+        prefer_sharding=True,
         notes="Llama 3.2 3B instruction model, nf4-quantized.",
     ),
 
@@ -640,7 +643,8 @@ def spec_from_model_id(model_id: str, quantization: str = "nf4",
                         revision: Optional[str] = None,
                         chat_template_kwargs: Optional[dict[str, Any]] = None,
                         strip_think: bool = False,
-                        allow_cpu_offload: bool = False) -> ModelSpec:
+                        allow_cpu_offload: bool = False,
+                        prefer_sharding: bool = False) -> ModelSpec:
     """Build a ModelSpec directly from a Hugging Face model ID, bypassing
     MODEL_REGISTRY entirely -- for the simple "I type one model name and run
     it" workflow, where nothing consults or refuses on a registry tier.
@@ -663,6 +667,7 @@ def spec_from_model_id(model_id: str, quantization: str = "nf4",
         max_input_tokens=max_input_tokens, max_new_tokens=max_new_tokens,
         revision=revision, chat_template_kwargs=chat_template_kwargs or {},
         strip_think=strip_think, allow_cpu_offload=allow_cpu_offload,
+        prefer_sharding=prefer_sharding,
         notes=f"Ad hoc spec for {model_id} (built from MODEL_NAME, not MODEL_REGISTRY).",
     )
 
@@ -794,6 +799,54 @@ def required_headroom_gib(spec: ModelSpec, config: Any) -> float:
     return round(kv_gib + 1.0 + 0.3, 3)
 
 
+def memory_input_cap(handle: Any, safety_frac: float = 0.8) -> int:
+    """Largest prompt (tokens) that can be prefilled in the VRAM actually free
+    right now, for runs with ``max_input_tokens=None``. Without this a single
+    huge function (e.g. ~18k tokens) OOMs the prefill: the L x L attention
+    mask and MLP activations grow quadratically/linearly on top of the KV
+    reservation ``check_fit`` budgeted. Counts the model's own devices only.
+    """
+    import torch
+
+    config = _text_config(handle.model.config)
+    layers = getattr(config, "num_hidden_layers", 32)
+    kv_heads = getattr(config, "num_key_value_heads", None) or getattr(config, "num_attention_heads", 32)
+    hidden = getattr(config, "hidden_size", 4096)
+    heads = getattr(config, "num_attention_heads", 32)
+    head_dim = getattr(config, "head_dim", None) or hidden // heads
+    inter = getattr(config, "intermediate_size", None) or 4 * hidden
+    kv_per_token = 2 * layers * kv_heads * head_dim * 2
+    # Transient per-token prefill activations (MLP gate/up/act + residuals).
+    act_per_token = 2 * (3 * inter + 4 * hidden)
+
+    device_map = getattr(handle.model, "hf_device_map", None) or {}
+    indices = {i for i in (_device_index(v) for v in device_map.values()) if i is not None}
+    if not indices:
+        idx = _device_index(handle.input_device)
+        indices = {idx if idx is not None else 0}
+    free = min(
+        torch.cuda.mem_get_info(i)[0]
+        + max(0, torch.cuda.memory_reserved(i) - torch.cuda.memory_allocated(i))
+        for i in indices
+    )
+    budget = free * safety_frac
+
+    def cost(n: int) -> float:
+        out_reserve = max(256, _UNCAPPED_RESERVE_TOKENS - n)
+        return kv_per_token * (n + out_reserve) + act_per_token * n + 2.0 * n * n
+
+    lo, hi = 512, _model_context_window(config)
+    if cost(lo) > budget:
+        return lo
+    while lo < hi:
+        mid = (lo + hi + 1) // 2
+        if cost(mid) <= budget:
+            lo = mid
+        else:
+            hi = mid - 1
+    return lo
+
+
 @dataclass
 class FitReport:
     num_gpus: int
@@ -882,7 +935,7 @@ def check_fit(spec: ModelSpec, num_gpus: Optional[int] = None,
     #    of how many other GPUs are idle -- see the docstring above.
     best_gpu = max(range(num_gpus), key=lambda i: free_gib[i])
     single_gpu_margin = free_gib[best_gpu] * safety_factor - total_headroom_gib - weights_gib
-    if single_gpu_margin >= 0:
+    if single_gpu_margin >= 0 and not (spec.prefer_sharding and num_gpus >= 2):
         report = FitReport(
             num_gpus=num_gpus, free_gib=free_gib, per_gpu_reserved_gib=per_gpu_reserved_gib,
             budget_gib=budget_gib, weights_gib=weights_gib, total_headroom_gib=total_headroom_gib,

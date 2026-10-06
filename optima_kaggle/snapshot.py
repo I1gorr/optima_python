@@ -18,6 +18,7 @@ from __future__ import annotations
 import gzip
 import hashlib
 import json
+import os
 import re
 import shutil
 import time
@@ -537,19 +538,53 @@ class RunContext:
         return ctx
 
 
-def restore_resume_state(ctx: RunContext, resume_input_dir: Optional[Path]) -> None:
+def find_resume_dirs(ctx: RunContext, search_root: Path = Path("/kaggle/input"),
+                     max_depth: int = 6) -> list[Path]:
+    """Walk ``search_root`` (every attached Kaggle dataset / previous notebook
+    output) for ``runs/base-<sha12>`` directories that match this run's base
+    snapshot and contain a checkpoint or smoke artifact. Returns the
+    ``optima_outputs``-style roots (the parent of ``runs``)."""
+    search_root = Path(search_root)
+    if not search_root.exists():
+        return []
+    target = f"base-{ctx.base.sha256[:12]}"
+    found: list[Path] = []
+    root_depth = len(search_root.parts)
+    for dirpath, dirnames, _files in os.walk(search_root):
+        if len(Path(dirpath).parts) - root_depth >= max_depth:
+            dirnames[:] = []
+            continue
+        if target in dirnames and Path(dirpath).name == "runs":
+            run_dir = Path(dirpath) / target
+            if any(run_dir.glob("enriched/*.checkpoint.jsonl")) or any(run_dir.glob("smoke/**/*.jsonl")):
+                found.append(Path(dirpath).parent)
+    return found
+
+
+def restore_resume_state(ctx: RunContext, resume_input_dir: Any) -> None:
     """Copy prior checkpoint/smoke/log artifacts for this same base sha from a
     previous run's output (e.g. attached as a Kaggle input dataset). Never
     overwrites a local file with a shorter one.
+
+    ``resume_input_dir`` may be a path, a list of paths, ``"auto"`` (search
+    /kaggle/input for matching previous outputs), or None (no-op). With
+    several sources, the longest checkpoint of each file wins.
     """
     if resume_input_dir is None:
         return
-    resume_input_dir = Path(resume_input_dir)
+    if isinstance(resume_input_dir, str) and resume_input_dir.lower() == "auto":
+        sources = find_resume_dirs(ctx)
+        if not sources:
+            print("RESUME: auto-search of /kaggle/input found no matching previous run; starting fresh.")
+            return
+        print(f"RESUME: auto-discovered {len(sources)} previous output dir(s): "
+              f"{[str(p) for p in sources]}")
+    elif isinstance(resume_input_dir, (list, tuple, set)):
+        sources = [Path(p) for p in resume_input_dir]
+    else:
+        sources = [Path(resume_input_dir)]
+
     sha12 = ctx.base.sha256[:12]
-    source_run_dir = resume_input_dir / "runs" / f"base-{sha12}"
-    if not source_run_dir.exists():
-        print(f"RESUME: no matching run directory for base-{sha12} under {resume_input_dir}; nothing restored.")
-        return
 
     def _line_count(path: Path) -> int:
         if not path.exists():
@@ -558,17 +593,22 @@ def restore_resume_state(ctx: RunContext, resume_input_dir: Optional[Path]) -> N
             return sum(1 for _ in handle)
 
     copied = []
-    for pattern in ("enriched/*.checkpoint.jsonl", "smoke/**/*.jsonl", "smoke/**/*.json",
-                    "logs/*/attempts.jsonl"):
-        for src in source_run_dir.glob(pattern):
-            rel = src.relative_to(source_run_dir)
-            dst = ctx.run_dir / rel
-            if src.suffix == ".jsonl" and _line_count(src) <= _line_count(dst):
-                continue
-            dst.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(src, dst)
-            copied.append(str(rel))
-    print(f"RESUME: restored {len(copied)} file(s) from {source_run_dir}")
+    for source in sources:
+        source_run_dir = source / "runs" / f"base-{sha12}"
+        if not source_run_dir.exists():
+            print(f"RESUME: no matching run directory for base-{sha12} under {source}; skipped.")
+            continue
+        for pattern in ("enriched/*.checkpoint.jsonl", "smoke/**/*.jsonl", "smoke/**/*.json",
+                        "logs/*/attempts.jsonl"):
+            for src in source_run_dir.glob(pattern):
+                rel = src.relative_to(source_run_dir)
+                dst = ctx.run_dir / rel
+                if src.suffix == ".jsonl" and _line_count(src) <= _line_count(dst):
+                    continue
+                dst.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(src, dst)
+                copied.append(f"{rel}  <- {source}")
+    print(f"RESUME: restored {len(copied)} file(s)")
     for rel in copied:
         print(f"  {rel}")
 

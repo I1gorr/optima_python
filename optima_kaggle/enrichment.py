@@ -72,12 +72,16 @@ def _count_tokens(tokenizer: Any, messages: list[dict[str, str]], spec: Any) -> 
 
 
 def build_bounded_messages(function: dict[str, Any], tokenizer: Any, spec: Any,
-                            prompt_variant: str) -> tuple[list[dict[str, str]], int, list[str]]:
+                            prompt_variant: str, input_cap: Optional[int] = None
+                            ) -> tuple[list[dict[str, str]], int, list[str]]:
     """Build the enrichment prompt and reduce it, front-to-back in a fixed
     order, until it fits spec.max_input_tokens. Never truncates from the
     right (which would cut the chat template's closing/assistant turn).
+    ``input_cap`` (e.g. a VRAM-derived limit) applies when spec.max_input_tokens
+    is None; the spec's own cap wins when set.
     """
     from colab.colab_pipeline import build_enrichment_messages
+    limit_tokens = spec.max_input_tokens if spec.max_input_tokens is not None else input_cap
     from optima.enricher import _trim_source
 
     view: dict[str, Any] = dict(function)
@@ -101,7 +105,7 @@ def build_bounded_messages(function: dict[str, Any], tokenizer: Any, spec: Any,
     messages = build_enrichment_messages(view)
     input_tokens = _count_tokens(tokenizer, messages, spec)
     reductions: list[str] = []
-    if spec.max_input_tokens is None or input_tokens <= spec.max_input_tokens:
+    if limit_tokens is None or input_tokens <= limit_tokens:
         return messages, input_tokens, reductions
 
     steps: list[tuple[str, str, Any]] = [
@@ -122,12 +126,12 @@ def build_bounded_messages(function: dict[str, Any], tokenizer: Any, spec: Any,
         reductions.append(name)
         messages = build_enrichment_messages(view)
         input_tokens = _count_tokens(tokenizer, messages, spec)
-        if input_tokens <= spec.max_input_tokens:
+        if input_tokens <= limit_tokens:
             return messages, input_tokens, reductions
 
     raise PromptTooLongError(
         f"Function {function.get('id')} still needs {input_tokens} tokens "
-        f"(limit {spec.max_input_tokens}) after applying every reduction: {reductions}."
+        f"(limit {limit_tokens}) after applying every reduction: {reductions}."
     )
 
 
@@ -225,8 +229,10 @@ def enrich_one(handle: Any, function: dict[str, Any], gen: GenerationSettings,
     for attempt_index in range(gen.retries + 1):
         attempts_made = attempt_index + 1
         try:
+            input_cap = (models.memory_input_cap(handle)
+                         if handle.spec.max_input_tokens is None else None)
             messages, input_tokens, reductions = build_bounded_messages(
-                function, handle.tokenizer, handle.spec, gen.prompt_variant
+                function, handle.tokenizer, handle.spec, gen.prompt_variant, input_cap
             )
         except PromptTooLongError as exc:
             category, reason = "prompt_too_long", str(exc)
@@ -292,7 +298,8 @@ def enrich_one(handle: Any, function: dict[str, Any], gen: GenerationSettings,
             try:
                 retry_view = _fully_reduced_view(function)
                 retry_messages, retry_input_tokens, retry_reductions = build_bounded_messages(
-                    retry_view, handle.tokenizer, handle.spec, gen.prompt_variant
+                    retry_view, handle.tokenizer, handle.spec, gen.prompt_variant,
+                    models.memory_input_cap(handle) if handle.spec.max_input_tokens is None else None,
                 )
                 result = models.generate_text(
                     handle, retry_messages, max_new_tokens=retry_max_new_tokens,
