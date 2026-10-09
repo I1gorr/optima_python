@@ -864,7 +864,10 @@ def gate3_one_function(ctx: Any, handle: Any, gen: GenerationSettings, snap: Any
         enrichment.get("status") == "completed"
         and (evaluation.get("input_tokens") or 0) > 0
         and (evaluation.get("output_tokens") or 0) > 0
-        and evaluation.get("finish_reason") == "eos"
+        and (evaluation.get("finish_reason") == "eos"
+             # Small models may emit valid JSON then ramble (e.g. echo the
+             # prompt rules) until the token cap; the JSON is still usable.
+             or (evaluation.get("finish_reason") == "length" and evaluation.get("json_valid")))
     )
     details = {
         "function_id": fn["id"], "function_name": fn.get("name"),
