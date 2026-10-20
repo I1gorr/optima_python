@@ -1,0 +1,32 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+2026-10-11 21:15:37,742 - huggingface_hub.utils._http - WARNING - Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 17574.89it/s]
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 14658.44it/s]
+Loading weights:   0%|          | 0/310 [00:00<?, ?it/s]Loading weights: 100%|██████████| 310/310 [00:00<00:00, 3710.48it/s]
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 3457.68it/s]
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights:  85%|████████▍ | 169/199 [00:00<00:00, 1664.77it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 1672.15it/s]
+Loading weights:   0%|          | 0/310 [00:00<?, ?it/s]Loading weights:  22%|██▏       | 69/310 [00:00<00:00, 686.52it/s]Loading weights:  52%|█████▏    | 162/310 [00:00<00:00, 807.63it/s]Loading weights: 100%|██████████| 310/310 [00:00<00:00, 1427.92it/s]
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 11240.39it/s]
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 16891.30it/s]
+Loading weights:   0%|          | 0/310 [00:00<?, ?it/s]Loading weights: 100%|██████████| 310/310 [00:00<00:00, 18845.61it/s]
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 12622.94it/s]
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 16120.10it/s]
+Loading weights:   0%|          | 0/310 [00:00<?, ?it/s]Loading weights: 100%|██████████| 310/310 [00:00<00:00, 17788.28it/s]
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 16072.61it/s]
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 19305.79it/s]
+Loading weights:   0%|          | 0/310 [00:00<?, ?it/s]Loading weights: 100%|██████████| 310/310 [00:00<00:00, 18045.27it/s]
+{
+  "summary": {
+    "ok": 75,
+    "partial": 0,
+    "failed": 0,
+    "reused": 0,
+    "skipped_resume": 0
+  },
+  "reports": {
+    "report": "experiments/coupled-xxhash-v1/report.md",
+    "aggregate": "experiments/coupled-xxhash-v1/aggregate.csv",
+    "comparisons": "experiments/coupled-xxhash-v1/comparisons.csv"
+  },
+  "suite_dir": "experiments/coupled-xxhash-v1"
+}

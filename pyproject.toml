@@ -18,6 +18,21 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+# Research pipelines (python -m optima.rag run-pipeline / run-suite): real embedding
+# models, cross-encoder reranking, plots and memory/latency measurements.
+research = [
+    "matplotlib>=3.7.0",
+    "psutil>=5.9.0",
+    "sentence-transformers>=2.7.0",
+    "torch>=2.1.0",
+]
+# Experiment analytics (python -m optima_analytics ...): tables, statistics, plots, dashboard.
+analytics = [
+    "matplotlib>=3.7.0",
+    "numpy>=1.24.0",
+    "pandas>=2.0.0",
+    "scipy>=1.10.0",
+]
 kaggle = [
     "accelerate>=0.30.0",
     "bitsandbytes>=0.43.0",
@@ -32,4 +47,7 @@ optima = "optima.__main__:main"
 optima-evaluate = "evaluation.run_evaluation:main"
 
 [tool.setuptools.packages.find]
-include = ["optima", "evaluation*", "optima_kaggle"]
+include = ["optima*", "evaluation*", "optima_kaggle", "optima_analytics*"]
+
+[tool.setuptools.package-data]
+optima_analytics = ["*.json"]

@@ -1,0 +1,3480 @@
+{
+ "schema_version": 1,
+ "benchmark_id": "xxhash-structural",
+ "query_set_version": "1.0.0",
+ "ground_truth_version": "1.0.0",
+ "project": "xxHash-dev",
+ "base_sha256": "9915580aa9b2e76e48a5f913df641d8ee6feb0a4e36480e92cbc9738a35d5a46",
+ "created": "2026-10-11T10:55:59+00:00",
+ "generator": {
+  "module": "optima.rag.research.benchmark",
+  "seed": 13,
+  "per_category": 20
+ },
+ "labeling": {
+  "independence": "labels come from base.json (names, source text, resolved call edges, LLVM CFG) or were hand-authored; no LLM enrichment, embedding or retrieval output was used",
+  "behavioral_review": "single annotator (AI-assisted authoring); not independently reviewed by a second person",
+  "caveat": "structural categories are labelled from the same call graph used by graph expansion"
+ },
+ "categories": {
+  "exact_name": "Exact function-name lookup",
+  "identifier_api": "Identifier / API usage lookup",
+  "behavioral": "Natural-language behavioural description (hand-authored)",
+  "control_flow": "Control-flow questions answered from the LLVM CFG",
+  "caller": "Who calls function X (direct callers)",
+  "callee": "What does function X call (direct callees)",
+  "cross_function": "Cross-function tracing (common callers / callees)",
+  "multi_hop": "Multi-hop structural reachability (graded by hop count)"
+ },
+ "unsupported_categories": {
+  "dependency": "the `dependencies` field is empty for every function in base.json, so no dependency ground truth exists"
+ },
+ "counts": {
+  "exact_name": 20,
+  "identifier_api": 20,
+  "behavioral": 89,
+  "control_flow": 16,
+  "caller": 20,
+  "callee": 20,
+  "cross_function": 20,
+  "multi_hop": 20
+ },
+ "queries": [
+  {
+   "category": "exact_name",
+   "query": "Where is the function getProcessMemUsage defined?",
+   "relevance": {
+    "tests/collisions/main.c::getProcessMemUsage::870": 1.0
+   },
+   "relevant_functions": [
+    "tests/collisions/main.c::getProcessMemUsage::870"
+   ],
+   "seed": "tests/collisions/main.c::getProcessMemUsage::870",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-001"
+  },
+  {
+   "category": "exact_name",
+   "query": "Show me the implementation of XSUM_printLine_GNU",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_printLine_GNU::377": 1.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_printLine_GNU::377"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_printLine_GNU::377",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-002"
+  },
+  {
+   "category": "exact_name",
+   "query": "Find the definition of the XXH3_128bits_withSeed_dispatch function",
+   "relevance": {
+    "xxh_x86dispatch.c::XXH3_128bits_withSeed_dispatch::788": 1.0
+   },
+   "relevant_functions": [
+    "xxh_x86dispatch.c::XXH3_128bits_withSeed_dispatch::788"
+   ],
+   "seed": "xxh_x86dispatch.c::XXH3_128bits_withSeed_dispatch::788",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-003"
+  },
+  {
+   "category": "exact_name",
+   "query": "Where is the function benchLatency defined?",
+   "relevance": {
+    "tests/bench/benchHash.c::benchLatency::128": 1.0
+   },
+   "relevant_functions": [
+    "tests/bench/benchHash.c::benchLatency::128"
+   ],
+   "seed": "tests/bench/benchHash.c::benchLatency::128",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-004"
+  },
+  {
+   "category": "exact_name",
+   "query": "Show me the implementation of XXH3_hashLong_64b_defaultSecret_selection",
+   "relevance": {
+    "xxh_x86dispatch.c::XXH3_hashLong_64b_defaultSecret_selection::704": 1.0
+   },
+   "relevant_functions": [
+    "xxh_x86dispatch.c::XXH3_hashLong_64b_defaultSecret_selection::704"
+   ],
+   "seed": "xxh_x86dispatch.c::XXH3_hashLong_64b_defaultSecret_selection::704",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-005"
+  },
+  {
+   "category": "exact_name",
+   "query": "Find the definition of the XSUM_filenameUnescape function",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_filenameUnescape::154": 1.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_filenameUnescape::154"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_filenameUnescape::154",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-006"
+  },
+  {
+   "category": "exact_name",
+   "query": "Where is the function localXXH3_64b defined?",
+   "relevance": {
+    "cli/xsum_bench.c::localXXH3_64b::132": 1.0
+   },
+   "relevant_functions": [
+    "cli/xsum_bench.c::localXXH3_64b::132"
+   ],
+   "seed": "cli/xsum_bench.c::localXXH3_64b::132",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-007"
+  },
+  {
+   "category": "exact_name",
+   "query": "Show me the implementation of generate_sanity_test_vectors_xxh3",
+   "relevance": {
+    "tests/sanity_test_vectors_generator.c::generate_sanity_test_vectors_xxh3::254": 1.0
+   },
+   "relevant_functions": [
+    "tests/sanity_test_vectors_generator.c::generate_sanity_test_vectors_xxh3::254"
+   ],
+   "seed": "tests/sanity_test_vectors_generator.c::generate_sanity_test_vectors_xxh3::254",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-008"
+  },
+  {
+   "category": "exact_name",
+   "query": "Find the definition of the XSUM_testXXH3 function",
+   "relevance": {
+    "cli/xsum_sanity_check.c::XSUM_testXXH3::365": 1.0
+   },
+   "relevant_functions": [
+    "cli/xsum_sanity_check.c::XSUM_testXXH3::365"
+   ],
+   "seed": "cli/xsum_sanity_check.c::XSUM_testXXH3::365",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-009"
+  },
+  {
+   "category": "exact_name",
+   "query": "Where is the function XXH3_128bits_withSecretandSeed defined?",
+   "relevance": {
+    "xxhash.h::XXH3_128bits_withSecretandSeed::7319": 1.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH3_128bits_withSecretandSeed::7319"
+   ],
+   "seed": "xxhash.h::XXH3_128bits_withSecretandSeed::7319",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-010"
+  },
+  {
+   "category": "exact_name",
+   "query": "Show me the implementation of XSUM_printFilename",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_printFilename::117": 1.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_printFilename::117"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_printFilename::117",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-011"
+  },
+  {
+   "category": "exact_name",
+   "query": "Find the definition of the XXHL128_default_avx2 function",
+   "relevance": {
+    "xxh_x86dispatch.c::XXHL128_default_avx2::570": 1.0
+   },
+   "relevant_functions": [
+    "xxh_x86dispatch.c::XXHL128_default_avx2::570"
+   ],
+   "seed": "xxh_x86dispatch.c::XXHL128_default_avx2::570",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-012"
+  },
+  {
+   "category": "exact_name",
+   "query": "Where is the function BMK_benchTimedFn defined?",
+   "relevance": {
+    "tests/bench/benchfn.c::BMK_benchTimedFn::204": 1.0
+   },
+   "relevant_functions": [
+    "tests/bench/benchfn.c::BMK_benchTimedFn::204"
+   ],
+   "seed": "tests/bench/benchfn.c::BMK_benchTimedFn::204",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-013"
+  },
+  {
+   "category": "exact_name",
+   "query": "Show me the implementation of localXXH3_64b_seeded",
+   "relevance": {
+    "cli/xsum_bench.c::localXXH3_64b_seeded::137": 1.0
+   },
+   "relevant_functions": [
+    "cli/xsum_bench.c::localXXH3_64b_seeded::137"
+   ],
+   "seed": "cli/xsum_bench.c::localXXH3_64b_seeded::137",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-014"
+  },
+  {
+   "category": "exact_name",
+   "query": "Find the definition of the XXH64_canonicalFromHash function",
+   "relevance": {
+    "xxhash.h::XXH64_canonicalFromHash::3819": 1.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH64_canonicalFromHash::3819"
+   ],
+   "seed": "xxhash.h::XXH64_canonicalFromHash::3819",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-015"
+  },
+  {
+   "category": "exact_name",
+   "query": "Where is the function XXH3_64bits_reset_withSecret defined?",
+   "relevance": {
+    "xxhash.h::XXH3_64bits_reset_withSecret::6646": 1.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH3_64bits_reset_withSecret::6646"
+   ],
+   "seed": "xxhash.h::XXH3_64bits_reset_withSecret::6646",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-016"
+  },
+  {
+   "category": "exact_name",
+   "query": "Show me the implementation of check128",
+   "relevance": {
+    "tests/inlineDispatch.c::check128::77": 1.0
+   },
+   "relevant_functions": [
+    "tests/inlineDispatch.c::check128::77"
+   ],
+   "seed": "tests/inlineDispatch.c::check128::77",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-017"
+  },
+  {
+   "category": "exact_name",
+   "query": "Find the definition of the BMK_createTimedFnState function",
+   "relevance": {
+    "tests/bench/benchfn.c::BMK_createTimedFnState::153": 1.0
+   },
+   "relevant_functions": [
+    "tests/bench/benchfn.c::BMK_createTimedFnState::153"
+   ],
+   "seed": "tests/bench/benchfn.c::BMK_createTimedFnState::153",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-018"
+  },
+  {
+   "category": "exact_name",
+   "query": "Where is the function XSUM_XXH3_randomUpdate defined?",
+   "relevance": {
+    "cli/xsum_sanity_check.c::XSUM_XXH3_randomUpdate::352": 1.0
+   },
+   "relevant_functions": [
+    "cli/xsum_sanity_check.c::XSUM_XXH3_randomUpdate::352"
+   ],
+   "seed": "cli/xsum_sanity_check.c::XSUM_XXH3_randomUpdate::352",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-019"
+  },
+  {
+   "category": "exact_name",
+   "query": "Show me the implementation of bench_latency_oneHash_smallInputs",
+   "relevance": {
+    "tests/bench/bhDisplay.c::bench_latency_oneHash_smallInputs::97": 1.0
+   },
+   "relevant_functions": [
+    "tests/bench/bhDisplay.c::bench_latency_oneHash_smallInputs::97"
+   ],
+   "seed": "tests/bench/bhDisplay.c::bench_latency_oneHash_smallInputs::97",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-020"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Which functions use the identifier keySize?",
+   "relevance": {
+    "cli/xsum_bench.c::XSUM_benchInternal::436": 1.0,
+    "cli/xxhsum.c::XSUM_main::1564": 1.0
+   },
+   "relevant_functions": [
+    "cli/xsum_bench.c::XSUM_benchInternal::436",
+    "cli/xxhsum.c::XSUM_main::1564"
+   ],
+   "seed": "cli/xsum_bench.c::XSUM_benchInternal::436",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-001"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Find code that references MARGIN_FOR_LATENCY",
+   "relevance": {
+    "tests/bench/benchHash.c::bench_hash_internal::60": 1.0
+   },
+   "relevant_functions": [
+    "tests/bench/benchHash.c::bench_hash_internal::60"
+   ],
+   "seed": "tests/bench/benchHash.c::bench_hash_internal::60",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-002"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Where is nbIterations used?",
+   "relevance": {
+    "cli/xsum_bench.c::XSUM_benchHash::228": 1.0,
+    "cli/xxhsum.c::XSUM_main::1564": 1.0
+   },
+   "relevant_functions": [
+    "cli/xsum_bench.c::XSUM_benchHash::228",
+    "cli/xxhsum.c::XSUM_main::1564"
+   ],
+   "seed": "cli/xsum_bench.c::XSUM_benchHash::228",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-003"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Which functions use the identifier algo_bitmask_xxh128?",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_main::1564": 1.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_main::1564"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_main::1564",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-004"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Find code that references timeBudget_ns",
+   "relevance": {
+    "tests/bench/benchfn.c::BMK_isCompleted_TimedFn::193": 1.0,
+    "tests/bench/benchfn.c::BMK_resetTimedFnState::177": 1.0
+   },
+   "relevant_functions": [
+    "tests/bench/benchfn.c::BMK_isCompleted_TimedFn::193",
+    "tests/bench/benchfn.c::BMK_resetTimedFnState::177"
+   ],
+   "seed": "tests/bench/benchfn.c::BMK_isCompleted_TimedFn::193",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-005"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Where is XXH3_digest_long used?",
+   "relevance": {
+    "xxhash.h::XXH3_128bits_digest::7377": 1.0,
+    "xxhash.h::XXH3_64bits_digest::6877": 1.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH3_128bits_digest::7377",
+    "xxhash.h::XXH3_64bits_digest::6877"
+   ],
+   "seed": "xxhash.h::XXH3_128bits_digest::7377",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-006"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Which functions use the identifier BMK_timedFnState_shell?",
+   "relevance": {
+    "tests/bench/benchHash.c::bench_hash_internal::60": 1.0,
+    "tests/bench/benchfn.c::BMK_initStatic_timedFnState::164": 1.0
+   },
+   "relevant_functions": [
+    "tests/bench/benchHash.c::bench_hash_internal::60",
+    "tests/bench/benchfn.c::BMK_initStatic_timedFnState::164"
+   ],
+   "seed": "tests/bench/benchHash.c::bench_hash_internal::60",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-007"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Find code that references XXH_AVX512F_XGETBV_MASK",
+   "relevance": {
+    "xxh_x86dispatch.c::XXH_featureTest::343": 1.0
+   },
+   "relevant_functions": [
+    "xxh_x86dispatch.c::XXH_featureTest::343"
+   ],
+   "seed": "xxh_x86dispatch.c::XXH_featureTest::343",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-008"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Where is nOptions used?",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_usage::1426": 1.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_usage::1426"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_usage::1426",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-009"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Which functions use the identifier hashLong64_secret?",
+   "relevance": {
+    "xxh_x86dispatch.c::XXH3_hashLong_64b_withSecret_selection::734": 1.0
+   },
+   "relevant_functions": [
+    "xxh_x86dispatch.c::XXH3_hashLong_64b_withSecret_selection::734"
+   ],
+   "seed": "xxh_x86dispatch.c::XXH3_hashLong_64b_withSecret_selection::734",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-010"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Find code that references hashFuncID",
+   "relevance": {
+    "cli/xsum_bench.c::XSUM_benchMem::351": 1.0
+   },
+   "relevant_functions": [
+    "cli/xsum_bench.c::XSUM_benchMem::351"
+   ],
+   "seed": "cli/xsum_bench.c::XSUM_benchMem::351",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-011"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Where is ZSTD_pthread_cond_wait used?",
+   "relevance": {
+    "tests/collisions/pool.c::POOL_add::271": 1.0,
+    "tests/collisions/pool.c::POOL_thread::78": 1.0
+   },
+   "relevant_functions": [
+    "tests/collisions/pool.c::POOL_add::271",
+    "tests/collisions/pool.c::POOL_thread::78"
+   ],
+   "seed": "tests/collisions/pool.c::POOL_add::271",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-012"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Which functions use the identifier algo_bitmask_all?",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_main::1564": 1.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_main::1564"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_main::1564",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-013"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Find code that references BMK_timedFnState_s",
+   "relevance": {
+    "tests/bench/benchfn.c::BMK_initStatic_timedFnState::164": 1.0
+   },
+   "relevant_functions": [
+    "tests/bench/benchfn.c::BMK_initStatic_timedFnState::164"
+   ],
+   "seed": "tests/bench/benchfn.c::BMK_initStatic_timedFnState::164",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-014"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Where is HASHFN_ID_DEFAULT used?",
+   "relevance": {
+    "tests/collisions/main.c::help::987": 1.0,
+    "tests/collisions/main.c::main::1014": 1.0
+   },
+   "relevant_functions": [
+    "tests/collisions/main.c::help::987",
+    "tests/collisions/main.c::main::1014"
+   ],
+   "seed": "tests/collisions/main.c::help::987",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-015"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Which functions use the identifier dstCapacity?",
+   "relevance": {
+    "tests/bench/benchHash.c::benchLatency::128": 1.0
+   },
+   "relevant_functions": [
+    "tests/bench/benchHash.c::benchLatency::128"
+   ],
+   "seed": "tests/bench/benchHash.c::benchLatency::128",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-016"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Find code that references REF_H128_SECR_HIGH",
+   "relevance": {
+    "tests/inlineDispatch.c::main::90": 1.0
+   },
+   "relevant_functions": [
+    "tests/inlineDispatch.c::main::90"
+   ],
+   "seed": "tests/inlineDispatch.c::main::90",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-017"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Where is XSUM_logLevel used?",
+   "relevance": {
+    "cli/xsum_bench.c::XSUM_benchHash::228": 1.0,
+    "cli/xsum_output.c::XSUM_logVerbose::55": 1.0,
+    "cli/xxhsum.c::XSUM_main::1564": 1.0
+   },
+   "relevant_functions": [
+    "cli/xsum_bench.c::XSUM_benchHash::228",
+    "cli/xsum_output.c::XSUM_logVerbose::55",
+    "cli/xxhsum.c::XSUM_main::1564"
+   ],
+   "seed": "cli/xsum_bench.c::XSUM_benchHash::228",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-018"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Which functions use the identifier alignedBuffer?",
+   "relevance": {
+    "cli/xsum_bench.c::XSUM_benchFiles::387": 1.0,
+    "cli/xsum_bench.c::XSUM_benchInternal::436": 1.0
+   },
+   "relevant_functions": [
+    "cli/xsum_bench.c::XSUM_benchFiles::387",
+    "cli/xsum_bench.c::XSUM_benchInternal::436"
+   ],
+   "seed": "cli/xsum_bench.c::XSUM_benchFiles::387",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-019"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Find code that references nbCollisions",
+   "relevance": {
+    "tests/collisions/main.c::main::1014": 1.0,
+    "tests/collisions/main.c::search_collisions::669": 1.0
+   },
+   "relevant_functions": [
+    "tests/collisions/main.c::main::1014",
+    "tests/collisions/main.c::search_collisions::669"
+   ],
+   "seed": "tests/collisions/main.c::main::1014",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-020"
+  },
+  {
+   "category": "behavioral",
+   "query": "Compute a 32-bit hash of a memory buffer in a single call, given a seed",
+   "relevance": {
+    "xxhash.h::XXH32::3207": 2.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH32::3207"
+   ],
+   "seed": "xxhash.h::XXH32::3207",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-001"
+  },
+  {
+   "category": "behavioral",
+   "query": "Compute a 64-bit hash of a buffer in one call using the classic 64-bit algorithm",
+   "relevance": {
+    "xxhash.h::XXH64::3705": 2.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH64::3705"
+   ],
+   "seed": "xxhash.h::XXH64::3705",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-002"
+  },
+  {
+   "category": "behavioral",
+   "query": "Hash a buffer with the newer generation of the algorithm and a 64-bit result, with no seed or secret",
+   "relevance": {
+    "xxhash.h::XXH3_64bits::6469": 2.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH3_64bits::6469"
+   ],
+   "seed": "xxhash.h::XXH3_64bits::6469",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-003"
+  },
+  {
+   "category": "behavioral",
+   "query": "Hash a buffer with a caller-chosen 64-bit seed using the newer algorithm and return 64 bits",
+   "relevance": {
+    "xxhash.h::XXH3_64bits_withSeed::6483": 2.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH3_64bits_withSeed::6483"
+   ],
+   "seed": "xxhash.h::XXH3_64bits_withSeed::6483",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-004"
+  },
+  {
+   "category": "behavioral",
+   "query": "Hash a buffer using a custom secret byte array instead of the built-in default secret, producing 64 bits",
+   "relevance": {
+    "xxhash.h::XXH3_64bits_withSecret::6476": 2.0,
+    "xxhash.h::XXH3_64bits_withSecretandSeed::6489": 1.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH3_64bits_withSecret::6476",
+    "xxhash.h::XXH3_64bits_withSecretandSeed::6489"
+   ],
+   "seed": "xxhash.h::XXH3_64bits_withSecret::6476",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-005"
+  },
+  {
+   "category": "behavioral",
+   "query": "Hash input with both a custom secret and a seed and return a 64-bit value",
+   "relevance": {
+    "xxhash.h::XXH3_64bits_withSecretandSeed::6489": 2.0,
+    "xxhash.h::XXH3_64bits_withSecret::6476": 1.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH3_64bits_withSecretandSeed::6489",
+    "xxhash.h::XXH3_64bits_withSecret::6476"
+   ],
+   "seed": "xxhash.h::XXH3_64bits_withSecretandSeed::6489",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-006"
+  },
+  {
+   "category": "behavioral",
+   "query": "Compute a 128-bit hash of a buffer",
+   "relevance": {
+    "xxhash.h::XXH3_128bits::7292": 2.0,
+    "xxhash.h::XXH128::7328": 1.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH3_128bits::7292",
+    "xxhash.h::XXH128::7328"
+   ],
+   "seed": "xxhash.h::XXH3_128bits::7292",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-007"
+  },
+  {
+   "category": "behavioral",
+   "query": "Compute a 128-bit hash with a seed through the short convenience name",
+   "relevance": {
+    "xxhash.h::XXH128::7328": 2.0,
+    "xxhash.h::XXH3_128bits_withSeed::7310": 1.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH128::7328",
+    "xxhash.h::XXH3_128bits_withSeed::7310"
+   ],
+   "seed": "xxhash.h::XXH128::7328",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-008"
+  },
+  {
+   "category": "behavioral",
+   "query": "Allocate a state object used to hash 32-bit data incrementally",
+   "relevance": {
+    "xxhash.h::XXH32_createState::3230": 2.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH32_createState::3230"
+   ],
+   "seed": "xxhash.h::XXH32_createState::3230",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-009"
+  },
+  {
+   "category": "behavioral",
+   "query": "Release the memory of a 64-bit streaming hash state",
+   "relevance": {
+    "xxhash.h::XXH64_freeState::3732": 2.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH64_freeState::3732"
+   ],
+   "seed": "xxhash.h::XXH64_freeState::3732",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-010"
+  },
+  {
+   "category": "behavioral",
+   "query": "Duplicate a streaming 32-bit hash state into another state object",
+   "relevance": {
+    "xxhash.h::XXH32_copyState::3242": 2.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH32_copyState::3242"
+   ],
+   "seed": "xxhash.h::XXH32_copyState::3242",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-011"
+  },
+  {
+   "category": "behavioral",
+   "query": "Initialise a 64-bit streaming hash state with a seed so a new hash can begin",
+   "relevance": {
+    "xxhash.h::XXH64_reset::3745": 2.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH64_reset::3745"
+   ],
+   "seed": "xxhash.h::XXH64_reset::3745",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-012"
+  },
+  {
+   "category": "behavioral",
+   "query": "Feed another chunk of bytes into an ongoing 32-bit hash computation",
+   "relevance": {
+    "xxhash.h::XXH32_update::3259": 2.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH32_update::3259"
+   ],
+   "seed": "xxhash.h::XXH32_update::3259",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-013"
+  },
+  {
+   "category": "behavioral",
+   "query": "Finish a streaming 64-bit computation and return the final hash value",
+   "relevance": {
+    "xxhash.h::XXH64_digest::3800": 2.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH64_digest::3800"
+   ],
+   "seed": "xxhash.h::XXH64_digest::3800",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-014"
+  },
+  {
+   "category": "behavioral",
+   "query": "Convert a 32-bit hash into a platform-independent big-endian byte form",
+   "relevance": {
+    "xxhash.h::XXH32_canonicalFromHash::3324": 2.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH32_canonicalFromHash::3324"
+   ],
+   "seed": "xxhash.h::XXH32_canonicalFromHash::3324",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-015"
+  },
+  {
+   "category": "behavioral",
+   "query": "Read a 64-bit hash value back from its portable big-endian byte representation",
+   "relevance": {
+    "xxhash.h::XXH64_hashFromCanonical::3827": 2.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH64_hashFromCanonical::3827"
+   ],
+   "seed": "xxhash.h::XXH64_hashFromCanonical::3827",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-016"
+  },
+  {
+   "category": "behavioral",
+   "query": "Rebuild a 128-bit hash value from its canonical big-endian bytes",
+   "relevance": {
+    "xxhash.h::XXH128_hashFromCanonical::7435": 2.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH128_hashFromCanonical::7435"
+   ],
+   "seed": "xxhash.h::XXH128_hashFromCanonical::7435",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-017"
+  },
+  {
+   "category": "behavioral",
+   "query": "Check whether two 128-bit hash values are identical",
+   "relevance": {
+    "xxhash.h::XXH128_isEqual::7397": 2.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH128_isEqual::7397"
+   ],
+   "seed": "xxhash.h::XXH128_isEqual::7397",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-018"
+  },
+  {
+   "category": "behavioral",
+   "query": "Order two 128-bit hash values so they can be sorted, returning negative, zero or positive",
+   "relevance": {
+    "xxhash.h::XXH128_cmp::7408": 2.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH128_cmp::7408"
+   ],
+   "seed": "xxhash.h::XXH128_cmp::7408",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-019"
+  },
+  {
+   "category": "behavioral",
+   "query": "Derive a high-entropy secret buffer from arbitrary user supplied seed material",
+   "relevance": {
+    "xxhash.h::XXH3_generateSecret::7459": 2.0,
+    "xxhash.h::XXH3_generateSecret_fromSeed::7504": 1.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH3_generateSecret::7459",
+    "xxhash.h::XXH3_generateSecret_fromSeed::7504"
+   ],
+   "seed": "xxhash.h::XXH3_generateSecret::7459",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-020"
+  },
+  {
+   "category": "behavioral",
+   "query": "Generate a secret buffer from a single 64-bit seed value",
+   "relevance": {
+    "xxhash.h::XXH3_generateSecret_fromSeed::7504": 2.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH3_generateSecret_fromSeed::7504"
+   ],
+   "seed": "xxhash.h::XXH3_generateSecret_fromSeed::7504",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-021"
+  },
+  {
+   "category": "behavioral",
+   "query": "Return the library version as a single number",
+   "relevance": {
+    "xxhash.h::XXH_versionNumber::2907": 2.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH_versionNumber::2907"
+   ],
+   "seed": "xxhash.h::XXH_versionNumber::2907",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-022"
+  },
+  {
+   "category": "behavioral",
+   "query": "Allocate a 64-byte aligned state object for streaming hashing with the newer algorithm",
+   "relevance": {
+    "xxhash.h::XXH3_createState::6575": 2.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH3_createState::6575"
+   ],
+   "seed": "xxhash.h::XXH3_createState::6575",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-023"
+  },
+  {
+   "category": "behavioral",
+   "query": "Prepare a streaming state for a 64-bit hash that uses the default secret",
+   "relevance": {
+    "xxhash.h::XXH3_64bits_reset::6637": 2.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH3_64bits_reset::6637"
+   ],
+   "seed": "xxhash.h::XXH3_64bits_reset::6637",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-024"
+  },
+  {
+   "category": "behavioral",
+   "query": "Prepare a 128-bit streaming state to hash with a custom secret",
+   "relevance": {
+    "xxhash.h::XXH3_128bits_reset_withSecret::7350": 2.0,
+    "xxhash.h::XXH3_64bits_reset_withSecret::6646": 1.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH3_128bits_reset_withSecret::7350",
+    "xxhash.h::XXH3_64bits_reset_withSecret::6646"
+   ],
+   "seed": "xxhash.h::XXH3_128bits_reset_withSecret::7350",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-025"
+  },
+  {
+   "category": "behavioral",
+   "query": "Return the final 128-bit value of a streaming hash",
+   "relevance": {
+    "xxhash.h::XXH3_128bits_digest::7377": 2.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH3_128bits_digest::7377"
+   ],
+   "seed": "xxhash.h::XXH3_128bits_digest::7377",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-026"
+  },
+  {
+   "category": "behavioral",
+   "query": "Process one stripe of input into the accumulators with 256-bit vector instructions",
+   "relevance": {
+    "xxhash.h::XXH3_accumulate_512_avx2::5142": 2.0,
+    "xxhash.h::XXH3_accumulate_avx2::5174": 1.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH3_accumulate_512_avx2::5142",
+    "xxhash.h::XXH3_accumulate_avx2::5174"
+   ],
+   "seed": "xxhash.h::XXH3_accumulate_512_avx2::5142",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-027"
+  },
+  {
+   "category": "behavioral",
+   "query": "Mix the accumulators with the secret to scramble them using 512-bit vector instructions",
+   "relevance": {
+    "xxhash.h::XXH3_scrambleAcc_avx512::5089": 2.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH3_scrambleAcc_avx512::5089"
+   ],
+   "seed": "xxhash.h::XXH3_scrambleAcc_avx512::5089",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-028"
+  },
+  {
+   "category": "behavioral",
+   "query": "Fill a custom secret buffer derived from a seed using 512-bit vector instructions",
+   "relevance": {
+    "xxhash.h::XXH3_initCustomSecret_avx512::5112": 2.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH3_initCustomSecret_avx512::5112"
+   ],
+   "seed": "xxhash.h::XXH3_initCustomSecret_avx512::5112",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-029"
+  },
+  {
+   "category": "behavioral",
+   "query": "Detect which vector instruction sets the processor and operating system support and pick the best one",
+   "relevance": {
+    "xxh_x86dispatch.c::XXH_featureTest::343": 2.0,
+    "xxh_x86dispatch.c::XXH_cpuid::254": 1.0,
+    "xxh_x86dispatch.c::XXH_xgetbv::306": 1.0
+   },
+   "relevant_functions": [
+    "xxh_x86dispatch.c::XXH_featureTest::343",
+    "xxh_x86dispatch.c::XXH_cpuid::254",
+    "xxh_x86dispatch.c::XXH_xgetbv::306"
+   ],
+   "seed": "xxh_x86dispatch.c::XXH_featureTest::343",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-030"
+  },
+  {
+   "category": "behavioral",
+   "query": "Execute the processor identification instruction to query CPU capabilities",
+   "relevance": {
+    "xxh_x86dispatch.c::XXH_cpuid::254": 2.0
+   },
+   "relevant_functions": [
+    "xxh_x86dispatch.c::XXH_cpuid::254"
+   ],
+   "seed": "xxh_x86dispatch.c::XXH_cpuid::254",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-031"
+  },
+  {
+   "category": "behavioral",
+   "query": "Read the extended control register to learn whether the OS saves wide vector register state",
+   "relevance": {
+    "xxh_x86dispatch.c::XXH_xgetbv::306": 2.0
+   },
+   "relevant_functions": [
+    "xxh_x86dispatch.c::XXH_xgetbv::306"
+   ],
+   "seed": "xxh_x86dispatch.c::XXH_xgetbv::306",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-032"
+  },
+  {
+   "category": "behavioral",
+   "query": "Run automatically at startup to install function pointers for the best available vector implementation",
+   "relevance": {
+    "xxh_x86dispatch.c::XXH_setDispatch::681": 2.0,
+    "xxh_x86dispatch.c::XXH_featureTest::343": 1.0
+   },
+   "relevant_functions": [
+    "xxh_x86dispatch.c::XXH_setDispatch::681",
+    "xxh_x86dispatch.c::XXH_featureTest::343"
+   ],
+   "seed": "xxh_x86dispatch.c::XXH_setDispatch::681",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-033"
+  },
+  {
+   "category": "behavioral",
+   "query": "Hash a buffer through the runtime-dispatched entry point returning 64 bits",
+   "relevance": {
+    "xxh_x86dispatch.c::XXH3_64bits_dispatch::713": 2.0
+   },
+   "relevant_functions": [
+    "xxh_x86dispatch.c::XXH3_64bits_dispatch::713"
+   ],
+   "seed": "xxh_x86dispatch.c::XXH3_64bits_dispatch::713",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-034"
+  },
+  {
+   "category": "behavioral",
+   "query": "Update a 128-bit streaming hash through the dispatch layer",
+   "relevance": {
+    "xxh_x86dispatch.c::XXH3_128bits_update_dispatch::809": 2.0
+   },
+   "relevant_functions": [
+    "xxh_x86dispatch.c::XXH3_128bits_update_dispatch::809"
+   ],
+   "seed": "xxh_x86dispatch.c::XXH3_128bits_update_dispatch::809",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-035"
+  },
+  {
+   "category": "behavioral",
+   "query": "Escape special characters such as backslash and newline when printing a filename in a checksum line",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_printFilename::117": 2.0,
+    "cli/xxhsum.c::XSUM_filenameNeedsEscape::102": 1.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_printFilename::117",
+    "cli/xxhsum.c::XSUM_filenameNeedsEscape::102"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_printFilename::117",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-036"
+  },
+  {
+   "category": "behavioral",
+   "query": "Decide whether a filename contains characters that must be escaped in checksum output",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_filenameNeedsEscape::102": 2.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_filenameNeedsEscape::102"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_filenameNeedsEscape::102",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-037"
+  },
+  {
+   "category": "behavioral",
+   "query": "Turn escape sequences in a filename read from a checksum file back into the original characters",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_filenameUnescape::154": 2.0,
+    "cli/xxhsum.c::XSUM_lineNeedsUnescape::108": 1.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_filenameUnescape::154",
+    "cli/xxhsum.c::XSUM_lineNeedsUnescape::108"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_filenameUnescape::154",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-038"
+  },
+  {
+   "category": "behavioral",
+   "query": "Hash the contents of an open file block by block with a chosen algorithm",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_hashStream::253": 2.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_hashStream::253"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_hashStream::253",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-039"
+  },
+  {
+   "category": "behavioral",
+   "query": "Print a checksum line in the BSD style with the algorithm name as a tag",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_printLine_BSD_internal::323": 2.0,
+    "cli/xxhsum.c::XSUM_printLine_BSD::347": 1.0,
+    "cli/xxhsum.c::XSUM_printLine_BSD_LE::342": 1.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_printLine_BSD_internal::323",
+    "cli/xxhsum.c::XSUM_printLine_BSD::347",
+    "cli/xxhsum.c::XSUM_printLine_BSD_LE::342"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_printLine_BSD_internal::323",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-040"
+  },
+  {
+   "category": "behavioral",
+   "query": "Print a checksum line in the GNU coreutils style",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_printLine_GNU_internal::360": 2.0,
+    "cli/xxhsum.c::XSUM_printLine_GNU::377": 1.0,
+    "cli/xxhsum.c::XSUM_printLine_GNU_LE::383": 1.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_printLine_GNU_internal::360",
+    "cli/xxhsum.c::XSUM_printLine_GNU::377",
+    "cli/xxhsum.c::XSUM_printLine_GNU_LE::383"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_printLine_GNU_internal::360",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-041"
+  },
+  {
+   "category": "behavioral",
+   "query": "Print raw hash bytes starting from the least significant byte",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_display_LittleEndian::216": 2.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_display_LittleEndian::216"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_display_LittleEndian::216",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-042"
+  },
+  {
+   "category": "behavioral",
+   "query": "Verify files against a list of recorded checksums and report which ones do not match",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_checkFile::1043": 2.0,
+    "cli/xxhsum.c::XSUM_checkFiles::1142": 1.0,
+    "cli/xxhsum.c::XSUM_parseFile1::854": 1.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_checkFile::1043",
+    "cli/xxhsum.c::XSUM_checkFiles::1142",
+    "cli/xxhsum.c::XSUM_parseFile1::854"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_checkFile::1043",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-043"
+  },
+  {
+   "category": "behavioral",
+   "query": "Parse one line of a checksum file into algorithm, hash value and filename",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_parseLine1::739": 2.0,
+    "cli/xxhsum.c::XSUM_parseLine::841": 1.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_parseLine1::739",
+    "cli/xxhsum.c::XSUM_parseLine::841"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_parseLine1::739",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-044"
+  },
+  {
+   "category": "behavioral",
+   "query": "Convert a hexadecimal digit character into its numeric value",
+   "relevance": {
+    "cli/xxhsum.c::charToHex::677": 2.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::charToHex::677"
+   ],
+   "seed": "cli/xxhsum.c::charToHex::677",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-045"
+  },
+  {
+   "category": "behavioral",
+   "query": "Convert a hexadecimal string into the canonical hash bytes, optionally reversing the byte order",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_canonicalFromString::698": 2.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_canonicalFromString::698"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_canonicalFromString::698",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-046"
+  },
+  {
+   "category": "behavioral",
+   "query": "Read an unsigned 32-bit decimal number from a command line argument and abort when it overflows",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_readU32FromChar::1533": 2.0,
+    "cli/xxhsum.c::XSUM_readU32FromCharChecked::1500": 1.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_readU32FromChar::1533",
+    "cli/xxhsum.c::XSUM_readU32FromCharChecked::1500"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_readU32FromChar::1533",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-047"
+  },
+  {
+   "category": "behavioral",
+   "query": "Strip the directory part of an executable path to obtain the program name",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_lastNameFromPath::1485": 2.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_lastNameFromPath::1485"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_lastNameFromPath::1485",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-048"
+  },
+  {
+   "category": "behavioral",
+   "query": "Read an arbitrarily long line from a file, growing the buffer as needed",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_getLine::618": 2.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_getLine::618"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_getLine::618",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-049"
+  },
+  {
+   "category": "behavioral",
+   "query": "Find the largest block of memory that can be allocated for a benchmark",
+   "relevance": {
+    "cli/xsum_bench.c::XSUM_findMaxMem::67": 2.0
+   },
+   "relevant_functions": [
+    "cli/xsum_bench.c::XSUM_findMaxMem::67"
+   ],
+   "seed": "cli/xsum_bench.c::XSUM_findMaxMem::67",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-050"
+  },
+  {
+   "category": "behavioral",
+   "query": "Measure how fast one hash function runs over a buffer and print the throughput",
+   "relevance": {
+    "cli/xsum_bench.c::XSUM_benchHash::228": 2.0,
+    "cli/xsum_bench.c::XSUM_benchMem::351": 1.0
+   },
+   "relevant_functions": [
+    "cli/xsum_bench.c::XSUM_benchHash::228",
+    "cli/xsum_bench.c::XSUM_benchMem::351"
+   ],
+   "seed": "cli/xsum_bench.c::XSUM_benchHash::228",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-051"
+  },
+  {
+   "category": "behavioral",
+   "query": "Choose how many bytes of an input file to use for benchmarking depending on its size",
+   "relevance": {
+    "cli/xsum_bench.c::XSUM_selectBenchedSize::375": 2.0
+   },
+   "relevant_functions": [
+    "cli/xsum_bench.c::XSUM_selectBenchedSize::375"
+   ],
+   "seed": "cli/xsum_bench.c::XSUM_selectBenchedSize::375",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-052"
+  },
+  {
+   "category": "behavioral",
+   "query": "Concatenate two strings into a newly allocated string",
+   "relevance": {
+    "cli/xsum_bench.c::XSUM_strcatDup::323": 2.0
+   },
+   "relevant_functions": [
+    "cli/xsum_bench.c::XSUM_strcatDup::323"
+   ],
+   "seed": "cli/xsum_bench.c::XSUM_strcatDup::323",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-053"
+  },
+  {
+   "category": "behavioral",
+   "query": "Hash a buffer through the streaming interface with a seed using the newer algorithm",
+   "relevance": {
+    "cli/xsum_bench.c::localXXH3_stream_seeded::168": 2.0,
+    "cli/xsum_bench.c::localXXH3_stream::160": 1.0
+   },
+   "relevant_functions": [
+    "cli/xsum_bench.c::localXXH3_stream_seeded::168",
+    "cli/xsum_bench.c::localXXH3_stream::160"
+   ],
+   "seed": "cli/xsum_bench.c::localXXH3_stream_seeded::168",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-054"
+  },
+  {
+   "category": "behavioral",
+   "query": "Check whether an output stream is attached to an interactive terminal",
+   "relevance": {
+    "cli/xsum_os_specific.c::XSUM_isConsole::109": 2.0
+   },
+   "relevant_functions": [
+    "cli/xsum_os_specific.c::XSUM_isConsole::109"
+   ],
+   "seed": "cli/xsum_os_specific.c::XSUM_isConsole::109",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-055"
+  },
+  {
+   "category": "behavioral",
+   "query": "Switch a stream to binary mode on platforms that distinguish text from binary files",
+   "relevance": {
+    "cli/xsum_os_specific.c::XSUM_setBinaryMode::114": 2.0
+   },
+   "relevant_functions": [
+    "cli/xsum_os_specific.c::XSUM_setBinaryMode::114"
+   ],
+   "seed": "cli/xsum_os_specific.c::XSUM_setBinaryMode::114",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-056"
+  },
+  {
+   "category": "behavioral",
+   "query": "Report the size of a file on disk",
+   "relevance": {
+    "cli/xsum_os_specific.c::XSUM_getFileSize::649": 2.0
+   },
+   "relevant_functions": [
+    "cli/xsum_os_specific.c::XSUM_getFileSize::649"
+   ],
+   "seed": "cli/xsum_os_specific.c::XSUM_getFileSize::649",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-057"
+  },
+  {
+   "category": "behavioral",
+   "query": "Test whether a path refers to a directory",
+   "relevance": {
+    "cli/xsum_os_specific.c::XSUM_isDirectory::634": 2.0
+   },
+   "relevant_functions": [
+    "cli/xsum_os_specific.c::XSUM_isDirectory::634"
+   ],
+   "seed": "cli/xsum_os_specific.c::XSUM_isDirectory::634",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-058"
+  },
+  {
+   "category": "behavioral",
+   "query": "Write a formatted message to standard error only when the verbosity level is high enough",
+   "relevance": {
+    "cli/xsum_output.c::XSUM_logVerbose::55": 2.0,
+    "cli/xsum_output.c::XSUM_log::32": 1.0
+   },
+   "relevant_functions": [
+    "cli/xsum_output.c::XSUM_logVerbose::55",
+    "cli/xsum_output.c::XSUM_log::32"
+   ],
+   "seed": "cli/xsum_output.c::XSUM_logVerbose::55",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-059"
+  },
+  {
+   "category": "behavioral",
+   "query": "Fill a buffer with deterministic pseudo-random bytes so tests are reproducible",
+   "relevance": {
+    "cli/xsum_sanity_check.c::XSUM_fillTestBuffer::46": 2.0,
+    "tests/sanity_test.c::fillTestBuffer::62": 2.0,
+    "tests/sanity_test_vectors_generator.c::fillTestBuffer::161": 2.0
+   },
+   "relevant_functions": [
+    "cli/xsum_sanity_check.c::XSUM_fillTestBuffer::46",
+    "tests/sanity_test.c::fillTestBuffer::62",
+    "tests/sanity_test_vectors_generator.c::fillTestBuffer::161"
+   ],
+   "seed": "cli/xsum_sanity_check.c::XSUM_fillTestBuffer::46",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-060"
+  },
+  {
+   "category": "behavioral",
+   "query": "Compare an expected and an actual 128-bit hash and report an error on mismatch",
+   "relevance": {
+    "cli/xsum_sanity_check.c::XSUM_checkResult128::254": 2.0,
+    "tests/sanity_test.c::checkResult128::141": 2.0
+   },
+   "relevant_functions": [
+    "cli/xsum_sanity_check.c::XSUM_checkResult128::254",
+    "tests/sanity_test.c::checkResult128::141"
+   ],
+   "seed": "cli/xsum_sanity_check.c::XSUM_checkResult128::254",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-061"
+  },
+  {
+   "category": "behavioral",
+   "query": "Generate the table of known-answer test vectors for the 32-bit hash",
+   "relevance": {
+    "tests/sanity_test_vectors_generator.c::generate_sanity_test_vectors_xxh32::202": 2.0
+   },
+   "relevant_functions": [
+    "tests/sanity_test_vectors_generator.c::generate_sanity_test_vectors_xxh32::202"
+   ],
+   "seed": "tests/sanity_test_vectors_generator.c::generate_sanity_test_vectors_xxh32::202",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-062"
+  },
+  {
+   "category": "behavioral",
+   "query": "Return a pseudo-random 32-bit number from an internal 64-bit state",
+   "relevance": {
+    "cli/xsum_sanity_check.c::XSUM_rand::334": 2.0,
+    "tests/sanity_test.c::SANITY_TEST_rand::266": 1.0
+   },
+   "relevant_functions": [
+    "cli/xsum_sanity_check.c::XSUM_rand::334",
+    "tests/sanity_test.c::SANITY_TEST_rand::266"
+   ],
+   "seed": "cli/xsum_sanity_check.c::XSUM_rand::334",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-063"
+  },
+  {
+   "category": "behavioral",
+   "query": "Fuzzer entry point that hashes arbitrary input with several algorithm variants",
+   "relevance": {
+    "fuzz/fuzzer.c::LLVMFuzzerTestOneInput::5": 2.0
+   },
+   "relevant_functions": [
+    "fuzz/fuzzer.c::LLVMFuzzerTestOneInput::5"
+   ],
+   "seed": "fuzz/fuzzer.c::LLVMFuzzerTestOneInput::5",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-064"
+  },
+  {
+   "category": "behavioral",
+   "query": "Diffuse the bits of a 64-bit value with a mixing step so that every output bit depends on every input bit",
+   "relevance": {
+    "tests/collisions/main.c::avalanche64::109": 2.0
+   },
+   "relevant_functions": [
+    "tests/collisions/main.c::avalanche64::109"
+   ],
+   "seed": "tests/collisions/main.c::avalanche64::109",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-065"
+  },
+  {
+   "category": "behavioral",
+   "query": "Count the number of ways to choose m items out of n",
+   "relevance": {
+    "tests/collisions/main.c::Cnm::215": 2.0
+   },
+   "relevant_functions": [
+    "tests/collisions/main.c::Cnm::215"
+   ],
+   "seed": "tests/collisions/main.c::Cnm::215",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-066"
+  },
+  {
+   "category": "behavioral",
+   "query": "Flip a single bit at a given position in a buffer",
+   "relevance": {
+    "tests/collisions/main.c::flipbit::293": 2.0
+   },
+   "relevant_functions": [
+    "tests/collisions/main.c::flipbit::293"
+   ],
+   "seed": "tests/collisions/main.c::flipbit::293",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-067"
+  },
+  {
+   "category": "behavioral",
+   "query": "Insert a hash into a probabilistic membership filter and report whether it was probably already there",
+   "relevance": {
+    "tests/collisions/main.c::Filter_insert::423": 2.0,
+    "tests/collisions/main.c::Filter_check::476": 1.0
+   },
+   "relevant_functions": [
+    "tests/collisions/main.c::Filter_insert::423",
+    "tests/collisions/main.c::Filter_check::476"
+   ],
+   "seed": "tests/collisions/main.c::Filter_insert::423",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-068"
+  },
+  {
+   "category": "behavioral",
+   "query": "Create a Bloom-style filter whose size is given as a power of two",
+   "relevance": {
+    "tests/collisions/main.c::create_Filter::342": 2.0
+   },
+   "relevant_functions": [
+    "tests/collisions/main.c::create_Filter::342"
+   ],
+   "seed": "tests/collisions/main.c::create_Filter::342",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-069"
+  },
+  {
+   "category": "behavioral",
+   "query": "Estimate how many collisions are expected for a number of hashes of a given bit width",
+   "relevance": {
+    "tests/collisions/main.c::estimateNbCollisions::557": 2.0
+   },
+   "relevant_functions": [
+    "tests/collisions/main.c::estimateNbCollisions::557"
+   ],
+   "seed": "tests/collisions/main.c::estimateNbCollisions::557",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-070"
+  },
+  {
+   "category": "behavioral",
+   "query": "Return the index of the highest bit set in a 64-bit integer",
+   "relevance": {
+    "tests/collisions/main.c::highestBitSet::562": 2.0
+   },
+   "relevant_functions": [
+    "tests/collisions/main.c::highestBitSet::562"
+   ],
+   "seed": "tests/collisions/main.c::highestBitSet::562",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-071"
+  },
+  {
+   "category": "behavioral",
+   "query": "Search for hash collisions over many generated inputs",
+   "relevance": {
+    "tests/collisions/main.c::search_collisions::669": 2.0,
+    "tests/collisions/main.c::time_collisions::882": 1.0
+   },
+   "relevant_functions": [
+    "tests/collisions/main.c::search_collisions::669",
+    "tests/collisions/main.c::time_collisions::882"
+   ],
+   "seed": "tests/collisions/main.c::search_collisions::669",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-072"
+  },
+  {
+   "category": "behavioral",
+   "query": "Create a thread pool with a fixed number of worker threads and a bounded job queue",
+   "relevance": {
+    "tests/collisions/pool.c::POOL_create::120": 2.0
+   },
+   "relevant_functions": [
+    "tests/collisions/pool.c::POOL_create::120"
+   ],
+   "seed": "tests/collisions/pool.c::POOL_create::120",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-073"
+  },
+  {
+   "category": "behavioral",
+   "query": "Submit a job to the pool without blocking and fail when the queue is full",
+   "relevance": {
+    "tests/collisions/pool.c::POOL_tryAdd::284": 2.0,
+    "tests/collisions/pool.c::POOL_add::271": 1.0
+   },
+   "relevant_functions": [
+    "tests/collisions/pool.c::POOL_tryAdd::284",
+    "tests/collisions/pool.c::POOL_add::271"
+   ],
+   "seed": "tests/collisions/pool.c::POOL_tryAdd::284",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-074"
+  },
+  {
+   "category": "behavioral",
+   "query": "Change the number of worker threads of an existing pool",
+   "relevance": {
+    "tests/collisions/pool.c::POOL_resize::232": 2.0,
+    "tests/collisions/pool.c::POOL_resize_internal::203": 1.0
+   },
+   "relevant_functions": [
+    "tests/collisions/pool.c::POOL_resize::232",
+    "tests/collisions/pool.c::POOL_resize_internal::203"
+   ],
+   "seed": "tests/collisions/pool.c::POOL_resize::232",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-075"
+  },
+  {
+   "category": "behavioral",
+   "query": "Shut down the job queue and wait for all worker threads to finish",
+   "relevance": {
+    "tests/collisions/pool.c::POOL_join::164": 2.0,
+    "tests/collisions/pool.c::POOL_free::181": 1.0
+   },
+   "relevant_functions": [
+    "tests/collisions/pool.c::POOL_join::164",
+    "tests/collisions/pool.c::POOL_free::181"
+   ],
+   "seed": "tests/collisions/pool.c::POOL_join::164",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-076"
+  },
+  {
+   "category": "behavioral",
+   "query": "Sort an array of 128-bit hash values",
+   "relevance": {
+    "tests/collisions/sort.cc::sort128::45": 2.0
+   },
+   "relevant_functions": [
+    "tests/collisions/sort.cc::sort128::45"
+   ],
+   "seed": "tests/collisions/sort.cc::sort128::45",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-077"
+  },
+  {
+   "category": "behavioral",
+   "query": "Sort an array of 64-bit hash values in ascending order",
+   "relevance": {
+    "tests/collisions/sort.cc::sort64::38": 2.0
+   },
+   "relevant_functions": [
+    "tests/collisions/sort.cc::sort64::38"
+   ],
+   "seed": "tests/collisions/sort.cc::sort64::38",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-078"
+  },
+  {
+   "category": "behavioral",
+   "query": "A deliberately poor 32-bit checksum that sums the input bytes, used as a low-quality baseline",
+   "relevance": {
+    "tests/collisions/allcodecs/dummy.c::badsum32::30": 2.0
+   },
+   "relevant_functions": [
+    "tests/collisions/allcodecs/dummy.c::badsum32::30"
+   ],
+   "seed": "tests/collisions/allcodecs/dummy.c::badsum32::30",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-079"
+  },
+  {
+   "category": "behavioral",
+   "query": "Wrap the 128-bit hash so that only its lower 64 bits are used for collision testing",
+   "relevance": {
+    "tests/collisions/hashes.h::XXH128l_wrapper::74": 2.0
+   },
+   "relevant_functions": [
+    "tests/collisions/hashes.h::XXH128l_wrapper::74"
+   ],
+   "seed": "tests/collisions/hashes.h::XXH128l_wrapper::74",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-080"
+  },
+  {
+   "category": "behavioral",
+   "query": "Wrap the 128-bit hash so that only its upper 64 bits are used for collision testing",
+   "relevance": {
+    "tests/collisions/hashes.h::XXH128h_wrapper::79": 2.0
+   },
+   "relevant_functions": [
+    "tests/collisions/hashes.h::XXH128h_wrapper::79"
+   ],
+   "seed": "tests/collisions/hashes.h::XXH128h_wrapper::79",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-081"
+  },
+  {
+   "category": "behavioral",
+   "query": "Measure the latency of a hash function on inputs of random length",
+   "relevance": {
+    "tests/bench/bhDisplay.c::bench_latency_randomInputLength::155": 2.0,
+    "tests/bench/bhDisplay.c::bench_latency_oneHash_randomInputLength::142": 1.0
+   },
+   "relevant_functions": [
+    "tests/bench/bhDisplay.c::bench_latency_randomInputLength::155",
+    "tests/bench/bhDisplay.c::bench_latency_oneHash_randomInputLength::142"
+   ],
+   "seed": "tests/bench/bhDisplay.c::bench_latency_randomInputLength::155",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-082"
+  },
+  {
+   "category": "behavioral",
+   "query": "Run a function repeatedly within a time budget and return the measured outcome",
+   "relevance": {
+    "tests/bench/benchfn.c::BMK_benchTimedFn::204": 2.0,
+    "tests/bench/benchfn.c::BMK_benchFunction::102": 1.0
+   },
+   "relevant_functions": [
+    "tests/bench/benchfn.c::BMK_benchTimedFn::204",
+    "tests/bench/benchfn.c::BMK_benchFunction::102"
+   ],
+   "seed": "tests/bench/benchfn.c::BMK_benchTimedFn::204",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-083"
+  },
+  {
+   "category": "behavioral",
+   "query": "Create a state that tracks a total time budget and a per-run time budget for a timed benchmark",
+   "relevance": {
+    "tests/bench/benchfn.c::BMK_createTimedFnState::153": 2.0
+   },
+   "relevant_functions": [
+    "tests/bench/benchfn.c::BMK_createTimedFnState::153"
+   ],
+   "seed": "tests/bench/benchfn.c::BMK_createTimedFnState::153",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-084"
+  },
+  {
+   "category": "behavioral",
+   "query": "Check whether a benchmark run finished without error",
+   "relevance": {
+    "tests/bench/benchfn.c::BMK_isSuccessful_runOutcome::57": 2.0
+   },
+   "relevant_functions": [
+    "tests/bench/benchfn.c::BMK_isSuccessful_runOutcome::57"
+   ],
+   "seed": "tests/bench/benchfn.c::BMK_isSuccessful_runOutcome::57",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-085"
+  },
+  {
+   "category": "behavioral",
+   "query": "Return a high resolution timestamp",
+   "relevance": {
+    "tests/bench/timefn.c::UTIL_getTime::92": 2.0
+   },
+   "relevant_functions": [
+    "tests/bench/timefn.c::UTIL_getTime::92"
+   ],
+   "seed": "tests/bench/timefn.c::UTIL_getTime::92",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-086"
+  },
+  {
+   "category": "behavioral",
+   "query": "Busy-wait until the clock advances to the next tick before starting a measurement",
+   "relevance": {
+    "tests/bench/timefn.c::UTIL_waitForNextTick::169": 2.0
+   },
+   "relevant_functions": [
+    "tests/bench/timefn.c::UTIL_waitForNextTick::169"
+   ],
+   "seed": "tests/bench/timefn.c::UTIL_waitForNextTick::169",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-087"
+  },
+  {
+   "category": "behavioral",
+   "query": "List the names of the hash functions available for benchmarking",
+   "relevance": {
+    "tests/bench/main.c::display_hash_names::123": 2.0
+   },
+   "relevant_functions": [
+    "tests/bench/main.c::display_hash_names::123"
+   ],
+   "seed": "tests/bench/main.c::display_hash_names::123",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-088"
+  },
+  {
+   "category": "behavioral",
+   "query": "Look up a hash function by its name and return its index in the table",
+   "relevance": {
+    "tests/bench/main.c::hashID::138": 2.0
+   },
+   "relevant_functions": [
+    "tests/bench/main.c::hashID::138"
+   ],
+   "seed": "tests/bench/main.c::hashID::138",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-089"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which of the functions that call XXH3_64bits_withSeed contain a loop?",
+   "relevance": {
+    "tests/sanity_test.c::testXXH3::323": 1.0
+   },
+   "relevant_functions": [
+    "tests/sanity_test.c::testXXH3::323"
+   ],
+   "seed": "xxhash.h::XXH3_64bits_withSeed::6483",
+   "label_source": "cfg_back_edge+call_graph",
+   "notes": "",
+   "query_id": "control_flow-001"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which of the functions that call UTIL_getTime contain a loop?",
+   "relevance": {
+    "tests/bench/timefn.c::UTIL_waitForNextTick::169": 1.0
+   },
+   "relevant_functions": [
+    "tests/bench/timefn.c::UTIL_waitForNextTick::169"
+   ],
+   "seed": "tests/bench/timefn.c::UTIL_getTime::92",
+   "label_source": "cfg_back_edge+call_graph",
+   "notes": "",
+   "query_id": "control_flow-002"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which of the functions that call errorOut contain a loop?",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_readU64FromChar::1543": 1.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_readU64FromChar::1543"
+   ],
+   "seed": "cli/xxhsum.c::errorOut::1479",
+   "label_source": "cfg_back_edge+call_graph",
+   "notes": "",
+   "query_id": "control_flow-003"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which of the functions that call XSUM_printFilename contain a loop?",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_parseFile1::854": 1.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_parseFile1::854"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_printFilename::117",
+   "label_source": "cfg_back_edge+call_graph",
+   "notes": "",
+   "query_id": "control_flow-004"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which of the functions that call XXH3_64bits_reset_withSecret contain a loop?",
+   "relevance": {
+    "tests/sanity_test.c::testXXH3_withSecret::417": 1.0
+   },
+   "relevant_functions": [
+    "tests/sanity_test.c::testXXH3_withSecret::417"
+   ],
+   "seed": "xxhash.h::XXH3_64bits_reset_withSecret::6646",
+   "label_source": "cfg_back_edge+call_graph",
+   "notes": "",
+   "query_id": "control_flow-005"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which of the functions that call XXH3_64bits_reset_withSecretandSeed contain a loop?",
+   "relevance": {
+    "tests/sanity_test.c::testXXH3::323": 1.0,
+    "tests/sanity_test.c::testXXH3_withSecret::417": 1.0
+   },
+   "relevant_functions": [
+    "tests/sanity_test.c::testXXH3::323",
+    "tests/sanity_test.c::testXXH3_withSecret::417"
+   ],
+   "seed": "xxhash.h::XXH3_64bits_reset_withSecretandSeed::6669",
+   "label_source": "cfg_back_edge+call_graph",
+   "notes": "",
+   "query_id": "control_flow-006"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which of the functions that call POOL_add_internal contain a loop?",
+   "relevance": {
+    "tests/collisions/pool.c::POOL_add::271": 1.0
+   },
+   "relevant_functions": [
+    "tests/collisions/pool.c::POOL_add::271"
+   ],
+   "seed": "tests/collisions/pool.c::POOL_add_internal::259",
+   "label_source": "cfg_back_edge+call_graph",
+   "notes": "",
+   "query_id": "control_flow-007"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which of the functions that call isCommand contain a loop?",
+   "relevance": {
+    "tests/bench/main.c::hashID::138": 1.0,
+    "tests/bench/main.c::main::172": 1.0
+   },
+   "relevant_functions": [
+    "tests/bench/main.c::hashID::138",
+    "tests/bench/main.c::main::172"
+   ],
+   "seed": "tests/bench/main.c::isCommand::81",
+   "label_source": "cfg_back_edge+call_graph",
+   "notes": "",
+   "query_id": "control_flow-008"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which of the functions that call XXH64 contain a loop?",
+   "relevance": {
+    "tests/sanity_test.c::testXXH64::222": 1.0
+   },
+   "relevant_functions": [
+    "tests/sanity_test.c::testXXH64::222"
+   ],
+   "seed": "xxhash.h::XXH64::3705",
+   "label_source": "cfg_back_edge+call_graph",
+   "notes": "",
+   "query_id": "control_flow-009"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which of the functions that call isQueueFull contain a loop?",
+   "relevance": {
+    "tests/collisions/pool.c::POOL_add::271": 1.0
+   },
+   "relevant_functions": [
+    "tests/collisions/pool.c::POOL_add::271"
+   ],
+   "seed": "tests/collisions/pool.c::isQueueFull::249",
+   "label_source": "cfg_back_edge+call_graph",
+   "notes": "",
+   "query_id": "control_flow-010"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which function in cli/xsum_sanity_check.c has the most complex control flow (highest cyclomatic complexity)?",
+   "relevance": {
+    "cli/xsum_sanity_check.c::XSUM_sanityCheck::688": 1.0
+   },
+   "relevant_functions": [
+    "cli/xsum_sanity_check.c::XSUM_sanityCheck::688"
+   ],
+   "seed": "cli/xsum_sanity_check.c::XSUM_sanityCheck::688",
+   "label_source": "cfg_cyclomatic",
+   "notes": "",
+   "query_id": "control_flow-011"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which function in cli/xxhsum.c has the most complex control flow (highest cyclomatic complexity)?",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_main::1564": 1.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_main::1564"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_main::1564",
+   "label_source": "cfg_cyclomatic",
+   "notes": "",
+   "query_id": "control_flow-012"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which function in tests/inlineDispatch.c has the most complex control flow (highest cyclomatic complexity)?",
+   "relevance": {
+    "tests/inlineDispatch.c::main::90": 1.0
+   },
+   "relevant_functions": [
+    "tests/inlineDispatch.c::main::90"
+   ],
+   "seed": "tests/inlineDispatch.c::main::90",
+   "label_source": "cfg_cyclomatic",
+   "notes": "",
+   "query_id": "control_flow-013"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which function in tests/sanity_test.c has the most complex control flow (highest cyclomatic complexity)?",
+   "relevance": {
+    "tests/sanity_test.c::main::671": 1.0
+   },
+   "relevant_functions": [
+    "tests/sanity_test.c::main::671"
+   ],
+   "seed": "tests/sanity_test.c::main::671",
+   "label_source": "cfg_cyclomatic",
+   "notes": "",
+   "query_id": "control_flow-014"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which function in tests/bench/main.c has the most complex control flow (highest cyclomatic complexity)?",
+   "relevance": {
+    "tests/bench/main.c::main::172": 1.0
+   },
+   "relevant_functions": [
+    "tests/bench/main.c::main::172"
+   ],
+   "seed": "tests/bench/main.c::main::172",
+   "label_source": "cfg_cyclomatic",
+   "notes": "",
+   "query_id": "control_flow-015"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which function in cli/xsum_bench.c has the most complex control flow (highest cyclomatic complexity)?",
+   "relevance": {
+    "cli/xsum_bench.c::XSUM_benchHash::228": 1.0
+   },
+   "relevant_functions": [
+    "cli/xsum_bench.c::XSUM_benchHash::228"
+   ],
+   "seed": "cli/xsum_bench.c::XSUM_benchHash::228",
+   "label_source": "cfg_cyclomatic",
+   "notes": "",
+   "query_id": "control_flow-016"
+  },
+  {
+   "category": "caller",
+   "query": "Which functions call generate_sanity_test_vectors_xxh3_generateSecret?",
+   "relevance": {
+    "tests/sanity_test_vectors_generator.c::generate_sanity_test_vectors::406": 1.0
+   },
+   "relevant_functions": [
+    "tests/sanity_test_vectors_generator.c::generate_sanity_test_vectors::406"
+   ],
+   "seed": "tests/sanity_test_vectors_generator.c::generate_sanity_test_vectors_xxh3_generateSecret::357",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-001"
+  },
+  {
+   "category": "caller",
+   "query": "What are the direct callers of POOL_free?",
+   "relevance": {
+    "tests/collisions/pool.c::POOL_create::120": 1.0
+   },
+   "relevant_functions": [
+    "tests/collisions/pool.c::POOL_create::120"
+   ],
+   "seed": "tests/collisions/pool.c::POOL_free::181",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-002"
+  },
+  {
+   "category": "caller",
+   "query": "Find every function that invokes UTIL_getSpanTime",
+   "relevance": {
+    "tests/bench/timefn.c::UTIL_getSpanTimeMicro::117": 1.0,
+    "tests/bench/timefn.c::UTIL_getSpanTimeNano::126": 1.0
+   },
+   "relevant_functions": [
+    "tests/bench/timefn.c::UTIL_getSpanTimeMicro::117",
+    "tests/bench/timefn.c::UTIL_getSpanTimeNano::126"
+   ],
+   "seed": "tests/bench/timefn.c::UTIL_getSpanTime::104",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-003"
+  },
+  {
+   "category": "caller",
+   "query": "Which functions call XSUM_readU32FromCharChecked?",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_readU32FromChar::1533": 1.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_readU32FromChar::1533"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_readU32FromCharChecked::1500",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-004"
+  },
+  {
+   "category": "caller",
+   "query": "What are the direct callers of initBuffer?",
+   "relevance": {
+    "tests/bench/benchHash.c::bench_hash_internal::60": 1.0
+   },
+   "relevant_functions": [
+    "tests/bench/benchHash.c::bench_hash_internal::60"
+   ],
+   "seed": "tests/bench/benchHash.c::initBuffer::36",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-005"
+  },
+  {
+   "category": "caller",
+   "query": "Find every function that invokes SANITY_TEST_XXH3_randomUpdate",
+   "relevance": {
+    "tests/sanity_test.c::testXXH128::482": 1.0,
+    "tests/sanity_test.c::testXXH128_withSecret::583": 1.0,
+    "tests/sanity_test.c::testXXH3::323": 1.0,
+    "tests/sanity_test.c::testXXH3_withSecret::417": 1.0
+   },
+   "relevant_functions": [
+    "tests/sanity_test.c::testXXH128::482",
+    "tests/sanity_test.c::testXXH128_withSecret::583",
+    "tests/sanity_test.c::testXXH3::323",
+    "tests/sanity_test.c::testXXH3_withSecret::417"
+   ],
+   "seed": "tests/sanity_test.c::SANITY_TEST_XXH3_randomUpdate::302",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-006"
+  },
+  {
+   "category": "caller",
+   "query": "Which functions call update_indicator?",
+   "relevance": {
+    "tests/collisions/main.c::search_collisions::669": 1.0
+   },
+   "relevant_functions": [
+    "tests/collisions/main.c::search_collisions::669"
+   ],
+   "seed": "tests/collisions/main.c::update_indicator::505",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-007"
+  },
+  {
+   "category": "caller",
+   "query": "What are the direct callers of charToHex?",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_canonicalFromString::698": 1.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_canonicalFromString::698"
+   ],
+   "seed": "cli/xxhsum.c::charToHex::677",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-008"
+  },
+  {
+   "category": "caller",
+   "query": "Find every function that invokes XSUM_stat",
+   "relevance": {
+    "cli/xsum_os_specific.c::XSUM_getFileSize::649": 1.0,
+    "cli/xsum_os_specific.c::XSUM_isDirectory::634": 1.0
+   },
+   "relevant_functions": [
+    "cli/xsum_os_specific.c::XSUM_getFileSize::649",
+    "cli/xsum_os_specific.c::XSUM_isDirectory::634"
+   ],
+   "seed": "cli/xsum_os_specific.c::XSUM_stat::131",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-009"
+  },
+  {
+   "category": "caller",
+   "query": "Which functions call XXH3_128bits_withSeed?",
+   "relevance": {
+    "tests/sanity_test.c::testXXH128::482": 1.0,
+    "tests/sanity_test_vectors_generator.c::tvgen_XXH3_128bits_withSeed::95": 1.0,
+    "xxhash.h::XXH128::7328": 1.0,
+    "xxhash.h::XXH3_128bits_digest::7377": 1.0
+   },
+   "relevant_functions": [
+    "tests/sanity_test.c::testXXH128::482",
+    "tests/sanity_test_vectors_generator.c::tvgen_XXH3_128bits_withSeed::95",
+    "xxhash.h::XXH128::7328",
+    "xxhash.h::XXH3_128bits_digest::7377"
+   ],
+   "seed": "xxhash.h::XXH3_128bits_withSeed::7310",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-010"
+  },
+  {
+   "category": "caller",
+   "query": "What are the direct callers of XSUM_canonicalFromString?",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_parseLine1::739": 1.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_parseLine1::739"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_canonicalFromString::698",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-011"
+  },
+  {
+   "category": "caller",
+   "query": "Find every function that invokes generate_sanity_test_vectors_xxh32",
+   "relevance": {
+    "tests/sanity_test_vectors_generator.c::generate_sanity_test_vectors::406": 1.0
+   },
+   "relevant_functions": [
+    "tests/sanity_test_vectors_generator.c::generate_sanity_test_vectors::406"
+   ],
+   "seed": "tests/sanity_test_vectors_generator.c::generate_sanity_test_vectors_xxh32::202",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-012"
+  },
+  {
+   "category": "caller",
+   "query": "Which functions call generate_sanity_test_vectors?",
+   "relevance": {
+    "tests/sanity_test_vectors_generator.c::main::457": 1.0
+   },
+   "relevant_functions": [
+    "tests/sanity_test_vectors_generator.c::main::457"
+   ],
+   "seed": "tests/sanity_test_vectors_generator.c::generate_sanity_test_vectors::406",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-013"
+  },
+  {
+   "category": "caller",
+   "query": "What are the direct callers of Filter_check?",
+   "relevance": {
+    "tests/collisions/main.c::search_collisions::669": 1.0
+   },
+   "relevant_functions": [
+    "tests/collisions/main.c::search_collisions::669"
+   ],
+   "seed": "tests/collisions/main.c::Filter_check::476",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-014"
+  },
+  {
+   "category": "caller",
+   "query": "Find every function that invokes bench_hash_internal",
+   "relevance": {
+    "tests/bench/benchHash.c::bench_hash::151": 1.0
+   },
+   "relevant_functions": [
+    "tests/bench/benchHash.c::bench_hash::151"
+   ],
+   "seed": "tests/bench/benchHash.c::bench_hash_internal::60",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-015"
+  },
+  {
+   "category": "caller",
+   "query": "Which functions call XSUM_checkResult128?",
+   "relevance": {
+    "cli/xsum_sanity_check.c::XSUM_testXXH128::511": 1.0,
+    "cli/xsum_sanity_check.c::XSUM_testXXH128_withSecret::606": 1.0
+   },
+   "relevant_functions": [
+    "cli/xsum_sanity_check.c::XSUM_testXXH128::511",
+    "cli/xsum_sanity_check.c::XSUM_testXXH128_withSecret::606"
+   ],
+   "seed": "cli/xsum_sanity_check.c::XSUM_checkResult128::254",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-016"
+  },
+  {
+   "category": "caller",
+   "query": "What are the direct callers of XSUM_lineNeedsUnescape?",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_parseGenLine::1173": 1.0,
+    "cli/xxhsum.c::XSUM_parseLine::841": 1.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_parseGenLine::1173",
+    "cli/xxhsum.c::XSUM_parseLine::841"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_lineNeedsUnescape::108",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-017"
+  },
+  {
+   "category": "caller",
+   "query": "Find every function that invokes XSUM_testXXH32",
+   "relevance": {
+    "cli/xsum_sanity_check.c::XSUM_sanityCheck::688": 1.0
+   },
+   "relevant_functions": [
+    "cli/xsum_sanity_check.c::XSUM_sanityCheck::688"
+   ],
+   "seed": "cli/xsum_sanity_check.c::XSUM_testXXH32::270",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-018"
+  },
+  {
+   "category": "caller",
+   "query": "Which functions call randomByte?",
+   "relevance": {
+    "tests/collisions/main.c::init_sampleFactory::256": 1.0
+   },
+   "relevant_functions": [
+    "tests/collisions/main.c::init_sampleFactory::256"
+   ],
+   "seed": "tests/collisions/main.c::randomByte::119",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-019"
+  },
+  {
+   "category": "caller",
+   "query": "What are the direct callers of testXXH32?",
+   "relevance": {
+    "tests/sanity_test.c::main::671": 1.0
+   },
+   "relevant_functions": [
+    "tests/sanity_test.c::main::671"
+   ],
+   "seed": "tests/sanity_test.c::testXXH32::181",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-020"
+  },
+  {
+   "category": "callee",
+   "query": "Which functions does tvgen_XXH3_128bits_withSecret call?",
+   "relevance": {
+    "xxhash.h::XXH3_128bits_withSecret::7301": 1.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH3_128bits_withSecret::7301"
+   ],
+   "seed": "tests/sanity_test_vectors_generator.c::tvgen_XXH3_128bits_withSecret::103",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-001"
+  },
+  {
+   "category": "callee",
+   "query": "What functions are called directly by XSUM_parseGenFile1?",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_getLine::618": 1.0,
+    "cli/xxhsum.c::XSUM_hashFile::400": 1.0,
+    "cli/xxhsum.c::XSUM_parseGenLine::1173": 1.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_getLine::618",
+    "cli/xxhsum.c::XSUM_hashFile::400",
+    "cli/xxhsum.c::XSUM_parseGenLine::1173"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_parseGenFile1::1195",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-002"
+  },
+  {
+   "category": "callee",
+   "query": "List the callees of printHash",
+   "relevance": {
+    "tests/collisions/main.c::hexRaw::74": 1.0
+   },
+   "relevant_functions": [
+    "tests/collisions/main.c::hexRaw::74"
+   ],
+   "seed": "tests/collisions/main.c::printHash::82",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-003"
+  },
+  {
+   "category": "callee",
+   "query": "Which functions does POOL_add call?",
+   "relevance": {
+    "tests/collisions/pool.c::POOL_add_internal::259": 1.0,
+    "tests/collisions/pool.c::isQueueFull::249": 1.0
+   },
+   "relevant_functions": [
+    "tests/collisions/pool.c::POOL_add_internal::259",
+    "tests/collisions/pool.c::isQueueFull::249"
+   ],
+   "seed": "tests/collisions/pool.c::POOL_add::271",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-004"
+  },
+  {
+   "category": "callee",
+   "query": "What functions are called directly by XSUM_benchInternal?",
+   "relevance": {
+    "cli/xsum_bench.c::XSUM_benchMem::351": 1.0
+   },
+   "relevant_functions": [
+    "cli/xsum_bench.c::XSUM_benchMem::351"
+   ],
+   "seed": "cli/xsum_bench.c::XSUM_benchInternal::436",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-005"
+  },
+  {
+   "category": "callee",
+   "query": "List the callees of XSUM_hashFile",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_hashStream::253": 1.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_hashStream::253"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_hashFile::400",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-006"
+  },
+  {
+   "category": "callee",
+   "query": "Which functions does XXH_featureTest call?",
+   "relevance": {
+    "xxh_x86dispatch.c::XXH_cpuid::254": 1.0,
+    "xxh_x86dispatch.c::XXH_xgetbv::306": 1.0
+   },
+   "relevant_functions": [
+    "xxh_x86dispatch.c::XXH_cpuid::254",
+    "xxh_x86dispatch.c::XXH_xgetbv::306"
+   ],
+   "seed": "xxh_x86dispatch.c::XXH_featureTest::343",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-007"
+  },
+  {
+   "category": "callee",
+   "query": "What functions are called directly by XSUM_testXXH3_withSecret?",
+   "relevance": {
+    "cli/xsum_sanity_check.c::XSUM_XXH3_randomUpdate::352": 1.0,
+    "cli/xsum_sanity_check.c::XSUM_checkResult64::240": 1.0
+   },
+   "relevant_functions": [
+    "cli/xsum_sanity_check.c::XSUM_XXH3_randomUpdate::352",
+    "cli/xsum_sanity_check.c::XSUM_checkResult64::240"
+   ],
+   "seed": "cli/xsum_sanity_check.c::XSUM_testXXH3_withSecret::455",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-008"
+  },
+  {
+   "category": "callee",
+   "query": "List the callees of XXH3_64bits_reset_withSeed",
+   "relevance": {
+    "xxhash.h::XXH3_64bits_reset::6637": 1.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH3_64bits_reset::6637"
+   ],
+   "seed": "xxhash.h::XXH3_64bits_reset_withSeed::6657",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-009"
+  },
+  {
+   "category": "callee",
+   "query": "Which functions does time_collisions call?",
+   "relevance": {
+    "tests/collisions/main.c::displayDelay::523": 1.0,
+    "tests/collisions/main.c::estimateNbCollisions::557": 1.0,
+    "tests/collisions/main.c::getProcessMemUsage::870": 1.0,
+    "tests/collisions/main.c::search_collisions::669": 1.0,
+    "tests/collisions/main.c::select_nbh::579": 1.0
+   },
+   "relevant_functions": [
+    "tests/collisions/main.c::displayDelay::523",
+    "tests/collisions/main.c::estimateNbCollisions::557",
+    "tests/collisions/main.c::getProcessMemUsage::870",
+    "tests/collisions/main.c::search_collisions::669",
+    "tests/collisions/main.c::select_nbh::579"
+   ],
+   "seed": "tests/collisions/main.c::time_collisions::882",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-010"
+  },
+  {
+   "category": "callee",
+   "query": "What functions are called directly by tvgen_XXH3_128bits_withSeed?",
+   "relevance": {
+    "xxhash.h::XXH3_128bits_withSeed::7310": 1.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH3_128bits_withSeed::7310"
+   ],
+   "seed": "tests/sanity_test_vectors_generator.c::tvgen_XXH3_128bits_withSeed::95",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-011"
+  },
+  {
+   "category": "callee",
+   "query": "List the callees of XXH128_wrapper",
+   "relevance": {
+    "tests/collisions/hashes.h::uniHash128::55": 1.0
+   },
+   "relevant_functions": [
+    "tests/collisions/hashes.h::uniHash128::55"
+   ],
+   "seed": "tests/collisions/hashes.h::XXH128_wrapper::69",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-012"
+  },
+  {
+   "category": "callee",
+   "query": "Which functions does XSUM_badusage call?",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_usage::1426": 1.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_usage::1426"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_badusage::1472",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-013"
+  },
+  {
+   "category": "callee",
+   "query": "What functions are called directly by XXH3_hashLong_128b_withSecret_selection?",
+   "relevance": {
+    "xxh_x86dispatch.c::XXH_setDispatch::681": 1.0
+   },
+   "relevant_functions": [
+    "xxh_x86dispatch.c::XXH_setDispatch::681"
+   ],
+   "seed": "xxh_x86dispatch.c::XXH3_hashLong_128b_withSecret_selection::794",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-014"
+  },
+  {
+   "category": "callee",
+   "query": "List the callees of XSUM_checkFile",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_parseFile1::854": 1.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_parseFile1::854"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_checkFile::1043",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-015"
+  },
+  {
+   "category": "callee",
+   "query": "Which functions does XSUM_printLine_BSD_internal call?",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_filenameNeedsEscape::102": 1.0,
+    "cli/xxhsum.c::XSUM_printFilename::117": 1.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_filenameNeedsEscape::102",
+    "cli/xxhsum.c::XSUM_printFilename::117"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_printLine_BSD_internal::323",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-016"
+  },
+  {
+   "category": "callee",
+   "query": "What functions are called directly by checkResult128?",
+   "relevance": {
+    "cli/xsum_output.c::XSUM_log::32": 1.0,
+    "tests/sanity_test.c::abortSanityTest::48": 1.0
+   },
+   "relevant_functions": [
+    "cli/xsum_output.c::XSUM_log::32",
+    "tests/sanity_test.c::abortSanityTest::48"
+   ],
+   "seed": "tests/sanity_test.c::checkResult128::141",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-017"
+  },
+  {
+   "category": "callee",
+   "query": "List the callees of select_nbh",
+   "relevance": {
+    "tests/collisions/main.c::estimateNbCollisions::557": 1.0
+   },
+   "relevant_functions": [
+    "tests/collisions/main.c::estimateNbCollisions::557"
+   ],
+   "seed": "tests/collisions/main.c::select_nbh::579",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-018"
+  },
+  {
+   "category": "callee",
+   "query": "Which functions does XXH3_128bits_reset_withSeed call?",
+   "relevance": {
+    "xxhash.h::XXH3_64bits_reset_withSeed::6657": 1.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH3_64bits_reset_withSeed::6657"
+   ],
+   "seed": "xxhash.h::XXH3_128bits_reset_withSeed::7357",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-019"
+  },
+  {
+   "category": "callee",
+   "query": "What functions are called directly by update_sampleFactory?",
+   "relevance": {
+    "tests/collisions/main.c::flipbit::293": 1.0,
+    "tests/collisions/main.c::updateBit::301": 1.0
+   },
+   "relevant_functions": [
+    "tests/collisions/main.c::flipbit::293",
+    "tests/collisions/main.c::updateBit::301"
+   ],
+   "seed": "tests/collisions/main.c::update_sampleFactory::320",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-020"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions call both checkResult32 and XXH32_digest?",
+   "relevance": {
+    "tests/sanity_test.c::testXXH32::181": 1.0
+   },
+   "relevant_functions": [
+    "tests/sanity_test.c::testXXH32::181"
+   ],
+   "seed": "tests/sanity_test.c::checkResult32::104",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callers",
+   "query_id": "cross_function-001"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions call both XXH3_128bits_reset_withSecret and XXH3_createState?",
+   "relevance": {
+    "tests/sanity_test.c::testXXH128_withSecret::583": 1.0
+   },
+   "relevant_functions": [
+    "tests/sanity_test.c::testXXH128_withSecret::583"
+   ],
+   "seed": "xxhash.h::XXH3_128bits_reset_withSecret::7350",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callers",
+   "query_id": "cross_function-002"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions call both Filter_check and create_sampleFactory?",
+   "relevance": {
+    "tests/collisions/main.c::search_collisions::669": 1.0
+   },
+   "relevant_functions": [
+    "tests/collisions/main.c::search_collisions::669"
+   ],
+   "seed": "tests/collisions/main.c::Filter_check::476",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callers",
+   "query_id": "cross_function-003"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions call both free_sampleFactory and init_sampleFactory?",
+   "relevance": {
+    "tests/collisions/main.c::search_collisions::669": 1.0
+   },
+   "relevant_functions": [
+    "tests/collisions/main.c::search_collisions::669"
+   ],
+   "seed": "tests/collisions/main.c::free_sampleFactory::286",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callers",
+   "query_id": "cross_function-004"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions call both SANITY_TEST_XXH3_randomUpdate and XXH3_generateSecret_fromSeed?",
+   "relevance": {
+    "tests/sanity_test.c::testXXH128::482": 1.0,
+    "tests/sanity_test.c::testXXH3::323": 1.0
+   },
+   "relevant_functions": [
+    "tests/sanity_test.c::testXXH128::482",
+    "tests/sanity_test.c::testXXH3::323"
+   ],
+   "seed": "tests/sanity_test.c::SANITY_TEST_XXH3_randomUpdate::302",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callers",
+   "query_id": "cross_function-005"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions call both getProcessMemUsage and readU64FromChar?",
+   "relevance": {
+    "tests/collisions/main.c::main::1014": 1.0
+   },
+   "relevant_functions": [
+    "tests/collisions/main.c::main::1014"
+   ],
+   "seed": "tests/collisions/main.c::getProcessMemUsage::870",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callers",
+   "query_id": "cross_function-006"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions call both create_sampleFactory and update_sampleFactory?",
+   "relevance": {
+    "tests/collisions/main.c::search_collisions::669": 1.0
+   },
+   "relevant_functions": [
+    "tests/collisions/main.c::search_collisions::669"
+   ],
+   "seed": "tests/collisions/main.c::create_sampleFactory::271",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callers",
+   "query_id": "cross_function-007"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions call both generate_sanity_test_vectors_xxh128 and generate_sanity_test_vectors_xxh64?",
+   "relevance": {
+    "tests/sanity_test_vectors_generator.c::generate_sanity_test_vectors::406": 1.0
+   },
+   "relevant_functions": [
+    "tests/sanity_test_vectors_generator.c::generate_sanity_test_vectors::406"
+   ],
+   "seed": "tests/sanity_test_vectors_generator.c::generate_sanity_test_vectors_xxh128::306",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callers",
+   "query_id": "cross_function-008"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions call both XSUM_badusage and XSUM_lastNameFromPath?",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_main::1564": 1.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_main::1564"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_badusage::1472",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callers",
+   "query_id": "cross_function-009"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions call both estimateNbCollisions and update_sampleFactory?",
+   "relevance": {
+    "tests/collisions/main.c::search_collisions::669": 1.0
+   },
+   "relevant_functions": [
+    "tests/collisions/main.c::search_collisions::669"
+   ],
+   "seed": "tests/collisions/main.c::estimateNbCollisions::557",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callers",
+   "query_id": "cross_function-010"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions are called by both generate_sanity_test_vectors_xxh128_withSecret and generate_sanity_test_vectors_xxh32?",
+   "relevance": {
+    "tests/sanity_test_vectors_generator.c::createSanityBuffer::181": 1.0,
+    "tests/sanity_test_vectors_generator.c::releaseSanityBuffer::194": 1.0
+   },
+   "relevant_functions": [
+    "tests/sanity_test_vectors_generator.c::createSanityBuffer::181",
+    "tests/sanity_test_vectors_generator.c::releaseSanityBuffer::194"
+   ],
+   "seed": "tests/sanity_test_vectors_generator.c::generate_sanity_test_vectors_xxh128_withSecret::331",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callees",
+   "query_id": "cross_function-011"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions are called by both XSUM_testXXH3_withSecret and XSUM_testXXH64?",
+   "relevance": {
+    "cli/xsum_sanity_check.c::XSUM_checkResult64::240": 1.0
+   },
+   "relevant_functions": [
+    "cli/xsum_sanity_check.c::XSUM_checkResult64::240"
+   ],
+   "seed": "cli/xsum_sanity_check.c::XSUM_testXXH3_withSecret::455",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callees",
+   "query_id": "cross_function-012"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions are called by both testXXH3 and XXH3_64bits_digest?",
+   "relevance": {
+    "xxhash.h::XXH3_64bits_withSeed::6483": 1.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH3_64bits_withSeed::6483"
+   ],
+   "seed": "tests/sanity_test.c::testXXH3::323",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callees",
+   "query_id": "cross_function-013"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions are called by both generate_sanity_test_vectors_xxh3_generateSecret and generate_sanity_test_vectors_xxh64?",
+   "relevance": {
+    "tests/sanity_test_vectors_generator.c::createSanityBuffer::181": 1.0,
+    "tests/sanity_test_vectors_generator.c::releaseSanityBuffer::194": 1.0
+   },
+   "relevant_functions": [
+    "tests/sanity_test_vectors_generator.c::createSanityBuffer::181",
+    "tests/sanity_test_vectors_generator.c::releaseSanityBuffer::194"
+   ],
+   "seed": "tests/sanity_test_vectors_generator.c::generate_sanity_test_vectors_xxh3_generateSecret::357",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callees",
+   "query_id": "cross_function-014"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions are called by both XSUM_testXXH128 and XSUM_testXXH3_withSecret?",
+   "relevance": {
+    "cli/xsum_sanity_check.c::XSUM_XXH3_randomUpdate::352": 1.0
+   },
+   "relevant_functions": [
+    "cli/xsum_sanity_check.c::XSUM_XXH3_randomUpdate::352"
+   ],
+   "seed": "cli/xsum_sanity_check.c::XSUM_testXXH128::511",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callees",
+   "query_id": "cross_function-015"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions are called by both XXH3_128bits_update_dispatch and XXH3_hashLong_64b_withSecret_selection?",
+   "relevance": {
+    "xxh_x86dispatch.c::XXH_setDispatch::681": 1.0
+   },
+   "relevant_functions": [
+    "xxh_x86dispatch.c::XXH_setDispatch::681"
+   ],
+   "seed": "xxh_x86dispatch.c::XXH3_128bits_update_dispatch::809",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callees",
+   "query_id": "cross_function-016"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions are called by both checkResult32 and checkResultTestDataSample?",
+   "relevance": {
+    "cli/xsum_output.c::XSUM_log::32": 1.0,
+    "tests/sanity_test.c::abortSanityTest::48": 1.0
+   },
+   "relevant_functions": [
+    "cli/xsum_output.c::XSUM_log::32",
+    "tests/sanity_test.c::abortSanityTest::48"
+   ],
+   "seed": "tests/sanity_test.c::checkResult32::104",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callees",
+   "query_id": "cross_function-017"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions are called by both tvgen_XXH3_128bits_withSecret and XXH3_128bits_digest?",
+   "relevance": {
+    "xxhash.h::XXH3_128bits_withSecret::7301": 1.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH3_128bits_withSecret::7301"
+   ],
+   "seed": "tests/sanity_test_vectors_generator.c::tvgen_XXH3_128bits_withSecret::103",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callees",
+   "query_id": "cross_function-018"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions are called by both Filter_check and Filter_insert?",
+   "relevance": {
+    "tests/collisions/main.c::avalanche64::109": 1.0
+   },
+   "relevant_functions": [
+    "tests/collisions/main.c::avalanche64::109"
+   ],
+   "seed": "tests/collisions/main.c::Filter_check::476",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callees",
+   "query_id": "cross_function-019"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions are called by both testXXH3_withSecret and XXH3_128bits_reset_withSecret?",
+   "relevance": {
+    "xxhash.h::XXH3_64bits_reset_withSecret::6646": 1.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH3_64bits_reset_withSecret::6646"
+   ],
+   "seed": "tests/sanity_test.c::testXXH3_withSecret::417",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callees",
+   "query_id": "cross_function-020"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can reach highestBitSet through at most two calls?",
+   "relevance": {
+    "tests/collisions/main.c::MT_searchCollisions::919": 1.0,
+    "tests/collisions/main.c::time_collisions::882": 1.0,
+    "tests/collisions/main.c::main::1014": 2.0,
+    "tests/collisions/main.c::search_collisions::669": 2.0
+   },
+   "relevant_functions": [
+    "tests/collisions/main.c::MT_searchCollisions::919",
+    "tests/collisions/main.c::time_collisions::882",
+    "tests/collisions/main.c::main::1014",
+    "tests/collisions/main.c::search_collisions::669"
+   ],
+   "seed": "tests/collisions/main.c::highestBitSet::562",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-001"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can reach XXH64_digest through at most two calls?",
+   "relevance": {
+    "tests/sanity_test.c::main::671": 1.0,
+    "tests/sanity_test.c::testXXH64::222": 2.0
+   },
+   "relevant_functions": [
+    "tests/sanity_test.c::main::671",
+    "tests/sanity_test.c::testXXH64::222"
+   ],
+   "seed": "xxhash.h::XXH64_digest::3800",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-002"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can reach tvgen_XXH64 through at most two calls?",
+   "relevance": {
+    "tests/sanity_test_vectors_generator.c::generate_sanity_test_vectors::406": 1.0,
+    "tests/sanity_test_vectors_generator.c::generate_sanity_test_vectors_xxh64::228": 2.0
+   },
+   "relevant_functions": [
+    "tests/sanity_test_vectors_generator.c::generate_sanity_test_vectors::406",
+    "tests/sanity_test_vectors_generator.c::generate_sanity_test_vectors_xxh64::228"
+   ],
+   "seed": "tests/sanity_test_vectors_generator.c::tvgen_XXH64::71",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-003"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can reach XSUM_lineNeedsUnescape through at most two calls?",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_parseFile1::854": 1.0,
+    "cli/xxhsum.c::XSUM_parseGenFile1::1195": 1.0,
+    "cli/xxhsum.c::XSUM_parseGenLine::1173": 2.0,
+    "cli/xxhsum.c::XSUM_parseLine::841": 2.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_parseFile1::854",
+    "cli/xxhsum.c::XSUM_parseGenFile1::1195",
+    "cli/xxhsum.c::XSUM_parseGenLine::1173",
+    "cli/xxhsum.c::XSUM_parseLine::841"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_lineNeedsUnescape::108",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-004"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can reach XXH_featureTest through at most two calls?",
+   "relevance": {
+    "xxh_x86dispatch.c::XXH3_128bits_update_dispatch::809": 1.0,
+    "xxh_x86dispatch.c::XXH3_64bits_update_dispatch::749": 1.0,
+    "xxh_x86dispatch.c::XXH3_hashLong_128b_defaultSecret_selection::764": 1.0,
+    "xxh_x86dispatch.c::XXH3_hashLong_128b_withSecret_selection::794": 1.0,
+    "xxh_x86dispatch.c::XXH3_hashLong_128b_withSeed_selection::779": 1.0,
+    "xxh_x86dispatch.c::XXH3_hashLong_64b_defaultSecret_selection::704": 1.0,
+    "xxh_x86dispatch.c::XXH3_hashLong_64b_withSecret_selection::734": 1.0,
+    "xxh_x86dispatch.c::XXH3_hashLong_64b_withSeed_selection::719": 1.0,
+    "xxh_x86dispatch.c::XXH_setDispatch::681": 2.0
+   },
+   "relevant_functions": [
+    "xxh_x86dispatch.c::XXH3_128bits_update_dispatch::809",
+    "xxh_x86dispatch.c::XXH3_64bits_update_dispatch::749",
+    "xxh_x86dispatch.c::XXH3_hashLong_128b_defaultSecret_selection::764",
+    "xxh_x86dispatch.c::XXH3_hashLong_128b_withSecret_selection::794",
+    "xxh_x86dispatch.c::XXH3_hashLong_128b_withSeed_selection::779",
+    "xxh_x86dispatch.c::XXH3_hashLong_64b_defaultSecret_selection::704",
+    "xxh_x86dispatch.c::XXH3_hashLong_64b_withSecret_selection::734",
+    "xxh_x86dispatch.c::XXH3_hashLong_64b_withSeed_selection::719",
+    "xxh_x86dispatch.c::XXH_setDispatch::681"
+   ],
+   "seed": "xxh_x86dispatch.c::XXH_featureTest::343",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-005"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can reach XSUM_findMaxMem through at most two calls?",
+   "relevance": {
+    "cli/xsum_bench.c::XSUM_benchFiles::387": 1.0,
+    "cli/xsum_bench.c::XSUM_selectBenchedSize::375": 2.0
+   },
+   "relevant_functions": [
+    "cli/xsum_bench.c::XSUM_benchFiles::387",
+    "cli/xsum_bench.c::XSUM_selectBenchedSize::375"
+   ],
+   "seed": "cli/xsum_bench.c::XSUM_findMaxMem::67",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-006"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can reach errorOut through at most two calls?",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_main::1564": 1.0,
+    "cli/xxhsum.c::XSUM_readU32FromChar::1533": 2.0,
+    "cli/xxhsum.c::XSUM_readU64FromChar::1543": 2.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_main::1564",
+    "cli/xxhsum.c::XSUM_readU32FromChar::1533",
+    "cli/xxhsum.c::XSUM_readU64FromChar::1543"
+   ],
+   "seed": "cli/xxhsum.c::errorOut::1479",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-007"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can reach XSUM_checkResult32 through at most two calls?",
+   "relevance": {
+    "cli/xsum_sanity_check.c::XSUM_sanityCheck::688": 1.0,
+    "cli/xsum_sanity_check.c::XSUM_testXXH32::270": 2.0
+   },
+   "relevant_functions": [
+    "cli/xsum_sanity_check.c::XSUM_sanityCheck::688",
+    "cli/xsum_sanity_check.c::XSUM_testXXH32::270"
+   ],
+   "seed": "cli/xsum_sanity_check.c::XSUM_checkResult32::227",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-008"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can reach XSUM_generateFile through at most two calls?",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_main::1564": 1.0,
+    "cli/xxhsum.c::XSUM_generateFiles::1397": 2.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_main::1564",
+    "cli/xxhsum.c::XSUM_generateFiles::1397"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_generateFile::1316",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-009"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can reach XXH_xgetbv through at most two calls?",
+   "relevance": {
+    "xxh_x86dispatch.c::XXH_setDispatch::681": 1.0,
+    "xxh_x86dispatch.c::XXH_featureTest::343": 2.0
+   },
+   "relevant_functions": [
+    "xxh_x86dispatch.c::XXH_setDispatch::681",
+    "xxh_x86dispatch.c::XXH_featureTest::343"
+   ],
+   "seed": "xxh_x86dispatch.c::XXH_xgetbv::306",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-010"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can reach generate_sanity_test_vectors_xxh3 through at most two calls?",
+   "relevance": {
+    "tests/sanity_test_vectors_generator.c::main::457": 1.0,
+    "tests/sanity_test_vectors_generator.c::generate_sanity_test_vectors::406": 2.0
+   },
+   "relevant_functions": [
+    "tests/sanity_test_vectors_generator.c::main::457",
+    "tests/sanity_test_vectors_generator.c::generate_sanity_test_vectors::406"
+   ],
+   "seed": "tests/sanity_test_vectors_generator.c::generate_sanity_test_vectors_xxh3::254",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-011"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can be reached from XSUM_main through at most two calls?",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_checkFile::1043": 1.0,
+    "cli/xxhsum.c::XSUM_generateFile::1316": 1.0,
+    "cli/xxhsum.c::XSUM_hashFile::400": 1.0,
+    "cli/xxhsum.c::XSUM_readU32FromCharChecked::1500": 1.0,
+    "cli/xxhsum.c::XSUM_usage::1426": 1.0,
+    "cli/xxhsum.c::errorOut::1479": 1.0,
+    "cli/xxhsum.c::XSUM_badusage::1472": 2.0,
+    "cli/xxhsum.c::XSUM_checkFiles::1142": 2.0,
+    "cli/xxhsum.c::XSUM_generateFiles::1397": 2.0,
+    "cli/xxhsum.c::XSUM_hashFiles::485": 2.0,
+    "cli/xxhsum.c::XSUM_isLittleEndian::54": 2.0,
+    "cli/xxhsum.c::XSUM_lastNameFromPath::1485": 2.0,
+    "cli/xxhsum.c::XSUM_readU32FromChar::1533": 2.0,
+    "cli/xxhsum.c::XSUM_readU64FromChar::1543": 2.0,
+    "cli/xxhsum.c::XSUM_usage_advanced::1446": 2.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_checkFile::1043",
+    "cli/xxhsum.c::XSUM_generateFile::1316",
+    "cli/xxhsum.c::XSUM_hashFile::400",
+    "cli/xxhsum.c::XSUM_readU32FromCharChecked::1500",
+    "cli/xxhsum.c::XSUM_usage::1426",
+    "cli/xxhsum.c::errorOut::1479",
+    "cli/xxhsum.c::XSUM_badusage::1472",
+    "cli/xxhsum.c::XSUM_checkFiles::1142",
+    "cli/xxhsum.c::XSUM_generateFiles::1397",
+    "cli/xxhsum.c::XSUM_hashFiles::485",
+    "cli/xxhsum.c::XSUM_isLittleEndian::54",
+    "cli/xxhsum.c::XSUM_lastNameFromPath::1485",
+    "cli/xxhsum.c::XSUM_readU32FromChar::1533",
+    "cli/xxhsum.c::XSUM_readU64FromChar::1543",
+    "cli/xxhsum.c::XSUM_usage_advanced::1446"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_main::1564",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-012"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can be reached from testXXH3_withSecret through at most two calls?",
+   "relevance": {
+    "cli/xsum_output.c::XSUM_log::32": 1.0,
+    "tests/sanity_test.c::SANITY_TEST_rand::266": 1.0,
+    "tests/sanity_test.c::abortSanityTest::48": 1.0,
+    "xxhash.h::XXH3_64bits_withSeed::6483": 1.0,
+    "tests/sanity_test.c::SANITY_TEST_XXH3_randomUpdate::302": 2.0,
+    "tests/sanity_test.c::checkResult64::122": 2.0,
+    "xxhash.h::XXH3_64bits_digest::6877": 2.0,
+    "xxhash.h::XXH3_64bits_reset_withSecret::6646": 2.0,
+    "xxhash.h::XXH3_64bits_reset_withSecretandSeed::6669": 2.0,
+    "xxhash.h::XXH3_64bits_update::6833": 2.0,
+    "xxhash.h::XXH3_64bits_withSecret::6476": 2.0,
+    "xxhash.h::XXH3_64bits_withSecretandSeed::6489": 2.0,
+    "xxhash.h::XXH3_createState::6575": 2.0,
+    "xxhash.h::XXH3_freeState::6595": 2.0
+   },
+   "relevant_functions": [
+    "cli/xsum_output.c::XSUM_log::32",
+    "tests/sanity_test.c::SANITY_TEST_rand::266",
+    "tests/sanity_test.c::abortSanityTest::48",
+    "xxhash.h::XXH3_64bits_withSeed::6483",
+    "tests/sanity_test.c::SANITY_TEST_XXH3_randomUpdate::302",
+    "tests/sanity_test.c::checkResult64::122",
+    "xxhash.h::XXH3_64bits_digest::6877",
+    "xxhash.h::XXH3_64bits_reset_withSecret::6646",
+    "xxhash.h::XXH3_64bits_reset_withSecretandSeed::6669",
+    "xxhash.h::XXH3_64bits_update::6833",
+    "xxhash.h::XXH3_64bits_withSecret::6476",
+    "xxhash.h::XXH3_64bits_withSecretandSeed::6489",
+    "xxhash.h::XXH3_createState::6575",
+    "xxhash.h::XXH3_freeState::6595"
+   ],
+   "seed": "tests/sanity_test.c::testXXH3_withSecret::417",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-013"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can be reached from XSUM_printLine_GNU_LE through at most two calls?",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_displayPrefix::352": 1.0,
+    "cli/xxhsum.c::XSUM_filenameNeedsEscape::102": 1.0,
+    "cli/xxhsum.c::XSUM_printFilename::117": 1.0,
+    "cli/xxhsum.c::XSUM_printLine_GNU_internal::360": 2.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_displayPrefix::352",
+    "cli/xxhsum.c::XSUM_filenameNeedsEscape::102",
+    "cli/xxhsum.c::XSUM_printFilename::117",
+    "cli/xxhsum.c::XSUM_printLine_GNU_internal::360"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_printLine_GNU_LE::383",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-014"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can reach tvgen_XXH3_128bits_withSeed through at most two calls?",
+   "relevance": {
+    "tests/sanity_test_vectors_generator.c::generate_sanity_test_vectors::406": 1.0,
+    "tests/sanity_test_vectors_generator.c::generate_sanity_test_vectors_xxh128::306": 2.0
+   },
+   "relevant_functions": [
+    "tests/sanity_test_vectors_generator.c::generate_sanity_test_vectors::406",
+    "tests/sanity_test_vectors_generator.c::generate_sanity_test_vectors_xxh128::306"
+   ],
+   "seed": "tests/sanity_test_vectors_generator.c::tvgen_XXH3_128bits_withSeed::95",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-015"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can reach randomByte through at most two calls?",
+   "relevance": {
+    "tests/collisions/main.c::create_sampleFactory::271": 1.0,
+    "tests/collisions/main.c::search_collisions::669": 1.0,
+    "tests/collisions/main.c::init_sampleFactory::256": 2.0
+   },
+   "relevant_functions": [
+    "tests/collisions/main.c::create_sampleFactory::271",
+    "tests/collisions/main.c::search_collisions::669",
+    "tests/collisions/main.c::init_sampleFactory::256"
+   ],
+   "seed": "tests/collisions/main.c::randomByte::119",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-016"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can reach XSUM_parseGenFile1 through at most two calls?",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_generateFiles::1397": 1.0,
+    "cli/xxhsum.c::XSUM_generateFile::1316": 2.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_generateFiles::1397",
+    "cli/xxhsum.c::XSUM_generateFile::1316"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_parseGenFile1::1195",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-017"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can reach XXH3_64bits_reset_withSeed through at most two calls?",
+   "relevance": {
+    "tests/sanity_test.c::main::671": 1.0,
+    "tests/sanity_test.c::testXXH128::482": 1.0,
+    "tests/sanity_test.c::testXXH3::323": 2.0,
+    "xxhash.h::XXH3_128bits_reset_withSeed::7357": 2.0
+   },
+   "relevant_functions": [
+    "tests/sanity_test.c::main::671",
+    "tests/sanity_test.c::testXXH128::482",
+    "tests/sanity_test.c::testXXH3::323",
+    "xxhash.h::XXH3_128bits_reset_withSeed::7357"
+   ],
+   "seed": "xxhash.h::XXH3_64bits_reset_withSeed::6657",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-018"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can reach create_Filter through at most two calls?",
+   "relevance": {
+    "tests/collisions/main.c::MT_searchCollisions::919": 1.0,
+    "tests/collisions/main.c::time_collisions::882": 1.0,
+    "tests/collisions/main.c::search_collisions::669": 2.0
+   },
+   "relevant_functions": [
+    "tests/collisions/main.c::MT_searchCollisions::919",
+    "tests/collisions/main.c::time_collisions::882",
+    "tests/collisions/main.c::search_collisions::669"
+   ],
+   "seed": "tests/collisions/main.c::create_Filter::342",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-019"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can be reached from testXXH32 through at most two calls?",
+   "relevance": {
+    "cli/xsum_output.c::XSUM_log::32": 1.0,
+    "tests/sanity_test.c::abortSanityTest::48": 1.0,
+    "tests/sanity_test.c::checkResult32::104": 2.0,
+    "xxhash.h::XXH32::3207": 2.0,
+    "xxhash.h::XXH32_createState::3230": 2.0,
+    "xxhash.h::XXH32_digest::3305": 2.0,
+    "xxhash.h::XXH32_freeState::3235": 2.0,
+    "xxhash.h::XXH32_reset::3248": 2.0,
+    "xxhash.h::XXH32_update::3259": 2.0
+   },
+   "relevant_functions": [
+    "cli/xsum_output.c::XSUM_log::32",
+    "tests/sanity_test.c::abortSanityTest::48",
+    "tests/sanity_test.c::checkResult32::104",
+    "xxhash.h::XXH32::3207",
+    "xxhash.h::XXH32_createState::3230",
+    "xxhash.h::XXH32_digest::3305",
+    "xxhash.h::XXH32_freeState::3235",
+    "xxhash.h::XXH32_reset::3248",
+    "xxhash.h::XXH32_update::3259"
+   ],
+   "seed": "tests/sanity_test.c::testXXH32::181",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-020"
+  }
+ ]
+}

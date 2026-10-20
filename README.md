@@ -26,6 +26,7 @@ The notebook and its resumable workflow are documented in
 - [Understanding Results](#understanding-results)
 - [Customization](#customization)
 - [Troubleshooting](#troubleshooting)
+- [Research RAG Pipelines and Ablation Benchmark](#research-rag-pipelines-and-ablation-benchmark)
 
 ## Prerequisites
 
@@ -400,6 +401,155 @@ Example:
 ```bash
 optima evaluate -vvv --output-dir output --create-benchmark
 ```
+
+## Research RAG Pipelines and Ablation Benchmark
+
+`optima/rag/research/` adds three named pipelines and a reproducible evaluation framework
+that measures whether LLM enrichment, lexical retrieval, compiler-graph expansion and
+cross-encoder reranking each improve function retrieval, and what they cost. It sits next to
+the legacy FAISS flow (`embed-all` / `evaluate` / `retrieve`), which is unchanged, and reuses
+its embedding registry (`optima/rag/embedding_simple.py`) and the shared metric code in
+`evaluation/metrics/retrieval.py`.
+
+Install the extras once: `pip install -e ".[research]"` (sentence-transformers, torch,
+matplotlib, psutil). Everything except real embedding/reranker models also runs without them
+(`--embedding-model hashing` is an offline, non-semantic encoder for smoke tests).
+
+### The three pipelines
+
+| Pipeline | Representations | Retrieval | Graph | Rerank |
+|---|---|---|---|---|
+| `baseline_rag` | raw (signature + source from `base.json`) | dense only | off | off |
+| `semantic_enrichment_rag` | semantic (purpose, summary, behavior, inputs, outputs, side effects, concepts, keywords, algorithm from the enriched JSON) | dense (BM25 optional) | off | off |
+| `compiler_hybrid_rag` | raw + semantic + compiler (calls, callers, scope, CFG summary), one index each | dense + BM25 + exact symbol, fused with RRF | bounded call-graph expansion | optional cross-encoder |
+
+Every stage is an independent switch in `PipelineConfig` (`configs/pipelines/*.json`);
+turning one off never changes another. Functions with missing or failed enrichment are kept
+(identity header only by default, `representation.missing_semantic`) and counted in the
+coverage report. Unlike the legacy loader, a model that fails to load is an error, never a
+silent fall-back to mock embeddings.
+
+### Run one pipeline
+
+```bash
+python -m optima.rag run-pipeline --pipeline baseline_rag \
+  --base-json optima_outputs/base/chess-engine-in-cpp-master/base.json \
+  --embedding-model bge-base --benchmark benchmarks/chess/structural_v1.json
+
+python -m optima.rag run-pipeline --pipeline compiler_hybrid_rag \
+  --base-json optima_outputs/base/chess-engine-in-cpp-master/base.json \
+  --enriched-json "output/chess Engine/enhanced_qwen-qwen2.5-coder-14b-instruct-chess.json" \
+  --embedding-model bge-base --benchmark benchmarks/chess/structural_v1.json \
+  --set graph.max_depth=2 --set rerank.enabled=true --set rerank.model=ms-marco-minilm
+```
+
+`--set section.key=value` overrides any configuration field; `--config file.json` loads a
+full configuration. Configuration keys and defaults are in
+`optima/rag/research/config.py`; a stored result contains the exact configuration and its
+`config_hash`.
+
+### Run the complete benchmark
+
+```bash
+python -m optima.rag run-suite --spec configs/suites/chess.json --dry-run   # list planned runs
+python -m optima.rag -v run-suite --spec configs/suites/chess.json          # run everything
+python -m optima.rag run-suite --spec configs/suites/chess.json --resume    # skip finished runs
+python -m optima.rag report --suite-dir experiments/chess-v1                # rebuild tables/plots
+```
+
+A suite spec names datasets (a `base.json`, a benchmark, enriched JSON files), embedding
+models, rerankers and ablation groups (`pipelines`, `enrichment`, `representations`,
+`hybrid`, `graph`, `rerank`, `embedding`). Each group varies one factor against a declared
+reference and reports paired-bootstrap deltas. Results go to `experiments/<suite_id>/`:
+
+```
+suite.json  aggregate.csv  per_category.csv  per_query_metrics.csv  comparisons.csv
+comparisons_by_category.csv  report.md  plots/*.png
+runs/<experiment_id>/result.json        # config, models, dataset/index metadata, metrics, timings, errors
+runs/<experiment_id>/per_query.jsonl.gz # ranked function IDs, scores, representation/method provenance
+```
+
+Experiment IDs are unique and existing runs are never overwritten.
+
+### Metrics
+
+Computed per query, then averaged over queries that have at least one relevant function
+(queries without judgments are listed under `skipped`, not counted as zero):
+Recall@{1,3,5,10} (relevant found in top-k / all relevant), Precision@k (relevant in top-k / k),
+Hit@k, MRR (reciprocal rank of the first relevant result within the returned top-10),
+nDCG@k (graded gains, ideal ranking built from the judgments). Rankings are de-duplicated
+by function ID. Also recorded: per-stage query latency, embedding/index build time, index
+size, process RSS and GPU peak, candidate counts before/after graph expansion, candidate-pool
+recall, rerank latency, enrichment tokens/time and failed or incomplete enrichment records.
+
+### Cross-encoder rerankers
+
+`python -m optima.rag rerankers` lists them. Models are downloaded from the Hugging Face hub on
+first use (internet required); check the licence before redistributing.
+
+| Alias | Model | Licence | Size | Hardware |
+|---|---|---|---|---|
+| `ms-marco-minilm` | `cross-encoder/ms-marco-MiniLM-L6-v2` | Apache-2.0 | 22.7 M | CPU fine, ~90 MB |
+| `bge-reranker-base` | `BAAI/bge-reranker-base` | MIT | 278 M | GPU preferred (<2 GB VRAM), ~1.1 GB |
+| `bge-reranker-v2-m3` | `BAAI/bge-reranker-v2-m3` | Apache-2.0 | 568 M | GPU recommended, ~2.3 GB |
+
+None is code-specific. If a reranker cannot load, the run is recorded as failed, never
+replaced by another scorer.
+
+### Benchmarks and limitations
+
+See `benchmarks/README.md` for how ground truth was built and its caveats (structural
+categories share the call graph used by graph expansion; behavioural labels are single-annotator;
+no dependency ground truth exists because `dependencies` is empty in the bundled data).
+Embedding models that need `trust_remote_code` (nomic, CodeRankEmbed) are not loaded unless
+`OPTIMA_TRUST_REMOTE_CODE=1` is set. Tests: `python -m unittest discover -s tests`.
+
+## Experiment Analytics (`optima_analytics`)
+
+Read-only analysis of everything in the experiment store (`experiments/*/runs/*/result.json`) and the
+enrichment artifacts (`output/**/enhanced_*.json`): unified validated tables, paired statistics with
+multiple-comparison correction, rankings, plots, Markdown reports and a self-contained dashboard.
+Install the extra with `pip install -e ".[analytics]"` (pandas, scipy, matplotlib).
+
+```bash
+# check inputs only: manifest + data-quality report (exit 1 with --strict when errors exist)
+python -m optima_analytics validate --input-dir experiments --output-dir reports/optima_analytics
+
+# everything: CSVs, statistical_tests.csv, plots/, plot_data/, markdown reports, index.html
+python -m optima_analytics generate --input-dir experiments --output-dir reports/optima_analytics
+
+# figures only (optionally a subset by name substring)
+python -m optima_analytics plots --output-dir reports/optima_analytics --only A01 F36
+```
+
+Useful options: `--input-dir` / `--enriched-dir` (repeatable), `--base-dir`, `--datasets`, `--n-boot`,
+`--n-perm`, `--seed`, `--no-legacy`, `--force`. `generate` refuses to overwrite an existing report and
+refuses an output directory inside an input directory. Open `reports/optima_analytics/index.html`
+directly in a browser (no server, no external resources).
+
+What it does and does not do:
+
+* Runs repeated with the same dataset/configuration/corpus are counted once (and checked to be identical);
+  enrichment files whose recorded `base_sha256` does not match their project's `base.json`, and runs that
+  used them, are flagged and excluded from enrichment analyses (never modified or deleted).
+* Enrichment effects are measured against a *matched no-enrichment counterpart* of the same retrieval stack
+  (raw dense, raw dense+BM25, raw+compiler stack), so retrieval-stack effects are not credited to enrichment.
+  The crossed grid behind this comes from the `grid` ablation group (`configs/suites/*-grid.json`).
+* MRR is the only confirmatory metric; p-values are cluster-level (target function) sign-flip permutation
+  tests, intervals are cluster bootstraps, Holm and Benjamini-Hochberg corrections are applied within named
+  families. Model-level correlations (n = number of models) are descriptive only.
+* Model sizes/families come from `optima_analytics/model_catalog.json` (model-card values, `unknown` when not
+  documented); nothing is inferred from a model name.
+
+Tests: `python -m unittest discover -s tests -p "test_analytics_*.py"`.
+
+### Query routing and instruction prefixes (research pipelines)
+
+`routing` (config section, off by default; hash of existing configs unchanged) classifies each query from its text
+(`optima/rag/research/routing.py`: `literal` / `structural` / `symbol` / `natural`) and applies a per-class fusion
+profile (dense / BM25 / exact / graph / per-representation weights). Profiles live in `configs/routing_profiles.json`
+(tuned with `scripts/tune_routing.py` on tuning data only); suites enable them with the `improved` ablation group and
+`routing_profiles_file`. Query instruction prefixes per embedding model go through the suite's `embedding_prefixes`.
 
 ## Next Steps
 

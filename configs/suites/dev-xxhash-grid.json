@@ -1,0 +1,28 @@
+{
+  "output_root": "experiments_dev",
+  "embedding_cache": "experiments/_embedding_cache",
+  "bootstrap_samples": 10000,
+  "bootstrap_samples_per_run": 2000,
+  "groups": [
+    "grid"
+  ],
+  "embedding_models": [
+    "bge-small",
+    "bge-base",
+    "qwen3-0.6b"
+  ],
+  "primary_embedding": "bge-base",
+  "rerankers": [],
+  "rerank_pool": 30,
+  "_comment": "HELD-OUT developer-style benchmark (developer_v1). Default configuration, no query instructions, no routing. Nothing was tuned on these queries.",
+  "suite_id": "dev-xxhash-grid-v1",
+  "datasets": [
+    {
+      "name": "xxhash",
+      "base_json": "optima_outputs/base/xxHash-dev/base.json",
+      "benchmark": "benchmarks/xxhash/developer_v1.json",
+      "enriched_dir": "output/xxhash",
+      "primary_enrichment": "qwen-qwen2.5-coder-14b-instruct-xhash"
+    }
+  ]
+}

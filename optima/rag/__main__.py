@@ -704,6 +704,10 @@ def main():
     )
     retrieve_parser.set_defaults(func=cmd_retrieve)
 
+    # Research pipelines: benchmark building, pipeline/suite runs, reports
+    from .research.cli import register as register_research
+    register_research(subparsers)
+
     args = parser.parse_args()
 
     # Setup logging

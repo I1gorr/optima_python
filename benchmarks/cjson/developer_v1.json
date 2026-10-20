@@ -1,0 +1,769 @@
+{
+ "schema_version": 1,
+ "benchmark_id": "cjson-developer",
+ "query_set_version": "1.0.0",
+ "ground_truth_version": "1.0.0",
+ "project": "cJSON-master",
+ "base_sha256": "c445c7750f27287a3340f88a01c3232705325e33e7653f9126218c2cd2e2dcc9",
+ "created": "2026-10-11T13:00:09+00:00",
+ "generator": {
+  "module": "optima.rag.research.benchmark.build_developer_benchmark"
+ },
+ "labeling": {
+  "independence": "queries were written by hand as a developer would ask them; labels come from hand-resolved targets, source string literals or the resolved call graph; no LLM enrichment, embedding or retrieval output was used, and no system was run on these queries before they were fixed",
+  "review": "single annotator (AI-assisted authoring); not independently reviewed by a second person"
+ },
+ "categories": {
+  "vague_memory": "Half-remembered function ('the thing that ...')",
+  "task": "Task-oriented question ('how do I ...')",
+  "error_message": "Error text / log message / output string to code",
+  "concept": "Concept or mechanism to the code that implements it",
+  "impact": "Impact analysis: what uses / what does a function depend on"
+ },
+ "unsupported_categories": {},
+ "counts": {
+  "vague_memory": 8,
+  "task": 18,
+  "error_message": 6,
+  "concept": 8,
+  "impact": 7
+ },
+ "queries": [
+  {
+   "category": "vague_memory",
+   "query": "the function that frees a whole JSON tree",
+   "relevance": {
+    "cJSON.c::cJSON_Delete::253": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_Delete::253"
+   ],
+   "seed": "cJSON.c::cJSON_Delete::253",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "vague_memory-001"
+  },
+  {
+   "category": "vague_memory",
+   "query": "that one that returns the library version string",
+   "relevance": {
+    "cJSON.c::cJSON_Version::124": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_Version::124"
+   ],
+   "seed": "cJSON.c::cJSON_Version::124",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "vague_memory-002"
+  },
+  {
+   "category": "vague_memory",
+   "query": "what was it called, the one that strips whitespace and comments from a json string",
+   "relevance": {
+    "cJSON.c::cJSON_Minify::2924": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_Minify::2924"
+   ],
+   "seed": "cJSON.c::cJSON_Minify::2924",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "vague_memory-003"
+  },
+  {
+   "category": "vague_memory",
+   "query": "the function to get an element out of an array by position",
+   "relevance": {
+    "cJSON.c::cJSON_GetArrayItem::1941": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_GetArrayItem::1941"
+   ],
+   "seed": "cJSON.c::cJSON_GetArrayItem::1941",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "vague_memory-004"
+  },
+  {
+   "category": "vague_memory",
+   "query": "the setter for custom malloc and free",
+   "relevance": {
+    "cJSON.c::cJSON_InitHooks::209": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_InitHooks::209"
+   ],
+   "seed": "cJSON.c::cJSON_InitHooks::209",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "vague_memory-005"
+  },
+  {
+   "category": "vague_memory",
+   "query": "the one that tells you where parsing failed",
+   "relevance": {
+    "cJSON.c::cJSON_GetErrorPtr::94": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_GetErrorPtr::94"
+   ],
+   "seed": "cJSON.c::cJSON_GetErrorPtr::94",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "vague_memory-006"
+  },
+  {
+   "category": "vague_memory",
+   "query": "function that makes a deep copy of a JSON tree",
+   "relevance": {
+    "cJSON.c::cJSON_Duplicate::2784": 2.0,
+    "cJSON.c::cJSON_Duplicate_rec::2789": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_Duplicate::2784",
+    "cJSON.c::cJSON_Duplicate_rec::2789"
+   ],
+   "seed": "cJSON.c::cJSON_Duplicate::2784",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "vague_memory-007"
+  },
+  {
+   "category": "vague_memory",
+   "query": "the check that two doubles are close enough to be equal",
+   "relevance": {
+    "cJSON.c::compare_double::589": 2.0,
+    "cJSON_Utils.c::compare_double::112": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::compare_double::589",
+    "cJSON_Utils.c::compare_double::112"
+   ],
+   "seed": "cJSON.c::compare_double::589",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "vague_memory-008"
+  },
+  {
+   "category": "task",
+   "query": "how do I parse a json string",
+   "relevance": {
+    "cJSON.c::cJSON_Parse::1227": 2.0,
+    "cJSON.c::cJSON_ParseWithOpts::1131": 1.0,
+    "cJSON.c::cJSON_ParseWithLength::1232": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_Parse::1227",
+    "cJSON.c::cJSON_ParseWithOpts::1131",
+    "cJSON.c::cJSON_ParseWithLength::1232"
+   ],
+   "seed": "cJSON.c::cJSON_Parse::1227",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "task-001"
+  },
+  {
+   "category": "task",
+   "query": "how do I print a json object without any whitespace",
+   "relevance": {
+    "cJSON.c::cJSON_PrintUnformatted::1312": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_PrintUnformatted::1312"
+   ],
+   "seed": "cJSON.c::cJSON_PrintUnformatted::1312",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "task-002"
+  },
+  {
+   "category": "task",
+   "query": "how do I pretty print json",
+   "relevance": {
+    "cJSON.c::cJSON_Print::1307": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_Print::1307"
+   ],
+   "seed": "cJSON.c::cJSON_Print::1307",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "task-003"
+  },
+  {
+   "category": "task",
+   "query": "how do I print json into a buffer I already allocated",
+   "relevance": {
+    "cJSON.c::cJSON_PrintPreallocated::1348": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_PrintPreallocated::1348"
+   ],
+   "seed": "cJSON.c::cJSON_PrintPreallocated::1348",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "task-004"
+  },
+  {
+   "category": "task",
+   "query": "how do I look up a key in an object case sensitively",
+   "relevance": {
+    "cJSON.c::cJSON_GetObjectItemCaseSensitive::1988": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_GetObjectItemCaseSensitive::1988"
+   ],
+   "seed": "cJSON.c::cJSON_GetObjectItemCaseSensitive::1988",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "task-005"
+  },
+  {
+   "category": "task",
+   "query": "how do I add a string field to an object",
+   "relevance": {
+    "cJSON.c::cJSON_AddStringToObject::2210": 2.0,
+    "cJSON.c::cJSON_AddItemToObject::2119": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_AddStringToObject::2210",
+    "cJSON.c::cJSON_AddItemToObject::2119"
+   ],
+   "seed": "cJSON.c::cJSON_AddStringToObject::2210",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "task-006"
+  },
+  {
+   "category": "task",
+   "query": "how do I add a number to an object",
+   "relevance": {
+    "cJSON.c::cJSON_AddNumberToObject::2198": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_AddNumberToObject::2198"
+   ],
+   "seed": "cJSON.c::cJSON_AddNumberToObject::2198",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "task-007"
+  },
+  {
+   "category": "task",
+   "query": "how do I create an array of integers",
+   "relevance": {
+    "cJSON.c::cJSON_CreateIntArray::2621": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_CreateIntArray::2621"
+   ],
+   "seed": "cJSON.c::cJSON_CreateIntArray::2621",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "task-008"
+  },
+  {
+   "category": "task",
+   "query": "how do I append an item to an array",
+   "relevance": {
+    "cJSON.c::cJSON_AddItemToArray::2061": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_AddItemToArray::2061"
+   ],
+   "seed": "cJSON.c::cJSON_AddItemToArray::2061",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "task-009"
+  },
+  {
+   "category": "task",
+   "query": "how do I remove a key from an object",
+   "relevance": {
+    "cJSON.c::cJSON_DeleteItemFromObject::2323": 2.0,
+    "cJSON.c::cJSON_DeleteItemFromObjectCaseSensitive::2328": 1.0,
+    "cJSON.c::cJSON_DetachItemFromObject::2309": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_DeleteItemFromObject::2323",
+    "cJSON.c::cJSON_DeleteItemFromObjectCaseSensitive::2328",
+    "cJSON.c::cJSON_DetachItemFromObject::2309"
+   ],
+   "seed": "cJSON.c::cJSON_DeleteItemFromObject::2323",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "task-010"
+  },
+  {
+   "category": "task",
+   "query": "how do I check whether a value is a string",
+   "relevance": {
+    "cJSON.c::cJSON_IsString::3032": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_IsString::3032"
+   ],
+   "seed": "cJSON.c::cJSON_IsString::3032",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "task-011"
+  },
+  {
+   "category": "task",
+   "query": "how do I read the number stored in a json item",
+   "relevance": {
+    "cJSON.c::cJSON_GetNumberValue::109": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_GetNumberValue::109"
+   ],
+   "seed": "cJSON.c::cJSON_GetNumberValue::109",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "task-012"
+  },
+  {
+   "category": "task",
+   "query": "how do I compare two json documents for equality",
+   "relevance": {
+    "cJSON.c::cJSON_Compare::3072": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_Compare::3072"
+   ],
+   "seed": "cJSON.c::cJSON_Compare::3072",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "task-013"
+  },
+  {
+   "category": "task",
+   "query": "how do I apply a JSON patch to a document",
+   "relevance": {
+    "cJSON_Utils.c::cJSONUtils_ApplyPatches::1038": 2.0,
+    "cJSON_Utils.c::cJSONUtils_ApplyPatchesCaseSensitive::1067": 1.0
+   },
+   "relevant_functions": [
+    "cJSON_Utils.c::cJSONUtils_ApplyPatches::1038",
+    "cJSON_Utils.c::cJSONUtils_ApplyPatchesCaseSensitive::1067"
+   ],
+   "seed": "cJSON_Utils.c::cJSONUtils_ApplyPatches::1038",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "task-014"
+  },
+  {
+   "category": "task",
+   "query": "how do I generate a patch describing the difference between two documents",
+   "relevance": {
+    "cJSON_Utils.c::cJSONUtils_GeneratePatches::1281": 2.0,
+    "cJSON_Utils.c::cJSONUtils_GeneratePatchesCaseSensitive::1296": 1.0
+   },
+   "relevant_functions": [
+    "cJSON_Utils.c::cJSONUtils_GeneratePatches::1281",
+    "cJSON_Utils.c::cJSONUtils_GeneratePatchesCaseSensitive::1296"
+   ],
+   "seed": "cJSON_Utils.c::cJSONUtils_GeneratePatches::1281",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "task-015"
+  },
+  {
+   "category": "task",
+   "query": "how do I fetch a value using a JSON pointer",
+   "relevance": {
+    "cJSON_Utils.c::cJSONUtils_GetPointer::348": 2.0,
+    "cJSON_Utils.c::cJSONUtils_GetPointerCaseSensitive::353": 1.0
+   },
+   "relevant_functions": [
+    "cJSON_Utils.c::cJSONUtils_GetPointer::348",
+    "cJSON_Utils.c::cJSONUtils_GetPointerCaseSensitive::353"
+   ],
+   "seed": "cJSON_Utils.c::cJSONUtils_GetPointer::348",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "task-016"
+  },
+  {
+   "category": "task",
+   "query": "how do I sort the keys of an object",
+   "relevance": {
+    "cJSON_Utils.c::cJSONUtils_SortObject::1311": 2.0,
+    "cJSON_Utils.c::cJSONUtils_SortObjectCaseSensitive::1316": 1.0
+   },
+   "relevant_functions": [
+    "cJSON_Utils.c::cJSONUtils_SortObject::1311",
+    "cJSON_Utils.c::cJSONUtils_SortObjectCaseSensitive::1316"
+   ],
+   "seed": "cJSON_Utils.c::cJSONUtils_SortObject::1311",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "task-017"
+  },
+  {
+   "category": "task",
+   "query": "how do I change the text of an existing string item",
+   "relevance": {
+    "cJSON.c::cJSON_SetValuestring::435": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_SetValuestring::435"
+   ],
+   "seed": "cJSON.c::cJSON_SetValuestring::435",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "task-018"
+  },
+  {
+   "category": "error_message",
+   "query": "where does it complain 'Failed to allocate memory.'",
+   "relevance": {
+    "test.c::print_preallocated::43": 2.0
+   },
+   "relevant_functions": [
+    "test.c::print_preallocated::43"
+   ],
+   "seed": "test.c::print_preallocated::43",
+   "label_source": "source_string_literal",
+   "notes": "",
+   "query_id": "error_message-001"
+  },
+  {
+   "category": "error_message",
+   "query": "who prints 'no input file'",
+   "relevance": {
+    "fuzzing/fuzz_main.c::main::9": 2.0
+   },
+   "relevant_functions": [
+    "fuzzing/fuzz_main.c::main::9"
+   ],
+   "seed": "fuzzing/fuzz_main.c::main::9",
+   "label_source": "source_string_literal",
+   "notes": "",
+   "query_id": "error_message-002"
+  },
+  {
+   "category": "error_message",
+   "query": "which function reports 'Failed to parse test json.'",
+   "relevance": {
+    "tests/json_patch_tests.c::parse_test_file::32": 2.0
+   },
+   "relevant_functions": [
+    "tests/json_patch_tests.c::parse_test_file::32"
+   ],
+   "seed": "tests/json_patch_tests.c::parse_test_file::32",
+   "label_source": "source_string_literal",
+   "notes": "",
+   "query_id": "error_message-003"
+  },
+  {
+   "category": "error_message",
+   "query": "where does 'Json is not an array.' come from",
+   "relevance": {
+    "tests/json_patch_tests.c::parse_test_file::32": 2.0
+   },
+   "relevant_functions": [
+    "tests/json_patch_tests.c::parse_test_file::32"
+   ],
+   "seed": "tests/json_patch_tests.c::parse_test_file::32",
+   "label_source": "source_string_literal",
+   "notes": "",
+   "query_id": "error_message-004"
+  },
+  {
+   "category": "error_message",
+   "query": "'Failed to generate patches.' which test prints that",
+   "relevance": {
+    "tests/json_patch_tests.c::test_generate_test::122": 2.0
+   },
+   "relevant_functions": [
+    "tests/json_patch_tests.c::test_generate_test::122"
+   ],
+   "seed": "tests/json_patch_tests.c::test_generate_test::122",
+   "label_source": "source_string_literal",
+   "notes": "",
+   "query_id": "error_message-005"
+  },
+  {
+   "category": "error_message",
+   "query": "what prints 'cJSON_PrintPreallocated failed to show error with insufficient memory!'",
+   "relevance": {
+    "test.c::print_preallocated::43": 2.0
+   },
+   "relevant_functions": [
+    "test.c::print_preallocated::43"
+   ],
+   "seed": "test.c::print_preallocated::43",
+   "label_source": "source_string_literal",
+   "notes": "",
+   "query_id": "error_message-006"
+  },
+  {
+   "category": "concept",
+   "query": "how does the parser handle escaped unicode sequences in strings",
+   "relevance": {
+    "cJSON.c::parse_string::824": 2.0,
+    "cJSON.c::utf16_literal_to_utf8::703": 2.0,
+    "cJSON.c::parse_hex4::666": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::parse_string::824",
+    "cJSON.c::utf16_literal_to_utf8::703",
+    "cJSON.c::parse_hex4::666"
+   ],
+   "seed": "cJSON.c::parse_string::824",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "concept-001"
+  },
+  {
+   "category": "concept",
+   "query": "how does the printer make room when its buffer is full",
+   "relevance": {
+    "cJSON.c::ensure::490": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::ensure::490"
+   ],
+   "seed": "cJSON.c::ensure::490",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "concept-002"
+  },
+  {
+   "category": "concept",
+   "query": "how are json pointer path segments escaped",
+   "relevance": {
+    "cJSON_Utils.c::encode_string_as_pointer::173": 2.0,
+    "cJSON_Utils.c::pointer_encoded_length::157": 1.0,
+    "cJSON_Utils.c::decode_pointer_inplace::359": 1.0
+   },
+   "relevant_functions": [
+    "cJSON_Utils.c::encode_string_as_pointer::173",
+    "cJSON_Utils.c::pointer_encoded_length::157",
+    "cJSON_Utils.c::decode_pointer_inplace::359"
+   ],
+   "seed": "cJSON_Utils.c::encode_string_as_pointer::173",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "concept-003"
+  },
+  {
+   "category": "concept",
+   "query": "how does merge patch work",
+   "relevance": {
+    "cJSON_Utils.c::merge_patch::1321": 2.0,
+    "cJSON_Utils.c::cJSONUtils_MergePatch::1385": 1.0
+   },
+   "relevant_functions": [
+    "cJSON_Utils.c::merge_patch::1321",
+    "cJSON_Utils.c::cJSONUtils_MergePatch::1385"
+   ],
+   "seed": "cJSON_Utils.c::merge_patch::1321",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "concept-004"
+  },
+  {
+   "category": "concept",
+   "query": "how are numbers printed with the right precision",
+   "relevance": {
+    "cJSON.c::print_number::596": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::print_number::596"
+   ],
+   "seed": "cJSON.c::print_number::596",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "concept-005"
+  },
+  {
+   "category": "concept",
+   "query": "how does it skip a UTF-8 byte order mark at the start of the input",
+   "relevance": {
+    "cJSON.c::skip_utf8_bom::1116": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::skip_utf8_bom::1116"
+   ],
+   "seed": "cJSON.c::skip_utf8_bom::1116",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "concept-006"
+  },
+  {
+   "category": "concept",
+   "query": "how are object members sorted by name",
+   "relevance": {
+    "cJSON_Utils.c::sort_list::484": 2.0,
+    "cJSON_Utils.c::sort_object::595": 1.0
+   },
+   "relevant_functions": [
+    "cJSON_Utils.c::sort_list::484",
+    "cJSON_Utils.c::sort_object::595"
+   ],
+   "seed": "cJSON_Utils.c::sort_list::484",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "concept-007"
+  },
+  {
+   "category": "concept",
+   "query": "how are references to other items handled so they are not freed twice",
+   "relevance": {
+    "cJSON.c::create_reference::2006": 2.0,
+    "cJSON.c::cJSON_Delete::253": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::create_reference::2006",
+    "cJSON.c::cJSON_Delete::253"
+   ],
+   "seed": "cJSON.c::create_reference::2006",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "concept-008"
+  },
+  {
+   "category": "impact",
+   "query": "before I change cJSON_GetArraySize, which code uses it?",
+   "relevance": {
+    "tests/old_utils_tests.c::merge_patch_should_not_read_freed_memory_when_patch_is_subtree::192": 1.0,
+    "tests/misc_tests.c::cjson_functions_should_not_crash_with_null_pointers::384": 1.0
+   },
+   "relevant_functions": [
+    "tests/old_utils_tests.c::merge_patch_should_not_read_freed_memory_when_patch_is_subtree::192",
+    "tests/misc_tests.c::cjson_functions_should_not_crash_with_null_pointers::384"
+   ],
+   "seed": "tests/old_utils_tests.c::merge_patch_should_not_read_freed_memory_when_patch_is_subtree::192",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "impact-001"
+  },
+  {
+   "category": "impact",
+   "query": "what depends on get_object_item",
+   "relevance": {
+    "cJSON.c::replace_item_in_object::2427": 1.0,
+    "cJSON.c::cJSON_Compare::3072": 1.0,
+    "cJSON.c::cJSON_GetObjectItemCaseSensitive::1988": 1.0,
+    "cJSON.c::cJSON_GetObjectItem::1983": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::replace_item_in_object::2427",
+    "cJSON.c::cJSON_Compare::3072",
+    "cJSON.c::cJSON_GetObjectItemCaseSensitive::1988",
+    "cJSON.c::cJSON_GetObjectItem::1983"
+   ],
+   "seed": "cJSON.c::replace_item_in_object::2427",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "impact-002"
+  },
+  {
+   "category": "impact",
+   "query": "who calls cJSON_DetachItemViaPointer",
+   "relevance": {
+    "tests/misc_tests.c::cjson_detach_item_via_pointer_should_detach_items::261": 1.0,
+    "cJSON.c::cJSON_DetachItemFromArray::2294": 1.0,
+    "tests/misc_tests.c::cjson_functions_should_not_crash_with_null_pointers::384": 1.0,
+    "tests/misc_tests.c::cjson_detach_item_via_pointer_should_return_null_if_item_prev_is_null::301": 1.0,
+    "cJSON.c::cJSON_DetachItemFromObject::2309": 1.0,
+    "cJSON.c::cJSON_DetachItemFromObjectCaseSensitive::2316": 1.0
+   },
+   "relevant_functions": [
+    "tests/misc_tests.c::cjson_detach_item_via_pointer_should_detach_items::261",
+    "cJSON.c::cJSON_DetachItemFromArray::2294",
+    "tests/misc_tests.c::cjson_functions_should_not_crash_with_null_pointers::384",
+    "tests/misc_tests.c::cjson_detach_item_via_pointer_should_return_null_if_item_prev_is_null::301",
+    "cJSON.c::cJSON_DetachItemFromObject::2309",
+    "cJSON.c::cJSON_DetachItemFromObjectCaseSensitive::2316"
+   ],
+   "seed": "tests/misc_tests.c::cjson_detach_item_via_pointer_should_detach_items::261",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "impact-003"
+  },
+  {
+   "category": "impact",
+   "query": "which functions use compare_double in the core library",
+   "relevance": {
+    "cJSON.c::print_number::596": 1.0,
+    "cJSON.c::cJSON_Compare::3072": 1.0,
+    "tests/readme_examples.c::supports_full_hd::169": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::print_number::596",
+    "cJSON.c::cJSON_Compare::3072",
+    "tests/readme_examples.c::supports_full_hd::169"
+   ],
+   "seed": "cJSON.c::print_number::596",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "impact-004"
+  },
+  {
+   "category": "impact",
+   "query": "what does cJSON_Minify call",
+   "relevance": {
+    "cJSON.c::minify_string::2902": 1.0,
+    "cJSON.c::skip_multiline_comment::2888": 1.0,
+    "cJSON.c::skip_oneline_comment::2875": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::minify_string::2902",
+    "cJSON.c::skip_multiline_comment::2888",
+    "cJSON.c::skip_oneline_comment::2875"
+   ],
+   "seed": "cJSON.c::minify_string::2902",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "impact-005"
+  },
+  {
+   "category": "impact",
+   "query": "which helpers does print_value rely on",
+   "relevance": {
+    "cJSON.c::print_number::596": 1.0,
+    "cJSON.c::print_object::1780": 1.0,
+    "cJSON.c::print_array::1595": 1.0,
+    "cJSON.c::print_string::1076": 1.0,
+    "cJSON.c::ensure::490": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::print_number::596",
+    "cJSON.c::print_object::1780",
+    "cJSON.c::print_array::1595",
+    "cJSON.c::print_string::1076",
+    "cJSON.c::ensure::490"
+   ],
+   "seed": "cJSON.c::print_number::596",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "impact-006"
+  },
+  {
+   "category": "impact",
+   "query": "what does parse_object depend on",
+   "relevance": {
+    "cJSON.c::cJSON_Delete::253": 1.0,
+    "cJSON.c::cJSON_New_Item::241": 1.0,
+    "cJSON.c::parse_string::824": 1.0,
+    "cJSON.c::parse_value::1368": 1.0,
+    "cJSON.c::buffer_skip_whitespace::1090": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_Delete::253",
+    "cJSON.c::cJSON_New_Item::241",
+    "cJSON.c::parse_string::824",
+    "cJSON.c::parse_value::1368",
+    "cJSON.c::buffer_skip_whitespace::1090"
+   ],
+   "seed": "cJSON.c::cJSON_Delete::253",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "impact-007"
+  }
+ ]
+}

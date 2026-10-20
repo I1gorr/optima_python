@@ -29,3 +29,23 @@ dist/
 
 # Vendored test-suite fixtures (fetched separately, too large for git history)
 optima-test-suite/openssl-master/
+
+# Research-pipeline embedding cache (regenerable); experiment results under experiments/ are kept
+experiments/_embedding_cache/
+reports/optima_analytics/_cache/
+experiments_dev/_embedding_cache/
+experiments_dev_compiler_on/_embedding_cache/
+
+# Large generated experiment runs, reports, archives, and fetched fixtures
+experiments/
+experiments_dev*/
+reports/*/_cache/
+reports/
+optima_analytics/
+experiments*_run.log
+experiments*_dev-*.log
+final_for_professor/
+final_for_professor.zip
+optima-test-suite/
+*.pdf
+*.zip

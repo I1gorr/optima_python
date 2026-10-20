@@ -1,0 +1,39 @@
+{
+  "output_root": "experiments",
+  "embedding_cache": "experiments/_embedding_cache",
+  "bootstrap_samples": 10000,
+  "bootstrap_samples_per_run": 2000,
+  "groups": [
+    "pipelines",
+    "enrichment",
+    "representations",
+    "hybrid",
+    "graph",
+    "rerank",
+    "embedding"
+  ],
+  "embedding_models": [
+    "bge-small",
+    "bge-base",
+    "qwen3-0.6b"
+  ],
+  "primary_embedding": "bge-base",
+  "rerankers": [
+    "ms-marco-minilm"
+  ],
+  "rerank_pool": 30,
+  "_comment": "primary_embedding and primary_enrichment were fixed before any results were seen (mid-size embedding; largest code-specialised enrichment model).",
+  "suite_id": "chess-v1",
+  "datasets": [
+    {
+      "name": "chess",
+      "base_json": "optima_outputs/base/chess-engine-in-cpp-master/base.json",
+      "benchmark": "benchmarks/chess/structural_v1.json",
+      "enriched_dir": "output/chess Engine",
+      "primary_enrichment": "qwen-qwen2.5-coder-14b-instruct-chess"
+    }
+  ],
+  "_not_run": {
+    "bge-reranker-base": "model download (1.1 GB) stalled at ~260 KB/s in the run environment; supported by the code but not evaluated"
+  }
+}

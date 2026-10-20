@@ -271,7 +271,7 @@ MODEL_REGISTRY: dict[str, ModelSpec] = {
 
     "deepseek-r1-distill-qwen-7b-nf4": ModelSpec(
         slug="deepseek-r1-distill-qwen-7b-nf4",
-        model_id="deepseek-ai/DeepSeek-R1-Distill-Qwen-7B",
+        model_id="  ",
         quantization="nf4",
         single_gpu_tier="A",
         max_input_tokens=6144,
@@ -358,7 +358,7 @@ MODEL_REGISTRY: dict[str, ModelSpec] = {
 
     "ministral-3-3b-instruct-nf4": ModelSpec(
         slug="ministral-3-3b-instruct-nf4",
-        model_id="mistralai/Ministral-3-3B-Instruct-2512",
+        model_id="q",
         quantization="nf4",
         single_gpu_tier="A",
         max_input_tokens=6144,

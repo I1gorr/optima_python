@@ -1,0 +1,2738 @@
+{
+ "schema_version": 1,
+ "benchmark_id": "chess-engine-structural",
+ "query_set_version": "1.0.0",
+ "ground_truth_version": "1.0.0",
+ "project": "Chess-Engine-in-cpp-master",
+ "base_sha256": "4f647d32e73069a1a7245e066ff614efce65edccc74ff38d3058c271459cc634",
+ "created": "2026-10-11T07:50:57+00:00",
+ "generator": {
+  "module": "optima.rag.research.benchmark",
+  "seed": 13,
+  "per_category": 20
+ },
+ "labeling": {
+  "independence": "labels come from base.json (names, source text, resolved call edges, LLVM CFG) or were hand-authored; no LLM enrichment, embedding or retrieval output was used",
+  "behavioral_review": "single annotator (AI-assisted authoring); not independently reviewed by a second person",
+  "caveat": "structural categories are labelled from the same call graph used by graph expansion"
+ },
+ "categories": {
+  "exact_name": "Exact function-name lookup",
+  "identifier_api": "Identifier / API usage lookup",
+  "behavioral": "Natural-language behavioural description (hand-authored)",
+  "control_flow": "Control-flow questions answered from the LLVM CFG",
+  "caller": "Who calls function X (direct callers)",
+  "callee": "What does function X call (direct callees)",
+  "cross_function": "Cross-function tracing (common callers / callees)",
+  "multi_hop": "Multi-hop structural reachability (graded by hop count)"
+ },
+ "unsupported_categories": {
+  "dependency": "the `dependencies` field is empty for every function in base.json, so no dependency ground truth exists"
+ },
+ "counts": {
+  "exact_name": 20,
+  "identifier_api": 20,
+  "behavioral": 45,
+  "control_flow": 9,
+  "caller": 20,
+  "callee": 20,
+  "cross_function": 20,
+  "multi_hop": 20
+ },
+ "queries": [
+  {
+   "category": "exact_name",
+   "query": "Where is the function resetGameVariables defined?",
+   "relevance": {
+    "src/UCI.cpp::resetGameVariables::26": 1.0
+   },
+   "relevant_functions": [
+    "src/UCI.cpp::resetGameVariables::26"
+   ],
+   "seed": "src/UCI.cpp::resetGameVariables::26",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-001"
+  },
+  {
+   "category": "exact_name",
+   "query": "Show me the implementation of floorElapsed",
+   "relevance": {
+    "include/timer.h::Timer::floorElapsed::26": 1.0
+   },
+   "relevant_functions": [
+    "include/timer.h::Timer::floorElapsed::26"
+   ],
+   "seed": "include/timer.h::Timer::floorElapsed::26",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-002"
+  },
+  {
+   "category": "exact_name",
+   "query": "Find the definition of the isRepetition function",
+   "relevance": {
+    "src/search/search_helper.cpp::Searcher::isRepetition::27": 1.0
+   },
+   "relevant_functions": [
+    "src/search/search_helper.cpp::Searcher::isRepetition::27"
+   ],
+   "seed": "src/search/search_helper.cpp::Searcher::isRepetition::27",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-003"
+  },
+  {
+   "category": "exact_name",
+   "query": "Where is the function getRookAttacks defined?",
+   "relevance": {
+    "include/inline_functions.h::getRookAttacks::66": 1.0
+   },
+   "relevant_functions": [
+    "include/inline_functions.h::getRookAttacks::66"
+   ],
+   "seed": "include/inline_functions.h::getRookAttacks::66",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-004"
+  },
+  {
+   "category": "exact_name",
+   "query": "Show me the implementation of getExecutableDirectory",
+   "relevance": {
+    "src/logger/logger.cpp::getExecutableDirectory::16": 1.0
+   },
+   "relevant_functions": [
+    "src/logger/logger.cpp::getExecutableDirectory::16"
+   ],
+   "seed": "src/logger/logger.cpp::getExecutableDirectory::16",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-005"
+  },
+  {
+   "category": "exact_name",
+   "query": "Find the definition of the standardPerft function",
+   "relevance": {
+    "benchmark_tests/perft_tests.cpp::Test::BenchMark::standardPerft::107": 1.0
+   },
+   "relevant_functions": [
+    "benchmark_tests/perft_tests.cpp::Test::BenchMark::standardPerft::107"
+   ],
+   "seed": "benchmark_tests/perft_tests.cpp::Test::BenchMark::standardPerft::107",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-006"
+  },
+  {
+   "category": "exact_name",
+   "query": "Where is the function printBoardFancy defined?",
+   "relevance": {
+    "src/misc.cpp::Board::printBoardFancy::42": 1.0
+   },
+   "relevant_functions": [
+    "src/misc.cpp::Board::printBoardFancy::42"
+   ],
+   "seed": "src/misc.cpp::Board::printBoardFancy::42",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-007"
+  },
+  {
+   "category": "exact_name",
+   "query": "Show me the implementation of algebraicNotation",
+   "relevance": {
+    "src/misc.cpp::algebraicNotation::88": 1.0
+   },
+   "relevant_functions": [
+    "src/misc.cpp::algebraicNotation::88"
+   ],
+   "seed": "src/misc.cpp::algebraicNotation::88",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-008"
+  },
+  {
+   "category": "exact_name",
+   "query": "Find the definition of the initSliderAttacks function",
+   "relevance": {
+    "src/init.cpp::initSliderAttacks::291": 1.0
+   },
+   "relevant_functions": [
+    "src/init.cpp::initSliderAttacks::291"
+   ],
+   "seed": "src/init.cpp::initSliderAttacks::291",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-009"
+  },
+  {
+   "category": "exact_name",
+   "query": "Where is the function isQueenPromotion defined?",
+   "relevance": {
+    "include/move.h::Move::isQueenPromotion::49": 1.0
+   },
+   "relevant_functions": [
+    "include/move.h::Move::isQueenPromotion::49"
+   ],
+   "seed": "include/move.h::Move::isQueenPromotion::49",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-010"
+  },
+  {
+   "category": "exact_name",
+   "query": "Show me the implementation of Board",
+   "relevance": {
+    "include/board.h::Board::Board::33": 1.0,
+    "include/board.h::Board::Board::34": 1.0
+   },
+   "relevant_functions": [
+    "include/board.h::Board::Board::33",
+    "include/board.h::Board::Board::34"
+   ],
+   "seed": "include/board.h::Board::Board::33",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-011"
+  },
+  {
+   "category": "exact_name",
+   "query": "Find the definition of the parseFEN function",
+   "relevance": {
+    "src/board.cpp::Board::parseFEN::43": 1.0,
+    "src/search/search.h::Searcher::parseFEN::58": 1.0
+   },
+   "relevant_functions": [
+    "src/board.cpp::Board::parseFEN::43",
+    "src/search/search.h::Searcher::parseFEN::58"
+   ],
+   "seed": "src/board.cpp::Board::parseFEN::43",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-012"
+  },
+  {
+   "category": "exact_name",
+   "query": "Where is the function generateHashKey defined?",
+   "relevance": {
+    "src/hashtable.cpp::generateHashKey::26": 1.0
+   },
+   "relevant_functions": [
+    "src/hashtable.cpp::generateHashKey::26"
+   ],
+   "seed": "src/hashtable.cpp::generateHashKey::26",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-013"
+  },
+  {
+   "category": "exact_name",
+   "query": "Show me the implementation of pieceType",
+   "relevance": {
+    "include/types.h::pieceType::31": 1.0
+   },
+   "relevant_functions": [
+    "include/types.h::pieceType::31"
+   ],
+   "seed": "include/types.h::pieceType::31",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-014"
+  },
+  {
+   "category": "exact_name",
+   "query": "Find the definition of the isPromotion function",
+   "relevance": {
+    "include/move.h::Move::isPromotion::48": 1.0
+   },
+   "relevant_functions": [
+    "include/move.h::Move::isPromotion::48"
+   ],
+   "seed": "include/move.h::Move::isPromotion::48",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-015"
+  },
+  {
+   "category": "exact_name",
+   "query": "Where is the function diagonal_of defined?",
+   "relevance": {
+    "src/init.cpp::diagonal_of::394": 1.0
+   },
+   "relevant_functions": [
+    "src/init.cpp::diagonal_of::394"
+   ],
+   "seed": "src/init.cpp::diagonal_of::394",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-016"
+  },
+  {
+   "category": "exact_name",
+   "query": "Show me the implementation of charToPiece",
+   "relevance": {
+    "src/board.cpp::charToPiece::24": 1.0
+   },
+   "relevant_functions": [
+    "src/board.cpp::charToPiece::24"
+   ],
+   "seed": "src/board.cpp::charToPiece::24",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-017"
+  },
+  {
+   "category": "exact_name",
+   "query": "Find the definition of the cleanUp function",
+   "relevance": {
+    "src/UCI.cpp::cleanUp::233": 1.0
+   },
+   "relevant_functions": [
+    "src/UCI.cpp::cleanUp::233"
+   ],
+   "seed": "src/UCI.cpp::cleanUp::233",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-018"
+  },
+  {
+   "category": "exact_name",
+   "query": "Where is the function initialiseSquaresBetween defined?",
+   "relevance": {
+    "src/init.cpp::initialiseSquaresBetween::400": 1.0
+   },
+   "relevant_functions": [
+    "src/init.cpp::initialiseSquaresBetween::400"
+   ],
+   "seed": "src/init.cpp::initialiseSquaresBetween::400",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-019"
+  },
+  {
+   "category": "exact_name",
+   "query": "Show me the implementation of movePiece",
+   "relevance": {
+    "src/movegen/update.cpp::Board::movePiece::45": 1.0
+   },
+   "relevant_functions": [
+    "src/movegen/update.cpp::Board::movePiece::45"
+   ],
+   "seed": "src/movegen/update.cpp::Board::movePiece::45",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-020"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Which functions use the identifier totalEval?",
+   "relevance": {
+    "benchmark_tests/search_and_eval.cpp::Test::BenchMark::staticEval::125": 1.0
+   },
+   "relevant_functions": [
+    "benchmark_tests/search_and_eval.cpp::Test::BenchMark::staticEval::125"
+   ],
+   "seed": "benchmark_tests/search_and_eval.cpp::Test::BenchMark::staticEval::125",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-001"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Find code that references no_re_parsing",
+   "relevance": {
+    "src/UCI.cpp::handlePosition::122": 1.0
+   },
+   "relevant_functions": [
+    "src/UCI.cpp::handlePosition::122"
+   ],
+   "seed": "src/UCI.cpp::handlePosition::122",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-002"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Where is givesScores used?",
+   "relevance": {
+    "src/search/movesort.cpp::Searcher::giveScores::104": 1.0
+   },
+   "relevant_functions": [
+    "src/search/movesort.cpp::Searcher::giveScores::104"
+   ],
+   "seed": "src/search/movesort.cpp::Searcher::giveScores::104",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-003"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Which functions use the identifier DO_NULL?",
+   "relevance": {
+    "src/search/search.cpp::Searcher::aspirationWindow::443": 1.0,
+    "src/search/search.cpp::Searcher::negamax::191": 1.0
+   },
+   "relevant_functions": [
+    "src/search/search.cpp::Searcher::aspirationWindow::443",
+    "src/search/search.cpp::Searcher::negamax::191"
+   ],
+   "seed": "src/search/search.cpp::Searcher::aspirationWindow::443",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-004"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Find code that references gamePhase",
+   "relevance": {
+    "src/eval/evaluation.cpp::evaluate::35": 1.0
+   },
+   "relevant_functions": [
+    "src/eval/evaluation.cpp::evaluate::35"
+   ],
+   "seed": "src/eval/evaluation.cpp::evaluate::35",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-005"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Where is fishTestFENs used?",
+   "relevance": {
+    "benchmark_tests/search_and_eval.cpp::Test::BenchMark::staticEval::125": 1.0,
+    "benchmark_tests/search_and_eval.cpp::Test::BenchMark::staticSearch::71": 1.0
+   },
+   "relevant_functions": [
+    "benchmark_tests/search_and_eval.cpp::Test::BenchMark::staticEval::125",
+    "benchmark_tests/search_and_eval.cpp::Test::BenchMark::staticSearch::71"
+   ],
+   "seed": "benchmark_tests/search_and_eval.cpp::Test::BenchMark::staticEval::125",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-006"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Which functions use the identifier originalCoutBuffer?",
+   "relevance": {
+    "benchmark_tests/search_and_eval.cpp::Test::BenchMark::staticSearch::71": 1.0
+   },
+   "relevant_functions": [
+    "benchmark_tests/search_and_eval.cpp::Test::BenchMark::staticSearch::71"
+   ],
+   "seed": "benchmark_tests/search_and_eval.cpp::Test::BenchMark::staticSearch::71",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-007"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Find code that references DOUBLE",
+   "relevance": {
+    "src/misc.cpp::getStringFlags::97": 1.0
+   },
+   "relevant_functions": [
+    "src/misc.cpp::getStringFlags::97"
+   ],
+   "seed": "src/misc.cpp::getStringFlags::97",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-008"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Where is PRUNING used?",
+   "relevance": {
+    "src/search/search.cpp::Searcher::negamax::191": 1.0
+   },
+   "relevant_functions": [
+    "src/search/search.cpp::Searcher::negamax::191"
+   ],
+   "seed": "src/search/search.cpp::Searcher::negamax::191",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-009"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Which functions use the identifier FRAMEWORK?",
+   "relevance": {
+    "src/search/search.cpp::Searcher::negamax::191": 1.0
+   },
+   "relevant_functions": [
+    "src/search/search.cpp::Searcher::negamax::191"
+   ],
+   "seed": "src/search/search.cpp::Searcher::negamax::191",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-010"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Find code that references white_passedPawnMasks",
+   "relevance": {
+    "src/eval/evaluation.cpp::evaluate::35": 1.0,
+    "src/init.cpp::initEvaluationMasks::358": 1.0
+   },
+   "relevant_functions": [
+    "src/eval/evaluation.cpp::evaluate::35",
+    "src/init.cpp::initEvaluationMasks::358"
+   ],
+   "seed": "src/eval/evaluation.cpp::evaluate::35",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-011"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Where is nullMoveScore used?",
+   "relevance": {
+    "src/search/search.cpp::Searcher::negamax::191": 1.0
+   },
+   "relevant_functions": [
+    "src/search/search.cpp::Searcher::negamax::191"
+   ],
+   "seed": "src/search/search.cpp::Searcher::negamax::191",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-012"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Which functions use the identifier bestMoveScore?",
+   "relevance": {
+    "src/search/movesort.cpp::Searcher::pickBestMove::116": 1.0
+   },
+   "relevant_functions": [
+    "src/search/movesort.cpp::Searcher::pickBestMove::116"
+   ],
+   "seed": "src/search/movesort.cpp::Searcher::pickBestMove::116",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-013"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Find code that references castleRightsString",
+   "relevance": {
+    "src/misc.cpp::Board::printBoardFancy::42": 1.0
+   },
+   "relevant_functions": [
+    "src/misc.cpp::Board::printBoardFancy::42"
+   ],
+   "seed": "src/misc.cpp::Board::printBoardFancy::42",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-014"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Where is attackingKnights used?",
+   "relevance": {
+    "src/board.cpp::Board::allAttackers::115": 1.0
+   },
+   "relevant_functions": [
+    "src/board.cpp::Board::allAttackers::115"
+   ],
+   "seed": "src/board.cpp::Board::allAttackers::115",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-015"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Which functions use the identifier phalanxPawnBonus?",
+   "relevance": {
+    "src/eval/evaluation.cpp::evaluate::35": 1.0
+   },
+   "relevant_functions": [
+    "src/eval/evaluation.cpp::evaluate::35"
+   ],
+   "seed": "src/eval/evaluation.cpp::evaluate::35",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-016"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Find code that references matePuzzles",
+   "relevance": {
+    "benchmark_tests/puzzle_tests.cpp::Test::BenchMark::matingPuzzles::29": 1.0
+   },
+   "relevant_functions": [
+    "benchmark_tests/puzzle_tests.cpp::Test::BenchMark::matingPuzzles::29"
+   ],
+   "seed": "benchmark_tests/puzzle_tests.cpp::Test::BenchMark::matingPuzzles::29",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-017"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Where is previousScore used?",
+   "relevance": {
+    "src/search/search.cpp::Searcher::aspirationWindow::443": 1.0
+   },
+   "relevant_functions": [
+    "src/search/search.cpp::Searcher::aspirationWindow::443"
+   ],
+   "seed": "src/search/search.cpp::Searcher::aspirationWindow::443",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-018"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Which functions use the identifier WHITE_QUEEN?",
+   "relevance": {
+    "src/board.cpp::Board::allAttackers::115": 1.0,
+    "src/board.cpp::charToPiece::24": 1.0,
+    "src/eval/evaluation.cpp::evaluate::35": 1.0
+   },
+   "relevant_functions": [
+    "src/board.cpp::Board::allAttackers::115",
+    "src/board.cpp::charToPiece::24",
+    "src/eval/evaluation.cpp::evaluate::35"
+   ],
+   "seed": "src/board.cpp::Board::allAttackers::115",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-019"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Find code that references notABFile",
+   "relevance": {
+    "src/init.cpp::maskKnightMoves::142": 1.0
+   },
+   "relevant_functions": [
+    "src/init.cpp::maskKnightMoves::142"
+   ],
+   "seed": "src/init.cpp::maskKnightMoves::142",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-020"
+  },
+  {
+   "category": "behavioral",
+   "query": "Check whether the king of the side to move is currently under attack",
+   "relevance": {
+    "src/board.cpp::Board::currentlyInCheck::106": 2.0,
+    "include/board.h::Board::isSqAttacked::84": 1.0
+   },
+   "relevant_functions": [
+    "src/board.cpp::Board::currentlyInCheck::106",
+    "include/board.h::Board::isSqAttacked::84"
+   ],
+   "seed": "src/board.cpp::Board::currentlyInCheck::106",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-001"
+  },
+  {
+   "category": "behavioral",
+   "query": "Load a position from a Forsyth-Edwards Notation string into the internal board representation",
+   "relevance": {
+    "src/board.cpp::Board::parseFEN::43": 2.0,
+    "src/board.cpp::charToPiece::24": 1.0
+   },
+   "relevant_functions": [
+    "src/board.cpp::Board::parseFEN::43",
+    "src/board.cpp::charToPiece::24"
+   ],
+   "seed": "src/board.cpp::Board::parseFEN::43",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-002"
+  },
+  {
+   "category": "behavioral",
+   "query": "Compute a unique hash key that identifies a chess position",
+   "relevance": {
+    "src/hashtable.cpp::generateHashKey::26": 2.0
+   },
+   "relevant_functions": [
+    "src/hashtable.cpp::generateHashKey::26"
+   ],
+   "seed": "src/hashtable.cpp::generateHashKey::26",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-003"
+  },
+  {
+   "category": "behavioral",
+   "query": "Allocate the transposition table with a size given in megabytes",
+   "relevance": {
+    "src/hashtable.cpp::initTranspositionTable::48": 2.0
+   },
+   "relevant_functions": [
+    "src/hashtable.cpp::initTranspositionTable::48"
+   ],
+   "seed": "src/hashtable.cpp::initTranspositionTable::48",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-004"
+  },
+  {
+   "category": "behavioral",
+   "query": "Look up a previously stored search result for the current position in the hash table",
+   "relevance": {
+    "src/hashtable.cpp::probeHash::81": 2.0
+   },
+   "relevant_functions": [
+    "src/hashtable.cpp::probeHash::81"
+   ],
+   "seed": "src/hashtable.cpp::probeHash::81",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-005"
+  },
+  {
+   "category": "behavioral",
+   "query": "Store a search score together with its bound type and depth in the hash table",
+   "relevance": {
+    "src/hashtable.cpp::recordHash::114": 2.0
+   },
+   "relevant_functions": [
+    "src/hashtable.cpp::recordHash::114"
+   ],
+   "seed": "src/hashtable.cpp::recordHash::114",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-006"
+  },
+  {
+   "category": "behavioral",
+   "query": "Erase every entry in the transposition table",
+   "relevance": {
+    "src/hashtable.cpp::clearTranspositionTable::67": 2.0
+   },
+   "relevant_functions": [
+    "src/hashtable.cpp::clearTranspositionTable::67"
+   ],
+   "seed": "src/hashtable.cpp::clearTranspositionTable::67",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-007"
+  },
+  {
+   "category": "behavioral",
+   "query": "Report how full the transposition table currently is",
+   "relevance": {
+    "src/hashtable.cpp::checkHashOccupancy::132": 2.0
+   },
+   "relevant_functions": [
+    "src/hashtable.cpp::checkHashOccupancy::132"
+   ],
+   "seed": "src/hashtable.cpp::checkHashOccupancy::132",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-008"
+  },
+  {
+   "category": "behavioral",
+   "query": "Detect whether the current position has already occurred earlier in the game",
+   "relevance": {
+    "src/search/search_helper.cpp::Searcher::isRepetition::27": 2.0
+   },
+   "relevant_functions": [
+    "src/search/search_helper.cpp::Searcher::isRepetition::27"
+   ],
+   "seed": "src/search/search_helper.cpp::Searcher::isRepetition::27",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-009"
+  },
+  {
+   "category": "behavioral",
+   "query": "Estimate whether a capture wins or loses material by simulating the sequence of exchanges on a square",
+   "relevance": {
+    "src/search/see.cpp::see::14": 2.0
+   },
+   "relevant_functions": [
+    "src/search/see.cpp::see::14"
+   ],
+   "seed": "src/search/see.cpp::see::14",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-010"
+  },
+  {
+   "category": "behavioral",
+   "query": "Assign scores to candidate moves so the most promising ones are tried first",
+   "relevance": {
+    "src/search/movesort.cpp::Searcher::giveScores::104": 2.0,
+    "src/search/movesort.cpp::Searcher::scoreMove::66": 2.0,
+    "src/search/movesort.cpp::Searcher::pickBestMove::116": 1.0
+   },
+   "relevant_functions": [
+    "src/search/movesort.cpp::Searcher::giveScores::104",
+    "src/search/movesort.cpp::Searcher::scoreMove::66",
+    "src/search/movesort.cpp::Searcher::pickBestMove::116"
+   ],
+   "seed": "src/search/movesort.cpp::Searcher::giveScores::104",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-011"
+  },
+  {
+   "category": "behavioral",
+   "query": "Pick the highest scored move remaining in a move list",
+   "relevance": {
+    "src/search/movesort.cpp::Searcher::pickBestMove::116": 2.0
+   },
+   "relevant_functions": [
+    "src/search/movesort.cpp::Searcher::pickBestMove::116"
+   ],
+   "seed": "src/search/movesort.cpp::Searcher::pickBestMove::116",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-012"
+  },
+  {
+   "category": "behavioral",
+   "query": "Extend the search past the nominal depth by examining only captures and promotions until the position is quiet",
+   "relevance": {
+    "src/search/search.cpp::Searcher::quiescenceSearch::105": 2.0
+   },
+   "relevant_functions": [
+    "src/search/search.cpp::Searcher::quiescenceSearch::105"
+   ],
+   "seed": "src/search/search.cpp::Searcher::quiescenceSearch::105",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-013"
+  },
+  {
+   "category": "behavioral",
+   "query": "Recursive alpha-beta search that returns the best score for a position at a given depth",
+   "relevance": {
+    "src/search/search.cpp::Searcher::negamax::191": 2.0,
+    "src/search/search.cpp::Searcher::quiescenceSearch::105": 1.0
+   },
+   "relevant_functions": [
+    "src/search/search.cpp::Searcher::negamax::191",
+    "src/search/search.cpp::Searcher::quiescenceSearch::105"
+   ],
+   "seed": "src/search/search.cpp::Searcher::negamax::191",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-014"
+  },
+  {
+   "category": "behavioral",
+   "query": "Re-run the search with a narrow score window around the previous iteration's result",
+   "relevance": {
+    "src/search/search.cpp::Searcher::aspirationWindow::443": 2.0
+   },
+   "relevant_functions": [
+    "src/search/search.cpp::Searcher::aspirationWindow::443"
+   ],
+   "seed": "src/search/search.cpp::Searcher::aspirationWindow::443",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-015"
+  },
+  {
+   "category": "behavioral",
+   "query": "Search progressively deeper one level at a time until the depth limit or the clock runs out",
+   "relevance": {
+    "src/search/search.cpp::Searcher::iterativeDeepening::476": 2.0
+   },
+   "relevant_functions": [
+    "src/search/search.cpp::Searcher::iterativeDeepening::476"
+   ],
+   "seed": "src/search/search.cpp::Searcher::iterativeDeepening::476",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-016"
+  },
+  {
+   "category": "behavioral",
+   "query": "Work out how much time to allocate to the current move from the remaining clock and increment",
+   "relevance": {
+    "src/search/time_manager.cpp::Searcher::calculateMoveTime::4": 2.0,
+    "src/search/time_manager.cpp::Searcher::isTimeUp::21": 1.0
+   },
+   "relevant_functions": [
+    "src/search/time_manager.cpp::Searcher::calculateMoveTime::4",
+    "src/search/time_manager.cpp::Searcher::isTimeUp::21"
+   ],
+   "seed": "src/search/time_manager.cpp::Searcher::calculateMoveTime::4",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-017"
+  },
+  {
+   "category": "behavioral",
+   "query": "Stop the search when the allotted time has been exceeded",
+   "relevance": {
+    "src/search/time_manager.cpp::Searcher::isTimeUp::21": 2.0
+   },
+   "relevant_functions": [
+    "src/search/time_manager.cpp::Searcher::isTimeUp::21"
+   ],
+   "seed": "src/search/time_manager.cpp::Searcher::isTimeUp::21",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-018"
+  },
+  {
+   "category": "behavioral",
+   "query": "Send the GUI the depth, score, node count and principal variation after an iteration",
+   "relevance": {
+    "src/search/search_helper.cpp::Searcher::sendUciInfo::40": 2.0
+   },
+   "relevant_functions": [
+    "src/search/search_helper.cpp::Searcher::sendUciInfo::40"
+   ],
+   "seed": "src/search/search_helper.cpp::Searcher::sendUciInfo::40",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-019"
+  },
+  {
+   "category": "behavioral",
+   "query": "Handle the UCI command that starts a search with time controls or a fixed depth",
+   "relevance": {
+    "src/UCI.cpp::handleGo::194": 2.0
+   },
+   "relevant_functions": [
+    "src/UCI.cpp::handleGo::194"
+   ],
+   "seed": "src/UCI.cpp::handleGo::194",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-020"
+  },
+  {
+   "category": "behavioral",
+   "query": "Handle the UCI command that sets up the board from a start position or FEN followed by a list of moves",
+   "relevance": {
+    "src/UCI.cpp::handlePosition::122": 2.0
+   },
+   "relevant_functions": [
+    "src/UCI.cpp::handlePosition::122"
+   ],
+   "seed": "src/UCI.cpp::handlePosition::122",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-021"
+  },
+  {
+   "category": "behavioral",
+   "query": "Answer the UCI handshake by announcing the engine name and author",
+   "relevance": {
+    "src/UCI.cpp::handleUci::31": 2.0
+   },
+   "relevant_functions": [
+    "src/UCI.cpp::handleUci::31"
+   ],
+   "seed": "src/UCI.cpp::handleUci::31",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-022"
+  },
+  {
+   "category": "behavioral",
+   "query": "Play a move on the board, updating piece positions, castling rights and the hash key",
+   "relevance": {
+    "src/movegen/update.cpp::Board::makeMove::158": 2.0,
+    "src/movegen/update.cpp::Board::movePiece::45": 1.0,
+    "src/movegen/update.cpp::Board::putPiece::65": 1.0,
+    "src/movegen/update.cpp::Board::removePiece::76": 1.0
+   },
+   "relevant_functions": [
+    "src/movegen/update.cpp::Board::makeMove::158",
+    "src/movegen/update.cpp::Board::movePiece::45",
+    "src/movegen/update.cpp::Board::putPiece::65",
+    "src/movegen/update.cpp::Board::removePiece::76"
+   ],
+   "seed": "src/movegen/update.cpp::Board::makeMove::158",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-023"
+  },
+  {
+   "category": "behavioral",
+   "query": "Take back a move that was previously played, restoring the pieces",
+   "relevance": {
+    "src/movegen/update.cpp::Board::undo::87": 2.0
+   },
+   "relevant_functions": [
+    "src/movegen/update.cpp::Board::undo::87"
+   ],
+   "seed": "src/movegen/update.cpp::Board::undo::87",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-024"
+  },
+  {
+   "category": "behavioral",
+   "query": "Generate every pseudo-legal move for the side to move into a list",
+   "relevance": {
+    "src/movegen/movegen.cpp::Board::generateMoves::16": 2.0,
+    "src/movegen/movegen.h::addMove::12": 1.0
+   },
+   "relevant_functions": [
+    "src/movegen/movegen.cpp::Board::generateMoves::16",
+    "src/movegen/movegen.h::addMove::12"
+   ],
+   "seed": "src/movegen/movegen.cpp::Board::generateMoves::16",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-025"
+  },
+  {
+   "category": "behavioral",
+   "query": "Compute the static evaluation of a position from material and piece-square tables with a game phase",
+   "relevance": {
+    "src/eval/evaluation.cpp::evaluate::35": 2.0,
+    "src/eval/evaluation.cpp::init_tables::22": 1.0
+   },
+   "relevant_functions": [
+    "src/eval/evaluation.cpp::evaluate::35",
+    "src/eval/evaluation.cpp::init_tables::22"
+   ],
+   "seed": "src/eval/evaluation.cpp::evaluate::35",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-026"
+  },
+  {
+   "category": "behavioral",
+   "query": "Count how many bits are set in a 64-bit integer",
+   "relevance": {
+    "include/inline_functions.h::countBits::9": 2.0
+   },
+   "relevant_functions": [
+    "include/inline_functions.h::countBits::9"
+   ],
+   "seed": "include/inline_functions.h::countBits::9",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-027"
+  },
+  {
+   "category": "behavioral",
+   "query": "Return the index of the least significant set bit and clear it",
+   "relevance": {
+    "include/inline_functions.h::pop_lsb::36": 2.0,
+    "include/inline_functions.h::bsf::31": 1.0
+   },
+   "relevant_functions": [
+    "include/inline_functions.h::pop_lsb::36",
+    "include/inline_functions.h::bsf::31"
+   ],
+   "seed": "include/inline_functions.h::pop_lsb::36",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-028"
+  },
+  {
+   "category": "behavioral",
+   "query": "Get the squares attacked by a sliding piece given the blockers currently on the board",
+   "relevance": {
+    "include/inline_functions.h::getBishopAttacks::52": 2.0,
+    "include/inline_functions.h::getRookAttacks::66": 2.0,
+    "include/inline_functions.h::getQueenAttacks::80": 2.0
+   },
+   "relevant_functions": [
+    "include/inline_functions.h::getBishopAttacks::52",
+    "include/inline_functions.h::getRookAttacks::66",
+    "include/inline_functions.h::getQueenAttacks::80"
+   ],
+   "seed": "include/inline_functions.h::getBishopAttacks::52",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-029"
+  },
+  {
+   "category": "behavioral",
+   "query": "Convert a move into long algebraic text such as e2e4",
+   "relevance": {
+    "src/misc.cpp::algebraicNotation::88": 2.0,
+    "src/misc.cpp::printMove::81": 1.0
+   },
+   "relevant_functions": [
+    "src/misc.cpp::algebraicNotation::88",
+    "src/misc.cpp::printMove::81"
+   ],
+   "seed": "src/misc.cpp::algebraicNotation::88",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-030"
+  },
+  {
+   "category": "behavioral",
+   "query": "Turn a move string received from the GUI into an internal move object",
+   "relevance": {
+    "src/misc.cpp::parseMove::135": 2.0
+   },
+   "relevant_functions": [
+    "src/misc.cpp::parseMove::135"
+   ],
+   "seed": "src/misc.cpp::parseMove::135",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-031"
+  },
+  {
+   "category": "behavioral",
+   "query": "Print a 64-bit bitboard as an eight by eight grid for debugging",
+   "relevance": {
+    "src/misc.cpp::printBitBoard::27": 2.0,
+    "src/misc.cpp::Board::printBoardFancy::42": 1.0
+   },
+   "relevant_functions": [
+    "src/misc.cpp::printBitBoard::27",
+    "src/misc.cpp::Board::printBoardFancy::42"
+   ],
+   "seed": "src/misc.cpp::printBitBoard::27",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-032"
+  },
+  {
+   "category": "behavioral",
+   "query": "Count the leaf nodes reachable at a given depth to verify that move generation is correct",
+   "relevance": {
+    "benchmark_tests/perft_tests.cpp::Test::BenchMark::perft::60": 2.0,
+    "benchmark_tests/perft_tests.cpp::Test::BenchMark::perftDriver::36": 2.0,
+    "benchmark_tests/perft_tests.cpp::Test::BenchMark::standardPerft::107": 1.0
+   },
+   "relevant_functions": [
+    "benchmark_tests/perft_tests.cpp::Test::BenchMark::perft::60",
+    "benchmark_tests/perft_tests.cpp::Test::BenchMark::perftDriver::36",
+    "benchmark_tests/perft_tests.cpp::Test::BenchMark::standardPerft::107"
+   ],
+   "seed": "benchmark_tests/perft_tests.cpp::Test::BenchMark::perft::60",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-033"
+  },
+  {
+   "category": "behavioral",
+   "query": "Precompute attack tables for knights and kings and pawns at engine startup",
+   "relevance": {
+    "src/init.cpp::initLeaperPiecesAttacks::282": 2.0,
+    "src/init.cpp::maskKnightMoves::142": 1.0,
+    "src/init.cpp::maskKingMoves::162": 1.0,
+    "src/init.cpp::maskPawnAttacks::123": 1.0
+   },
+   "relevant_functions": [
+    "src/init.cpp::initLeaperPiecesAttacks::282",
+    "src/init.cpp::maskKnightMoves::142",
+    "src/init.cpp::maskKingMoves::162",
+    "src/init.cpp::maskPawnAttacks::123"
+   ],
+   "seed": "src/init.cpp::initLeaperPiecesAttacks::282",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-034"
+  },
+  {
+   "category": "behavioral",
+   "query": "Fill the tables of pseudo-random numbers used for position hashing",
+   "relevance": {
+    "src/init.cpp::initRandomKeys::322": 2.0
+   },
+   "relevant_functions": [
+    "src/init.cpp::initRandomKeys::322"
+   ],
+   "seed": "src/init.cpp::initRandomKeys::322",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-035"
+  },
+  {
+   "category": "behavioral",
+   "query": "Tell whether the side to move still owns any piece other than pawns and the king",
+   "relevance": {
+    "src/board.cpp::Board::nonPawnMaterial::110": 2.0
+   },
+   "relevant_functions": [
+    "src/board.cpp::Board::nonPawnMaterial::110"
+   ],
+   "seed": "src/board.cpp::Board::nonPawnMaterial::110",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-036"
+  },
+  {
+   "category": "behavioral",
+   "query": "Remember quiet moves that caused a cutoff so they are tried early at the same ply and reward them in a history table",
+   "relevance": {
+    "src/search/search.cpp::Searcher::updateKillers::63": 2.0,
+    "src/search/search.cpp::Searcher::updateHistory::78": 2.0
+   },
+   "relevant_functions": [
+    "src/search/search.cpp::Searcher::updateKillers::63",
+    "src/search/search.cpp::Searcher::updateHistory::78"
+   ],
+   "seed": "src/search/search.cpp::Searcher::updateKillers::63",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-037"
+  },
+  {
+   "category": "behavioral",
+   "query": "Reset all engine state when a new game starts",
+   "relevance": {
+    "src/UCI.cpp::resetGameVariables::26": 2.0,
+    "src/search/search.h::Searcher::resetGame::64": 2.0,
+    "src/search/search.h::Searcher::resetSearchStates::80": 1.0
+   },
+   "relevant_functions": [
+    "src/UCI.cpp::resetGameVariables::26",
+    "src/search/search.h::Searcher::resetGame::64",
+    "src/search/search.h::Searcher::resetSearchStates::80"
+   ],
+   "seed": "src/UCI.cpp::resetGameVariables::26",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-038"
+  },
+  {
+   "category": "behavioral",
+   "query": "Test whether a move captures a piece or promotes a pawn",
+   "relevance": {
+    "include/move.h::Move::isNoisy::55": 2.0,
+    "include/move.h::Move::isCapture::44": 1.0,
+    "include/move.h::Move::isPromotion::48": 1.0
+   },
+   "relevant_functions": [
+    "include/move.h::Move::isNoisy::55",
+    "include/move.h::Move::isCapture::44",
+    "include/move.h::Move::isPromotion::48"
+   ],
+   "seed": "include/move.h::Move::isNoisy::55",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-039"
+  },
+  {
+   "category": "behavioral",
+   "query": "Extract the origin and destination squares from the packed 16-bit move encoding",
+   "relevance": {
+    "include/move.h::Move::from::40": 2.0,
+    "include/move.h::Move::to::39": 2.0
+   },
+   "relevant_functions": [
+    "include/move.h::Move::from::40",
+    "include/move.h::Move::to::39"
+   ],
+   "seed": "include/move.h::Move::from::40",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-040"
+  },
+  {
+   "category": "behavioral",
+   "query": "Stopwatch that returns elapsed milliseconds since it was started",
+   "relevance": {
+    "include/timer.h::Timer::elapsed::21": 2.0,
+    "include/timer.h::Timer::floorElapsed::26": 1.0,
+    "include/timer.h::Timer::reset::15": 1.0
+   },
+   "relevant_functions": [
+    "include/timer.h::Timer::elapsed::21",
+    "include/timer.h::Timer::floorElapsed::26",
+    "include/timer.h::Timer::reset::15"
+   ],
+   "seed": "include/timer.h::Timer::elapsed::21",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-041"
+  },
+  {
+   "category": "behavioral",
+   "query": "Reflect a square index across the horizontal midline of the board",
+   "relevance": {
+    "src/eval/evaluation.cpp::flip::17": 2.0
+   },
+   "relevant_functions": [
+    "src/eval/evaluation.cpp::flip::17"
+   ],
+   "seed": "src/eval/evaluation.cpp::flip::17",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-042"
+  },
+  {
+   "category": "behavioral",
+   "query": "Flip a bitboard vertically and swap piece colours to test that the evaluation is symmetric",
+   "relevance": {
+    "debug_tests/evaluation_tests.cpp::mirrorBitboards::27": 2.0,
+    "debug_tests/evaluation_tests.cpp::swapColours::33": 2.0,
+    "debug_tests/evaluation_tests.cpp::flipVertical::16": 1.0,
+    "debug_tests/evaluation_tests.cpp::Test::Debug::mirrorEval::54": 1.0
+   },
+   "relevant_functions": [
+    "debug_tests/evaluation_tests.cpp::mirrorBitboards::27",
+    "debug_tests/evaluation_tests.cpp::swapColours::33",
+    "debug_tests/evaluation_tests.cpp::flipVertical::16",
+    "debug_tests/evaluation_tests.cpp::Test::Debug::mirrorEval::54"
+   ],
+   "seed": "debug_tests/evaluation_tests.cpp::mirrorBitboards::27",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-043"
+  },
+  {
+   "category": "behavioral",
+   "query": "Follow the principal variation from the previous iteration when ordering moves",
+   "relevance": {
+    "src/search/search_helper.cpp::Searcher::enablePVscoring::5": 2.0
+   },
+   "relevant_functions": [
+    "src/search/search_helper.cpp::Searcher::enablePVscoring::5"
+   ],
+   "seed": "src/search/search_helper.cpp::Searcher::enablePVscoring::5",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-044"
+  },
+  {
+   "category": "behavioral",
+   "query": "Split a string into tokens separated by a given delimiter character",
+   "relevance": {
+    "benchmark_tests/perft_tests.cpp::split::21": 2.0,
+    "src/misc.cpp::split::164": 1.0
+   },
+   "relevant_functions": [
+    "benchmark_tests/perft_tests.cpp::split::21",
+    "src/misc.cpp::split::164"
+   ],
+   "seed": "benchmark_tests/perft_tests.cpp::split::21",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-045"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which of the functions that call bsf contain a loop?",
+   "relevance": {
+    "src/movegen/movegen.cpp::Board::generateMoves::16": 1.0,
+    "src/movegen/update.cpp::Board::makeMove::158": 1.0,
+    "src/search/see.cpp::see::14": 1.0
+   },
+   "relevant_functions": [
+    "src/movegen/movegen.cpp::Board::generateMoves::16",
+    "src/movegen/update.cpp::Board::makeMove::158",
+    "src/search/see.cpp::see::14"
+   ],
+   "seed": "include/inline_functions.h::bsf::31",
+   "label_source": "cfg_back_edge+call_graph",
+   "notes": "",
+   "query_id": "control_flow-001"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which of the functions that call Move::isEnPassant contain a loop?",
+   "relevance": {
+    "src/search/see.cpp::see::14": 1.0
+   },
+   "relevant_functions": [
+    "src/search/see.cpp::see::14"
+   ],
+   "seed": "include/move.h::Move::isEnPassant::50",
+   "label_source": "cfg_back_edge+call_graph",
+   "notes": "",
+   "query_id": "control_flow-002"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which of the functions that call Move::operator!= contain a loop?",
+   "relevance": {
+    "src/search/search.cpp::Searcher::updateHistory::78": 1.0
+   },
+   "relevant_functions": [
+    "src/search/search.cpp::Searcher::updateHistory::78"
+   ],
+   "seed": "include/move.h::Move::operator!=::68",
+   "label_source": "cfg_back_edge+call_graph",
+   "notes": "",
+   "query_id": "control_flow-003"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which of the functions that call UndoInfo::operator= contain a loop?",
+   "relevance": {
+    "src/movegen/update.cpp::Board::makeMove::158": 1.0
+   },
+   "relevant_functions": [
+    "src/movegen/update.cpp::Board::makeMove::158"
+   ],
+   "seed": "include/types.h::UndoInfo::operator=::48",
+   "label_source": "cfg_back_edge+call_graph",
+   "notes": "",
+   "query_id": "control_flow-004"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which of the functions that call Board::isSqAttacked contain a loop?",
+   "relevance": {
+    "src/movegen/movegen.cpp::Board::generateMoves::16": 1.0,
+    "src/movegen/update.cpp::Board::makeMove::158": 1.0
+   },
+   "relevant_functions": [
+    "src/movegen/movegen.cpp::Board::generateMoves::16",
+    "src/movegen/update.cpp::Board::makeMove::158"
+   ],
+   "seed": "include/board.h::Board::isSqAttacked::84",
+   "label_source": "cfg_back_edge+call_graph",
+   "notes": "",
+   "query_id": "control_flow-005"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which of the functions that call Move::operator== contain a loop?",
+   "relevance": {
+    "src/search/movesort.cpp::Searcher::giveScores::104": 1.0,
+    "src/search/search_helper.cpp::Searcher::enablePVscoring::5": 1.0
+   },
+   "relevant_functions": [
+    "src/search/movesort.cpp::Searcher::giveScores::104",
+    "src/search/search_helper.cpp::Searcher::enablePVscoring::5"
+   ],
+   "seed": "include/move.h::Move::operator==::67",
+   "label_source": "cfg_back_edge+call_graph",
+   "notes": "",
+   "query_id": "control_flow-006"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which function in src/search/movesort.cpp has the most complex control flow (highest cyclomatic complexity)?",
+   "relevance": {
+    "src/search/movesort.cpp::Searcher::scoreMove::66": 1.0
+   },
+   "relevant_functions": [
+    "src/search/movesort.cpp::Searcher::scoreMove::66"
+   ],
+   "seed": "src/search/movesort.cpp::Searcher::scoreMove::66",
+   "label_source": "cfg_cyclomatic",
+   "notes": "",
+   "query_id": "control_flow-007"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which function in src/init.cpp has the most complex control flow (highest cyclomatic complexity)?",
+   "relevance": {
+    "src/init.cpp::bishopAttacksOnTheFly::213": 1.0
+   },
+   "relevant_functions": [
+    "src/init.cpp::bishopAttacksOnTheFly::213"
+   ],
+   "seed": "src/init.cpp::bishopAttacksOnTheFly::213",
+   "label_source": "cfg_cyclomatic",
+   "notes": "",
+   "query_id": "control_flow-008"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which function in src/hashtable.cpp has the most complex control flow (highest cyclomatic complexity)?",
+   "relevance": {
+    "src/hashtable.cpp::probeHash::81": 1.0
+   },
+   "relevant_functions": [
+    "src/hashtable.cpp::probeHash::81"
+   ],
+   "seed": "src/hashtable.cpp::probeHash::81",
+   "label_source": "cfg_cyclomatic",
+   "notes": "",
+   "query_id": "control_flow-009"
+  },
+  {
+   "category": "caller",
+   "query": "Which functions call maskKingMoves?",
+   "relevance": {
+    "src/init.cpp::initLeaperPiecesAttacks::282": 1.0
+   },
+   "relevant_functions": [
+    "src/init.cpp::initLeaperPiecesAttacks::282"
+   ],
+   "seed": "src/init.cpp::maskKingMoves::162",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-001"
+  },
+  {
+   "category": "caller",
+   "query": "What are the direct callers of Searcher::negamax?",
+   "relevance": {
+    "src/search/search.cpp::Searcher::aspirationWindow::443": 1.0
+   },
+   "relevant_functions": [
+    "src/search/search.cpp::Searcher::aspirationWindow::443"
+   ],
+   "seed": "src/search/search.cpp::Searcher::negamax::191",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-002"
+  },
+  {
+   "category": "caller",
+   "query": "Find every function that invokes rookAttacksOnTheFly",
+   "relevance": {
+    "src/init.cpp::initSliderAttacks::291": 1.0
+   },
+   "relevant_functions": [
+    "src/init.cpp::initSliderAttacks::291"
+   ],
+   "seed": "src/init.cpp::rookAttacksOnTheFly::241",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-003"
+  },
+  {
+   "category": "caller",
+   "query": "Which functions call getQueenAttacks?",
+   "relevance": {
+    "include/board.h::Board::isSqAttacked::84": 1.0,
+    "src/eval/evaluation.cpp::evaluate::35": 1.0,
+    "src/movegen/movegen.cpp::Board::generateMoves::16": 1.0
+   },
+   "relevant_functions": [
+    "include/board.h::Board::isSqAttacked::84",
+    "src/eval/evaluation.cpp::evaluate::35",
+    "src/movegen/movegen.cpp::Board::generateMoves::16"
+   ],
+   "seed": "include/inline_functions.h::getQueenAttacks::80",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-004"
+  },
+  {
+   "category": "caller",
+   "query": "What are the direct callers of initialiseLine?",
+   "relevance": {
+    "src/init.cpp::initAll::428": 1.0
+   },
+   "relevant_functions": [
+    "src/init.cpp::initAll::428"
+   ],
+   "seed": "src/init.cpp::initialiseLine::416",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-005"
+  },
+  {
+   "category": "caller",
+   "query": "Find every function that invokes Move::to_from",
+   "relevance": {
+    "include/move.h::Move::isNone::66": 1.0,
+    "include/move.h::Move::operator!=::68": 1.0,
+    "include/move.h::Move::operator==::67": 1.0
+   },
+   "relevant_functions": [
+    "include/move.h::Move::isNone::66",
+    "include/move.h::Move::operator!=::68",
+    "include/move.h::Move::operator==::67"
+   ],
+   "seed": "include/move.h::Move::to_from::41",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-006"
+  },
+  {
+   "category": "caller",
+   "query": "Which functions call charToPiece?",
+   "relevance": {
+    "src/board.cpp::Board::parseFEN::43": 1.0
+   },
+   "relevant_functions": [
+    "src/board.cpp::Board::parseFEN::43"
+   ],
+   "seed": "src/board.cpp::charToPiece::24",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-007"
+  },
+  {
+   "category": "caller",
+   "query": "What are the direct callers of Searcher::scoreMove?",
+   "relevance": {
+    "src/search/movesort.cpp::Searcher::giveScores::104": 1.0
+   },
+   "relevant_functions": [
+    "src/search/movesort.cpp::Searcher::giveScores::104"
+   ],
+   "seed": "src/search/movesort.cpp::Searcher::scoreMove::66",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-008"
+  },
+  {
+   "category": "caller",
+   "query": "Find every function that invokes Searcher::updateHistory",
+   "relevance": {
+    "src/search/search.cpp::Searcher::negamax::191": 1.0
+   },
+   "relevant_functions": [
+    "src/search/search.cpp::Searcher::negamax::191"
+   ],
+   "seed": "src/search/search.cpp::Searcher::updateHistory::78",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-009"
+  },
+  {
+   "category": "caller",
+   "query": "Which functions call Move::operator!=?",
+   "relevance": {
+    "src/search/search.cpp::Searcher::updateHistory::78": 1.0,
+    "src/search/search.cpp::Searcher::updateKillers::63": 1.0
+   },
+   "relevant_functions": [
+    "src/search/search.cpp::Searcher::updateHistory::78",
+    "src/search/search.cpp::Searcher::updateKillers::63"
+   ],
+   "seed": "include/move.h::Move::operator!=::68",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-010"
+  },
+  {
+   "category": "caller",
+   "query": "What are the direct callers of Logger::createLogFileIfNotExists?",
+   "relevance": {
+    "src/logger/logger.h::Logger::Logger::40": 1.0
+   },
+   "relevant_functions": [
+    "src/logger/logger.h::Logger::Logger::40"
+   ],
+   "seed": "src/logger/logger.h::Logger::createLogFileIfNotExists::24",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-011"
+  },
+  {
+   "category": "caller",
+   "query": "Find every function that invokes Board::undo",
+   "relevance": {
+    "src/movegen/update.cpp::Board::makeMove::158": 1.0
+   },
+   "relevant_functions": [
+    "src/movegen/update.cpp::Board::makeMove::158"
+   ],
+   "seed": "src/movegen/update.cpp::Board::undo::87",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-012"
+  },
+  {
+   "category": "caller",
+   "query": "Which functions call Move::isQueenPromotion?",
+   "relevance": {
+    "src/movegen/update.cpp::Board::makeMove::158": 1.0,
+    "src/search/search.cpp::Searcher::quiescenceSearch::105": 1.0
+   },
+   "relevant_functions": [
+    "src/movegen/update.cpp::Board::makeMove::158",
+    "src/search/search.cpp::Searcher::quiescenceSearch::105"
+   ],
+   "seed": "include/move.h::Move::isQueenPromotion::49",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-013"
+  },
+  {
+   "category": "caller",
+   "query": "What are the direct callers of Timer::reset?",
+   "relevance": {
+    "src/search/search.cpp::Searcher::iterativeDeepening::476": 1.0
+   },
+   "relevant_functions": [
+    "src/search/search.cpp::Searcher::iterativeDeepening::476"
+   ],
+   "seed": "include/timer.h::Timer::reset::15",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-014"
+  },
+  {
+   "category": "caller",
+   "query": "Find every function that invokes initSliderAttacks",
+   "relevance": {
+    "src/init.cpp::initAll::428": 1.0
+   },
+   "relevant_functions": [
+    "src/init.cpp::initAll::428"
+   ],
+   "seed": "src/init.cpp::initSliderAttacks::291",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-015"
+  },
+  {
+   "category": "caller",
+   "query": "Which functions call initRandomKeys?",
+   "relevance": {
+    "src/init.cpp::initAll::428": 1.0
+   },
+   "relevant_functions": [
+    "src/init.cpp::initAll::428"
+   ],
+   "seed": "src/init.cpp::initRandomKeys::322",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-016"
+  },
+  {
+   "category": "caller",
+   "query": "What are the direct callers of initLeaperPiecesAttacks?",
+   "relevance": {
+    "src/init.cpp::initAll::428": 1.0
+   },
+   "relevant_functions": [
+    "src/init.cpp::initAll::428"
+   ],
+   "seed": "src/init.cpp::initLeaperPiecesAttacks::282",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-017"
+  },
+  {
+   "category": "caller",
+   "query": "Find every function that invokes handlePosition",
+   "relevance": {
+    "src/UCI.cpp::UCI::238": 1.0
+   },
+   "relevant_functions": [
+    "src/UCI.cpp::UCI::238"
+   ],
+   "seed": "src/UCI.cpp::handlePosition::122",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-018"
+  },
+  {
+   "category": "caller",
+   "query": "Which functions call resetGameVariables?",
+   "relevance": {
+    "src/UCI.cpp::UCI::238": 1.0
+   },
+   "relevant_functions": [
+    "src/UCI.cpp::UCI::238"
+   ],
+   "seed": "src/UCI.cpp::resetGameVariables::26",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-019"
+  },
+  {
+   "category": "caller",
+   "query": "What are the direct callers of shiftLeft?",
+   "relevance": {
+    "src/eval/evaluation.cpp::evaluate::35": 1.0
+   },
+   "relevant_functions": [
+    "src/eval/evaluation.cpp::evaluate::35"
+   ],
+   "seed": "include/inline_functions.h::shiftLeft::43",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-020"
+  },
+  {
+   "category": "callee",
+   "query": "Which functions does Test::Debug::boardNonPawnMat call?",
+   "relevance": {
+    "include/board.h::Board::Board::33": 1.0
+   },
+   "relevant_functions": [
+    "include/board.h::Board::Board::33"
+   ],
+   "seed": "debug_tests/game_scenario.cpp::Test::Debug::boardNonPawnMat::43",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-001"
+  },
+  {
+   "category": "callee",
+   "query": "What functions are called directly by Board::allAttackers?",
+   "relevance": {
+    "include/inline_functions.h::getBishopAttacks::52": 1.0,
+    "include/inline_functions.h::getRookAttacks::66": 1.0
+   },
+   "relevant_functions": [
+    "include/inline_functions.h::getBishopAttacks::52",
+    "include/inline_functions.h::getRookAttacks::66"
+   ],
+   "seed": "src/board.cpp::Board::allAttackers::115",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-002"
+  },
+  {
+   "category": "callee",
+   "query": "List the callees of Searcher::quiescenceSearch",
+   "relevance": {
+    "include/move.h::Move::Move::27": 1.0,
+    "include/move.h::Move::Move::31": 1.0,
+    "include/move.h::Move::isCapture::44": 1.0,
+    "include/move.h::Move::isQueenPromotion::49": 1.0
+   },
+   "relevant_functions": [
+    "include/move.h::Move::Move::27",
+    "include/move.h::Move::Move::31",
+    "include/move.h::Move::isCapture::44",
+    "include/move.h::Move::isQueenPromotion::49"
+   ],
+   "seed": "src/search/search.cpp::Searcher::quiescenceSearch::105",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-003"
+  },
+  {
+   "category": "callee",
+   "query": "Which functions does Move::isNone call?",
+   "relevance": {
+    "include/move.h::Move::to_from::41": 1.0
+   },
+   "relevant_functions": [
+    "include/move.h::Move::to_from::41"
+   ],
+   "seed": "include/move.h::Move::isNone::66",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-004"
+  },
+  {
+   "category": "callee",
+   "query": "What functions are called directly by initialiseLine?",
+   "relevance": {
+    "include/inline_functions.h::getBishopAttacks::52": 1.0,
+    "include/inline_functions.h::getRookAttacks::66": 1.0,
+    "src/init.cpp::anti_diagonal_of::397": 1.0,
+    "src/init.cpp::diagonal_of::394": 1.0
+   },
+   "relevant_functions": [
+    "include/inline_functions.h::getBishopAttacks::52",
+    "include/inline_functions.h::getRookAttacks::66",
+    "src/init.cpp::anti_diagonal_of::397",
+    "src/init.cpp::diagonal_of::394"
+   ],
+   "seed": "src/init.cpp::initialiseLine::416",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-005"
+  },
+  {
+   "category": "callee",
+   "query": "List the callees of Board::resetBoard",
+   "relevance": {
+    "include/types.h::UndoInfo::resetUndoInfo::57": 1.0
+   },
+   "relevant_functions": [
+    "include/types.h::UndoInfo::resetUndoInfo::57"
+   ],
+   "seed": "include/board.h::Board::resetBoard::44",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-006"
+  },
+  {
+   "category": "callee",
+   "query": "Which functions does handlePosition call?",
+   "relevance": {
+    "include/move.h::Move::isNone::66": 1.0,
+    "src/search/search.h::Searcher::parseFEN::58": 1.0
+   },
+   "relevant_functions": [
+    "include/move.h::Move::isNone::66",
+    "src/search/search.h::Searcher::parseFEN::58"
+   ],
+   "seed": "src/UCI.cpp::handlePosition::122",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-007"
+  },
+  {
+   "category": "callee",
+   "query": "What functions are called directly by initialiseSquaresBetween?",
+   "relevance": {
+    "include/inline_functions.h::getBishopAttacks::52": 1.0,
+    "include/inline_functions.h::getRookAttacks::66": 1.0,
+    "src/init.cpp::anti_diagonal_of::397": 1.0,
+    "src/init.cpp::diagonal_of::394": 1.0
+   },
+   "relevant_functions": [
+    "include/inline_functions.h::getBishopAttacks::52",
+    "include/inline_functions.h::getRookAttacks::66",
+    "src/init.cpp::anti_diagonal_of::397",
+    "src/init.cpp::diagonal_of::394"
+   ],
+   "seed": "src/init.cpp::initialiseSquaresBetween::400",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-008"
+  },
+  {
+   "category": "callee",
+   "query": "List the callees of Move::operator!=",
+   "relevance": {
+    "include/move.h::Move::to_from::41": 1.0
+   },
+   "relevant_functions": [
+    "include/move.h::Move::to_from::41"
+   ],
+   "seed": "include/move.h::Move::operator!=::68",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-009"
+  },
+  {
+   "category": "callee",
+   "query": "Which functions does mirrorBitboards call?",
+   "relevance": {
+    "debug_tests/evaluation_tests.cpp::flipVertical::16": 1.0
+   },
+   "relevant_functions": [
+    "debug_tests/evaluation_tests.cpp::flipVertical::16"
+   ],
+   "seed": "debug_tests/evaluation_tests.cpp::mirrorBitboards::27",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-010"
+  },
+  {
+   "category": "callee",
+   "query": "What functions are called directly by Move::isCapture?",
+   "relevance": {
+    "include/move.h::Move::flags::42": 1.0
+   },
+   "relevant_functions": [
+    "include/move.h::Move::flags::42"
+   ],
+   "seed": "include/move.h::Move::isCapture::44",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-011"
+  },
+  {
+   "category": "callee",
+   "query": "List the callees of initSliderAttacks",
+   "relevance": {
+    "include/inline_functions.h::countBits::9": 1.0,
+    "src/init.cpp::bishopAttacksOnTheFly::213": 1.0,
+    "src/init.cpp::maskBishopMoves::182": 1.0,
+    "src/init.cpp::maskRookMoves::198": 1.0,
+    "src/init.cpp::rookAttacksOnTheFly::241": 1.0,
+    "src/init.cpp::setOccupancies::269": 1.0
+   },
+   "relevant_functions": [
+    "include/inline_functions.h::countBits::9",
+    "src/init.cpp::bishopAttacksOnTheFly::213",
+    "src/init.cpp::maskBishopMoves::182",
+    "src/init.cpp::maskRookMoves::198",
+    "src/init.cpp::rookAttacksOnTheFly::241",
+    "src/init.cpp::setOccupancies::269"
+   ],
+   "seed": "src/init.cpp::initSliderAttacks::291",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-012"
+  },
+  {
+   "category": "callee",
+   "query": "Which functions does Searcher::isKiller call?",
+   "relevance": {
+    "include/move.h::Move::isNone::66": 1.0,
+    "include/move.h::Move::operator==::67": 1.0
+   },
+   "relevant_functions": [
+    "include/move.h::Move::isNone::66",
+    "include/move.h::Move::operator==::67"
+   ],
+   "seed": "src/search/search_helper.cpp::Searcher::isKiller::21",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-013"
+  },
+  {
+   "category": "callee",
+   "query": "What functions are called directly by init_tables?",
+   "relevance": {
+    "src/eval/evaluation.cpp::flip::17": 1.0
+   },
+   "relevant_functions": [
+    "src/eval/evaluation.cpp::flip::17"
+   ],
+   "seed": "src/eval/evaluation.cpp::init_tables::22",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-014"
+  },
+  {
+   "category": "callee",
+   "query": "List the callees of Test::BenchMark::standardPerft",
+   "relevance": {
+    "benchmark_tests/perft_tests.cpp::Test::BenchMark::perft::60": 1.0,
+    "benchmark_tests/perft_tests.cpp::split::21": 1.0,
+    "include/board.h::Board::Board::33": 1.0
+   },
+   "relevant_functions": [
+    "benchmark_tests/perft_tests.cpp::Test::BenchMark::perft::60",
+    "benchmark_tests/perft_tests.cpp::split::21",
+    "include/board.h::Board::Board::33"
+   ],
+   "seed": "benchmark_tests/perft_tests.cpp::Test::BenchMark::standardPerft::107",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-015"
+  },
+  {
+   "category": "callee",
+   "query": "Which functions does initTranspositionTable call?",
+   "relevance": {
+    "src/hashtable.cpp::clearTranspositionTable::67": 1.0
+   },
+   "relevant_functions": [
+    "src/hashtable.cpp::clearTranspositionTable::67"
+   ],
+   "seed": "src/hashtable.cpp::initTranspositionTable::48",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-016"
+  },
+  {
+   "category": "callee",
+   "query": "What functions are called directly by Searcher::iterativeDeepening?",
+   "relevance": {
+    "include/timer.h::Timer::elapsed::21": 1.0,
+    "include/timer.h::Timer::reset::15": 1.0,
+    "src/search/search.cpp::Searcher::aspirationWindow::443": 1.0,
+    "src/search/search.h::Searcher::resetSearchStates::80": 1.0
+   },
+   "relevant_functions": [
+    "include/timer.h::Timer::elapsed::21",
+    "include/timer.h::Timer::reset::15",
+    "src/search/search.cpp::Searcher::aspirationWindow::443",
+    "src/search/search.h::Searcher::resetSearchStates::80"
+   ],
+   "seed": "src/search/search.cpp::Searcher::iterativeDeepening::476",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-017"
+  },
+  {
+   "category": "callee",
+   "query": "List the callees of Searcher::sendUciInfo",
+   "relevance": {
+    "include/timer.h::Timer::elapsed::21": 1.0
+   },
+   "relevant_functions": [
+    "include/timer.h::Timer::elapsed::21"
+   ],
+   "seed": "src/search/search_helper.cpp::Searcher::sendUciInfo::40",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-018"
+  },
+  {
+   "category": "callee",
+   "query": "Which functions does Move::operator== call?",
+   "relevance": {
+    "include/move.h::Move::to_from::41": 1.0
+   },
+   "relevant_functions": [
+    "include/move.h::Move::to_from::41"
+   ],
+   "seed": "include/move.h::Move::operator==::67",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-019"
+  },
+  {
+   "category": "callee",
+   "query": "What functions are called directly by Move::isQueenPromotion?",
+   "relevance": {
+    "include/move.h::Move::flags::42": 1.0
+   },
+   "relevant_functions": [
+    "include/move.h::Move::flags::42"
+   ],
+   "seed": "include/move.h::Move::isQueenPromotion::49",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-020"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions call both getRookAttacks and shiftRight?",
+   "relevance": {
+    "src/eval/evaluation.cpp::evaluate::35": 1.0
+   },
+   "relevant_functions": [
+    "src/eval/evaluation.cpp::evaluate::35"
+   ],
+   "seed": "include/inline_functions.h::getRookAttacks::66",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callers",
+   "query_id": "cross_function-001"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions call both Board::isSqAttacked and pop_lsb?",
+   "relevance": {
+    "src/movegen/movegen.cpp::Board::generateMoves::16": 1.0
+   },
+   "relevant_functions": [
+    "src/movegen/movegen.cpp::Board::generateMoves::16"
+   ],
+   "seed": "include/board.h::Board::isSqAttacked::84",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callers",
+   "query_id": "cross_function-002"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions call both make_piece and Board::putPiece?",
+   "relevance": {
+    "src/movegen/update.cpp::Board::makeMove::158": 1.0,
+    "src/movegen/update.cpp::Board::undo::87": 1.0
+   },
+   "relevant_functions": [
+    "src/movegen/update.cpp::Board::makeMove::158",
+    "src/movegen/update.cpp::Board::undo::87"
+   ],
+   "seed": "include/types.h::make_piece::22",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callers",
+   "query_id": "cross_function-003"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions call both Board::getPieceTypeBitBoard and Move::from?",
+   "relevance": {
+    "src/search/see.cpp::see::14": 1.0
+   },
+   "relevant_functions": [
+    "src/search/see.cpp::see::14"
+   ],
+   "seed": "include/board.h::Board::getPieceTypeBitBoard::42",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callers",
+   "query_id": "cross_function-004"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions call both Move::isNone and Board::undo?",
+   "relevance": {
+    "src/movegen/update.cpp::Board::makeMove::158": 1.0
+   },
+   "relevant_functions": [
+    "src/movegen/update.cpp::Board::makeMove::158"
+   ],
+   "seed": "include/move.h::Move::isNone::66",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callers",
+   "query_id": "cross_function-005"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions call both Move::isCapture and Board::putPiece?",
+   "relevance": {
+    "src/movegen/update.cpp::Board::makeMove::158": 1.0
+   },
+   "relevant_functions": [
+    "src/movegen/update.cpp::Board::makeMove::158"
+   ],
+   "seed": "include/move.h::Move::isCapture::44",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callers",
+   "query_id": "cross_function-006"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions call both getBishopAttacks and shiftRight?",
+   "relevance": {
+    "src/eval/evaluation.cpp::evaluate::35": 1.0
+   },
+   "relevant_functions": [
+    "src/eval/evaluation.cpp::evaluate::35"
+   ],
+   "seed": "include/inline_functions.h::getBishopAttacks::52",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callers",
+   "query_id": "cross_function-007"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions call both Move::from and Move::isEnPassant?",
+   "relevance": {
+    "src/search/movesort.cpp::Searcher::scoreMove::66": 1.0,
+    "src/search/see.cpp::see::14": 1.0
+   },
+   "relevant_functions": [
+    "src/search/movesort.cpp::Searcher::scoreMove::66",
+    "src/search/see.cpp::see::14"
+   ],
+   "seed": "include/move.h::Move::from::40",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callers",
+   "query_id": "cross_function-008"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions call both Move::flags and Move::isNone?",
+   "relevance": {
+    "src/movegen/update.cpp::Board::makeMove::158": 1.0,
+    "src/movegen/update.cpp::Board::undo::87": 1.0
+   },
+   "relevant_functions": [
+    "src/movegen/update.cpp::Board::makeMove::158",
+    "src/movegen/update.cpp::Board::undo::87"
+   ],
+   "seed": "include/move.h::Move::flags::42",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callers",
+   "query_id": "cross_function-009"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions call both handlePosition and resetGameVariables?",
+   "relevance": {
+    "src/UCI.cpp::UCI::238": 1.0
+   },
+   "relevant_functions": [
+    "src/UCI.cpp::UCI::238"
+   ],
+   "seed": "src/UCI.cpp::handlePosition::122",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callers",
+   "query_id": "cross_function-010"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions are called by both Searcher::updateKillers and see?",
+   "relevance": {
+    "include/move.h::Move::isPromotion::48": 1.0
+   },
+   "relevant_functions": [
+    "include/move.h::Move::isPromotion::48"
+   ],
+   "seed": "src/search/search.cpp::Searcher::updateKillers::63",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callees",
+   "query_id": "cross_function-011"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions are called by both Searcher::pickBestMove and Searcher::updateKillers?",
+   "relevance": {
+    "include/move.h::Move::isNone::66": 1.0
+   },
+   "relevant_functions": [
+    "include/move.h::Move::isNone::66"
+   ],
+   "seed": "src/search/movesort.cpp::Searcher::pickBestMove::116",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callees",
+   "query_id": "cross_function-012"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions are called by both getBishopXrayAttacks and evaluate?",
+   "relevance": {
+    "include/inline_functions.h::getBishopAttacks::52": 1.0
+   },
+   "relevant_functions": [
+    "include/inline_functions.h::getBishopAttacks::52"
+   ],
+   "seed": "include/inline_functions.h::getBishopXrayAttacks::60",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callees",
+   "query_id": "cross_function-013"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions are called by both probeHash and Searcher::isKiller?",
+   "relevance": {
+    "include/move.h::Move::isNone::66": 1.0
+   },
+   "relevant_functions": [
+    "include/move.h::Move::isNone::66"
+   ],
+   "seed": "src/hashtable.cpp::probeHash::81",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callees",
+   "query_id": "cross_function-014"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions are called by both Board::currentlyInCheck and Board::makeMove?",
+   "relevance": {
+    "include/board.h::Board::isSqAttacked::84": 1.0,
+    "include/inline_functions.h::bsf::31": 1.0
+   },
+   "relevant_functions": [
+    "include/board.h::Board::isSqAttacked::84",
+    "include/inline_functions.h::bsf::31"
+   ],
+   "seed": "src/board.cpp::Board::currentlyInCheck::106",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callees",
+   "query_id": "cross_function-015"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions are called by both recordHash and Searcher::updateKillers?",
+   "relevance": {
+    "include/move.h::Move::isNone::66": 1.0
+   },
+   "relevant_functions": [
+    "include/move.h::Move::isNone::66"
+   ],
+   "seed": "src/hashtable.cpp::recordHash::114",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callees",
+   "query_id": "cross_function-016"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions are called by both getRookXrayAttacks and see?",
+   "relevance": {
+    "include/inline_functions.h::getRookAttacks::66": 1.0
+   },
+   "relevant_functions": [
+    "include/inline_functions.h::getRookAttacks::66"
+   ],
+   "seed": "include/inline_functions.h::getRookXrayAttacks::74",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callees",
+   "query_id": "cross_function-017"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions are called by both parseMove and Board::undo?",
+   "relevance": {
+    "include/move.h::Move::from::40": 1.0,
+    "include/move.h::Move::to::39": 1.0
+   },
+   "relevant_functions": [
+    "include/move.h::Move::from::40",
+    "include/move.h::Move::to::39"
+   ],
+   "seed": "src/misc.cpp::parseMove::135",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callees",
+   "query_id": "cross_function-018"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions are called by both evaluate and see?",
+   "relevance": {
+    "include/inline_functions.h::getBishopAttacks::52": 1.0,
+    "include/inline_functions.h::getRookAttacks::66": 1.0
+   },
+   "relevant_functions": [
+    "include/inline_functions.h::getBishopAttacks::52",
+    "include/inline_functions.h::getRookAttacks::66"
+   ],
+   "seed": "src/eval/evaluation.cpp::evaluate::35",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callees",
+   "query_id": "cross_function-019"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions are called by both probeHash and Board::undo?",
+   "relevance": {
+    "include/move.h::Move::isNone::66": 1.0
+   },
+   "relevant_functions": [
+    "include/move.h::Move::isNone::66"
+   ],
+   "seed": "src/hashtable.cpp::probeHash::81",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callees",
+   "query_id": "cross_function-020"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can reach Searcher::quiescenceSearch through at most two calls?",
+   "relevance": {
+    "src/search/search.cpp::Searcher::aspirationWindow::443": 1.0,
+    "src/search/search.cpp::Searcher::negamax::191": 2.0
+   },
+   "relevant_functions": [
+    "src/search/search.cpp::Searcher::aspirationWindow::443",
+    "src/search/search.cpp::Searcher::negamax::191"
+   ],
+   "seed": "src/search/search.cpp::Searcher::quiescenceSearch::105",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-001"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can reach Move::isEnPassant through at most two calls?",
+   "relevance": {
+    "src/search/movesort.cpp::Searcher::giveScores::104": 1.0,
+    "src/search/movesort.cpp::Searcher::scoreMove::66": 2.0,
+    "src/search/see.cpp::see::14": 2.0
+   },
+   "relevant_functions": [
+    "src/search/movesort.cpp::Searcher::giveScores::104",
+    "src/search/movesort.cpp::Searcher::scoreMove::66",
+    "src/search/see.cpp::see::14"
+   ],
+   "seed": "include/move.h::Move::isEnPassant::50",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-002"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can be reached from Searcher::quiescenceSearch through at most two calls?",
+   "relevance": {
+    "include/move.h::Move::flags::42": 1.0,
+    "include/move.h::Move::Move::27": 2.0,
+    "include/move.h::Move::Move::31": 2.0,
+    "include/move.h::Move::isCapture::44": 2.0,
+    "include/move.h::Move::isQueenPromotion::49": 2.0
+   },
+   "relevant_functions": [
+    "include/move.h::Move::flags::42",
+    "include/move.h::Move::Move::27",
+    "include/move.h::Move::Move::31",
+    "include/move.h::Move::isCapture::44",
+    "include/move.h::Move::isQueenPromotion::49"
+   ],
+   "seed": "src/search/search.cpp::Searcher::quiescenceSearch::105",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-003"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can be reached from initTranspositionTable through at most two calls?",
+   "relevance": {
+    "include/move.h::Move::Move::31": 1.0,
+    "src/hashtable.cpp::clearTranspositionTable::67": 2.0
+   },
+   "relevant_functions": [
+    "include/move.h::Move::Move::31",
+    "src/hashtable.cpp::clearTranspositionTable::67"
+   ],
+   "seed": "src/hashtable.cpp::initTranspositionTable::48",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-004"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can reach Move::to through at most two calls?",
+   "relevance": {
+    "src/search/movesort.cpp::Searcher::giveScores::104": 1.0,
+    "src/search/search.cpp::Searcher::negamax::191": 1.0,
+    "include/board.h::Board::getCapturedPiece::62": 2.0,
+    "src/misc.cpp::parseMove::135": 2.0,
+    "src/misc.cpp::printMove::81": 2.0,
+    "src/misc.cpp::printMovesList::122": 2.0,
+    "src/movegen/update.cpp::Board::makeMove::158": 2.0,
+    "src/movegen/update.cpp::Board::undo::87": 2.0,
+    "src/search/movesort.cpp::Searcher::scoreMove::66": 2.0,
+    "src/search/search.cpp::Searcher::updateHistory::78": 2.0,
+    "src/search/see.cpp::see::14": 2.0
+   },
+   "relevant_functions": [
+    "src/search/movesort.cpp::Searcher::giveScores::104",
+    "src/search/search.cpp::Searcher::negamax::191",
+    "include/board.h::Board::getCapturedPiece::62",
+    "src/misc.cpp::parseMove::135",
+    "src/misc.cpp::printMove::81",
+    "src/misc.cpp::printMovesList::122",
+    "src/movegen/update.cpp::Board::makeMove::158",
+    "src/movegen/update.cpp::Board::undo::87",
+    "src/search/movesort.cpp::Searcher::scoreMove::66",
+    "src/search/search.cpp::Searcher::updateHistory::78",
+    "src/search/see.cpp::see::14"
+   ],
+   "seed": "include/move.h::Move::to::39",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-005"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can be reached from Test::Debug::boardNonPawnMat through at most two calls?",
+   "relevance": {
+    "include/board.h::Board::resetBoard::44": 1.0,
+    "include/board.h::Board::Board::33": 2.0
+   },
+   "relevant_functions": [
+    "include/board.h::Board::resetBoard::44",
+    "include/board.h::Board::Board::33"
+   ],
+   "seed": "debug_tests/game_scenario.cpp::Test::Debug::boardNonPawnMat::43",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-006"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can reach Searcher::updateKillers through at most two calls?",
+   "relevance": {
+    "src/search/search.cpp::Searcher::aspirationWindow::443": 1.0,
+    "src/search/search.cpp::Searcher::negamax::191": 2.0
+   },
+   "relevant_functions": [
+    "src/search/search.cpp::Searcher::aspirationWindow::443",
+    "src/search/search.cpp::Searcher::negamax::191"
+   ],
+   "seed": "src/search/search.cpp::Searcher::updateKillers::63",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-007"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can be reached from Move::isNoisy through at most two calls?",
+   "relevance": {
+    "include/move.h::Move::flags::42": 1.0,
+    "include/move.h::Move::isCapture::44": 2.0,
+    "include/move.h::Move::isPromotion::48": 2.0
+   },
+   "relevant_functions": [
+    "include/move.h::Move::flags::42",
+    "include/move.h::Move::isCapture::44",
+    "include/move.h::Move::isPromotion::48"
+   ],
+   "seed": "include/move.h::Move::isNoisy::55",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-008"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can reach Move::isQueenPromotion through at most two calls?",
+   "relevance": {
+    "src/search/search.cpp::Searcher::negamax::191": 1.0,
+    "src/movegen/update.cpp::Board::makeMove::158": 2.0,
+    "src/search/search.cpp::Searcher::quiescenceSearch::105": 2.0
+   },
+   "relevant_functions": [
+    "src/search/search.cpp::Searcher::negamax::191",
+    "src/movegen/update.cpp::Board::makeMove::158",
+    "src/search/search.cpp::Searcher::quiescenceSearch::105"
+   ],
+   "seed": "include/move.h::Move::isQueenPromotion::49",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-009"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can reach bishopAttacksOnTheFly through at most two calls?",
+   "relevance": {
+    "src/init.cpp::initAll::428": 1.0,
+    "src/init.cpp::initSliderAttacks::291": 2.0
+   },
+   "relevant_functions": [
+    "src/init.cpp::initAll::428",
+    "src/init.cpp::initSliderAttacks::291"
+   ],
+   "seed": "src/init.cpp::bishopAttacksOnTheFly::213",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-010"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can be reached from Logger::logInfo through at most two calls?",
+   "relevance": {
+    "src/logger/logger.h::Logger::getCurrentTime::16": 1.0,
+    "src/logger/logger.h::Logger::log::75": 2.0
+   },
+   "relevant_functions": [
+    "src/logger/logger.h::Logger::getCurrentTime::16",
+    "src/logger/logger.h::Logger::log::75"
+   ],
+   "seed": "src/logger/logger.h::Logger::logInfo::108",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-011"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can reach setOccupancies through at most two calls?",
+   "relevance": {
+    "src/init.cpp::initAll::428": 1.0,
+    "src/init.cpp::initSliderAttacks::291": 2.0
+   },
+   "relevant_functions": [
+    "src/init.cpp::initAll::428",
+    "src/init.cpp::initSliderAttacks::291"
+   ],
+   "seed": "src/init.cpp::setOccupancies::269",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-012"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can reach rookAttacksOnTheFly through at most two calls?",
+   "relevance": {
+    "src/init.cpp::initAll::428": 1.0,
+    "src/init.cpp::initSliderAttacks::291": 2.0
+   },
+   "relevant_functions": [
+    "src/init.cpp::initAll::428",
+    "src/init.cpp::initSliderAttacks::291"
+   ],
+   "seed": "src/init.cpp::rookAttacksOnTheFly::241",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-013"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can reach Board::resetOcc through at most two calls?",
+   "relevance": {
+    "debug_tests/evaluation_tests.cpp::Test::Debug::mirrorEval::54": 1.0,
+    "debug_tests/evaluation_tests.cpp::swapColours::33": 2.0,
+    "src/movegen/update.cpp::Board::makeMove::158": 2.0,
+    "src/movegen/update.cpp::Board::undo::87": 2.0
+   },
+   "relevant_functions": [
+    "debug_tests/evaluation_tests.cpp::Test::Debug::mirrorEval::54",
+    "debug_tests/evaluation_tests.cpp::swapColours::33",
+    "src/movegen/update.cpp::Board::makeMove::158",
+    "src/movegen/update.cpp::Board::undo::87"
+   ],
+   "seed": "include/board.h::Board::resetOcc::54",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-014"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can reach maskPawnAttacks through at most two calls?",
+   "relevance": {
+    "src/init.cpp::initAll::428": 1.0,
+    "src/init.cpp::initLeaperPiecesAttacks::282": 2.0
+   },
+   "relevant_functions": [
+    "src/init.cpp::initAll::428",
+    "src/init.cpp::initLeaperPiecesAttacks::282"
+   ],
+   "seed": "src/init.cpp::maskPawnAttacks::123",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-015"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can reach pop_lsb through at most two calls?",
+   "relevance": {
+    "src/init.cpp::initSliderAttacks::291": 1.0,
+    "src/eval/evaluation.cpp::evaluate::35": 2.0,
+    "src/hashtable.cpp::generateHashKey::26": 2.0,
+    "src/init.cpp::setOccupancies::269": 2.0,
+    "src/movegen/movegen.cpp::Board::generateMoves::16": 2.0
+   },
+   "relevant_functions": [
+    "src/init.cpp::initSliderAttacks::291",
+    "src/eval/evaluation.cpp::evaluate::35",
+    "src/hashtable.cpp::generateHashKey::26",
+    "src/init.cpp::setOccupancies::269",
+    "src/movegen/movegen.cpp::Board::generateMoves::16"
+   ],
+   "seed": "include/inline_functions.h::pop_lsb::36",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-016"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can reach Searcher::resetGame through at most two calls?",
+   "relevance": {
+    "src/UCI.cpp::UCI::238": 1.0,
+    "benchmark_tests/search_and_eval.cpp::Test::BenchMark::staticSearch::71": 2.0,
+    "src/UCI.cpp::resetGameVariables::26": 2.0
+   },
+   "relevant_functions": [
+    "src/UCI.cpp::UCI::238",
+    "benchmark_tests/search_and_eval.cpp::Test::BenchMark::staticSearch::71",
+    "src/UCI.cpp::resetGameVariables::26"
+   ],
+   "seed": "src/search/search.h::Searcher::resetGame::64",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-017"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can be reached from initSliderAttacks through at most two calls?",
+   "relevance": {
+    "include/inline_functions.h::pop_lsb::36": 1.0,
+    "include/inline_functions.h::countBits::9": 2.0,
+    "src/init.cpp::bishopAttacksOnTheFly::213": 2.0,
+    "src/init.cpp::maskBishopMoves::182": 2.0,
+    "src/init.cpp::maskRookMoves::198": 2.0,
+    "src/init.cpp::rookAttacksOnTheFly::241": 2.0,
+    "src/init.cpp::setOccupancies::269": 2.0
+   },
+   "relevant_functions": [
+    "include/inline_functions.h::pop_lsb::36",
+    "include/inline_functions.h::countBits::9",
+    "src/init.cpp::bishopAttacksOnTheFly::213",
+    "src/init.cpp::maskBishopMoves::182",
+    "src/init.cpp::maskRookMoves::198",
+    "src/init.cpp::rookAttacksOnTheFly::241",
+    "src/init.cpp::setOccupancies::269"
+   ],
+   "seed": "src/init.cpp::initSliderAttacks::291",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-018"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can be reached from Searcher::aspirationWindow through at most two calls?",
+   "relevance": {
+    "include/move.h::Move::Move::27": 1.0,
+    "include/move.h::Move::isCapture::44": 1.0,
+    "include/move.h::Move::isNoisy::55": 1.0,
+    "src/search/search.cpp::Searcher::quiescenceSearch::105": 1.0,
+    "src/search/search.cpp::Searcher::updateHistory::78": 1.0,
+    "src/search/search.cpp::Searcher::updateKillers::63": 1.0,
+    "src/search/search.cpp::Searcher::negamax::191": 2.0
+   },
+   "relevant_functions": [
+    "include/move.h::Move::Move::27",
+    "include/move.h::Move::isCapture::44",
+    "include/move.h::Move::isNoisy::55",
+    "src/search/search.cpp::Searcher::quiescenceSearch::105",
+    "src/search/search.cpp::Searcher::updateHistory::78",
+    "src/search/search.cpp::Searcher::updateKillers::63",
+    "src/search/search.cpp::Searcher::negamax::191"
+   ],
+   "seed": "src/search/search.cpp::Searcher::aspirationWindow::443",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-019"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can reach maskKingMoves through at most two calls?",
+   "relevance": {
+    "src/init.cpp::initAll::428": 1.0,
+    "src/init.cpp::initLeaperPiecesAttacks::282": 2.0
+   },
+   "relevant_functions": [
+    "src/init.cpp::initAll::428",
+    "src/init.cpp::initLeaperPiecesAttacks::282"
+   ],
+   "seed": "src/init.cpp::maskKingMoves::162",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-020"
+  }
+ ]
+}

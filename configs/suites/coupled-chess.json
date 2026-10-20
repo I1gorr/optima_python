@@ -1,0 +1,34 @@
+{
+  "output_root": "experiments",
+  "embedding_cache": "experiments/_embedding_cache",
+  "bootstrap_samples": 10000,
+  "bootstrap_samples_per_run": 2000,
+  "groups": [
+    "coupled"
+  ],
+  "embedding_models": [
+    "bge-small",
+    "bge-base",
+    "qwen3-0.6b"
+  ],
+  "primary_embedding": "bge-base",
+  "rerankers": [],
+  "rerank_pool": 30,
+  "_comment": "Coupled chunk (enrichment + source in one document) vs separate raw/semantic indexes; structural benchmark; 4 enrichment models; no instruction prefixes, no routing. coupled_order variants are pre-specified (enrichment-first is the main variant).",
+  "suite_id": "coupled-chess-v1",
+  "datasets": [
+    {
+      "name": "chess",
+      "base_json": "optima_outputs/base/chess-engine-in-cpp-master/base.json",
+      "benchmark": "benchmarks/chess/structural_v1.json",
+      "enriched_dir": "output/chess Engine",
+      "primary_enrichment": "qwen-qwen2.5-coder-14b-instruct-chess",
+      "enrichment_models": [
+        "qwen-qwen2.5-coder-14b-instruct-chess",
+        "qwen-qwen2.5-14b-instruct-chess",
+        "qwen-qwen2.5-7b-instruct",
+        "mistralai-ministral-8b-instruct-2410"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,641 @@
+{
+ "schema_version": 1,
+ "benchmark_id": "chess-developer",
+ "query_set_version": "1.0.0",
+ "ground_truth_version": "1.0.0",
+ "project": "Chess-Engine-in-cpp-master",
+ "base_sha256": "4f647d32e73069a1a7245e066ff614efce65edccc74ff38d3058c271459cc634",
+ "created": "2026-10-11T13:00:05+00:00",
+ "generator": {
+  "module": "optima.rag.research.benchmark.build_developer_benchmark"
+ },
+ "labeling": {
+  "independence": "queries were written by hand as a developer would ask them; labels come from hand-resolved targets, source string literals or the resolved call graph; no LLM enrichment, embedding or retrieval output was used, and no system was run on these queries before they were fixed",
+  "review": "single annotator (AI-assisted authoring); not independently reviewed by a second person"
+ },
+ "categories": {
+  "vague_memory": "Half-remembered function ('the thing that ...')",
+  "task": "Task-oriented question ('how do I ...')",
+  "error_message": "Error text / log message / output string to code",
+  "concept": "Concept or mechanism to the code that implements it",
+  "impact": "Impact analysis: what uses / what does a function depend on"
+ },
+ "unsupported_categories": {},
+ "counts": {
+  "vague_memory": 8,
+  "task": 9,
+  "error_message": 7,
+  "concept": 8,
+  "impact": 6
+ },
+ "queries": [
+  {
+   "category": "vague_memory",
+   "query": "the function that prints the board with the unicode chess pieces",
+   "relevance": {
+    "src/misc.cpp::Board::printBoardFancy::42": 2.0
+   },
+   "relevant_functions": [
+    "src/misc.cpp::Board::printBoardFancy::42"
+   ],
+   "seed": "src/misc.cpp::Board::printBoardFancy::42",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "vague_memory-001"
+  },
+  {
+   "category": "vague_memory",
+   "query": "forgot the name of the bit scan function that finds the lowest set bit",
+   "relevance": {
+    "include/inline_functions.h::bsf::31": 2.0,
+    "include/inline_functions.h::pop_lsb::36": 1.0
+   },
+   "relevant_functions": [
+    "include/inline_functions.h::bsf::31",
+    "include/inline_functions.h::pop_lsb::36"
+   ],
+   "seed": "include/inline_functions.h::bsf::31",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "vague_memory-002"
+  },
+  {
+   "category": "vague_memory",
+   "query": "where is the zobrist hashing code",
+   "relevance": {
+    "src/hashtable.cpp::generateHashKey::26": 2.0,
+    "src/init.cpp::initRandomKeys::322": 1.0
+   },
+   "relevant_functions": [
+    "src/hashtable.cpp::generateHashKey::26",
+    "src/init.cpp::initRandomKeys::322"
+   ],
+   "seed": "src/hashtable.cpp::generateHashKey::26",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "vague_memory-003"
+  },
+  {
+   "category": "vague_memory",
+   "query": "the helper that turns a move string like e7e8q from the GUI into our move type",
+   "relevance": {
+    "src/misc.cpp::parseMove::135": 2.0
+   },
+   "relevant_functions": [
+    "src/misc.cpp::parseMove::135"
+   ],
+   "seed": "src/misc.cpp::parseMove::135",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "vague_memory-004"
+  },
+  {
+   "category": "vague_memory",
+   "query": "that function with the de Bruijn table",
+   "relevance": {
+    "include/inline_functions.h::bsf::31": 2.0
+   },
+   "relevant_functions": [
+    "include/inline_functions.h::bsf::31"
+   ],
+   "seed": "include/inline_functions.h::bsf::31",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "vague_memory-005"
+  },
+  {
+   "category": "vague_memory",
+   "query": "the tiny function that mirrors a square to the other side of the board",
+   "relevance": {
+    "src/eval/evaluation.cpp::flip::17": 2.0,
+    "debug_tests/evaluation_tests.cpp::flipVertical::16": 1.0
+   },
+   "relevant_functions": [
+    "src/eval/evaluation.cpp::flip::17",
+    "debug_tests/evaluation_tests.cpp::flipVertical::16"
+   ],
+   "seed": "src/eval/evaluation.cpp::flip::17",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "vague_memory-006"
+  },
+  {
+   "category": "vague_memory",
+   "query": "where do we stop thinking when the clock runs out",
+   "relevance": {
+    "src/search/time_manager.cpp::Searcher::isTimeUp::21": 2.0,
+    "src/search/time_manager.cpp::Searcher::calculateMoveTime::4": 1.0
+   },
+   "relevant_functions": [
+    "src/search/time_manager.cpp::Searcher::isTimeUp::21",
+    "src/search/time_manager.cpp::Searcher::calculateMoveTime::4"
+   ],
+   "seed": "src/search/time_manager.cpp::Searcher::isTimeUp::21",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "vague_memory-007"
+  },
+  {
+   "category": "vague_memory",
+   "query": "the logger method that prints warnings to the console",
+   "relevance": {
+    "src/logger/logger.h::Logger::logWarning::101": 2.0
+   },
+   "relevant_functions": [
+    "src/logger/logger.h::Logger::logWarning::101"
+   ],
+   "seed": "src/logger/logger.h::Logger::logWarning::101",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "vague_memory-008"
+  },
+  {
+   "category": "task",
+   "query": "how do I check if the side to move is in check",
+   "relevance": {
+    "src/board.cpp::Board::currentlyInCheck::106": 2.0,
+    "include/board.h::Board::isSqAttacked::84": 1.0
+   },
+   "relevant_functions": [
+    "src/board.cpp::Board::currentlyInCheck::106",
+    "include/board.h::Board::isSqAttacked::84"
+   ],
+   "seed": "src/board.cpp::Board::currentlyInCheck::106",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "task-001"
+  },
+  {
+   "category": "task",
+   "query": "how can I set up a position from a FEN string",
+   "relevance": {
+    "src/board.cpp::Board::parseFEN::43": 2.0,
+    "src/search/search.h::Searcher::parseFEN::58": 1.0
+   },
+   "relevant_functions": [
+    "src/board.cpp::Board::parseFEN::43",
+    "src/search/search.h::Searcher::parseFEN::58"
+   ],
+   "seed": "src/board.cpp::Board::parseFEN::43",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "task-002"
+  },
+  {
+   "category": "task",
+   "query": "how do I play a move on the board and then take it back",
+   "relevance": {
+    "src/movegen/update.cpp::Board::makeMove::158": 2.0,
+    "src/movegen/update.cpp::Board::undo::87": 2.0
+   },
+   "relevant_functions": [
+    "src/movegen/update.cpp::Board::makeMove::158",
+    "src/movegen/update.cpp::Board::undo::87"
+   ],
+   "seed": "src/movegen/update.cpp::Board::makeMove::158",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "task-003"
+  },
+  {
+   "category": "task",
+   "query": "how do I generate all the moves for the current position",
+   "relevance": {
+    "src/movegen/movegen.cpp::Board::generateMoves::16": 2.0
+   },
+   "relevant_functions": [
+    "src/movegen/movegen.cpp::Board::generateMoves::16"
+   ],
+   "seed": "src/movegen/movegen.cpp::Board::generateMoves::16",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "task-004"
+  },
+  {
+   "category": "task",
+   "query": "how do I run perft to validate the move generator",
+   "relevance": {
+    "benchmark_tests/perft_tests.cpp::Test::BenchMark::perft::60": 2.0,
+    "benchmark_tests/perft_tests.cpp::Test::BenchMark::perftDriver::36": 1.0,
+    "benchmark_tests/perft_tests.cpp::Test::BenchMark::standardPerft::107": 1.0
+   },
+   "relevant_functions": [
+    "benchmark_tests/perft_tests.cpp::Test::BenchMark::perft::60",
+    "benchmark_tests/perft_tests.cpp::Test::BenchMark::perftDriver::36",
+    "benchmark_tests/perft_tests.cpp::Test::BenchMark::standardPerft::107"
+   ],
+   "seed": "benchmark_tests/perft_tests.cpp::Test::BenchMark::perft::60",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "task-005"
+  },
+  {
+   "category": "task",
+   "query": "how do I change the hash size when the GUI sends the Hash option",
+   "relevance": {
+    "src/UCI.cpp::handleOption::103": 2.0,
+    "src/UCI.cpp::handleOption::66": 1.0,
+    "src/hashtable.cpp::initTranspositionTable::48": 1.0
+   },
+   "relevant_functions": [
+    "src/UCI.cpp::handleOption::103",
+    "src/UCI.cpp::handleOption::66",
+    "src/hashtable.cpp::initTranspositionTable::48"
+   ],
+   "seed": "src/UCI.cpp::handleOption::103",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "task-006"
+  },
+  {
+   "category": "task",
+   "query": "how is the go command with wtime and btime parsed",
+   "relevance": {
+    "src/UCI.cpp::handleGo::194": 2.0
+   },
+   "relevant_functions": [
+    "src/UCI.cpp::handleGo::194"
+   ],
+   "seed": "src/UCI.cpp::handleGo::194",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "task-007"
+  },
+  {
+   "category": "task",
+   "query": "how do I get the squares a queen attacks given the blockers",
+   "relevance": {
+    "include/inline_functions.h::getQueenAttacks::80": 2.0,
+    "include/inline_functions.h::getRookAttacks::66": 1.0,
+    "include/inline_functions.h::getBishopAttacks::52": 1.0
+   },
+   "relevant_functions": [
+    "include/inline_functions.h::getQueenAttacks::80",
+    "include/inline_functions.h::getRookAttacks::66",
+    "include/inline_functions.h::getBishopAttacks::52"
+   ],
+   "seed": "include/inline_functions.h::getQueenAttacks::80",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "task-008"
+  },
+  {
+   "category": "task",
+   "query": "how do I count the pieces on a bitboard",
+   "relevance": {
+    "include/inline_functions.h::countBits::9": 2.0
+   },
+   "relevant_functions": [
+    "include/inline_functions.h::countBits::9"
+   ],
+   "seed": "include/inline_functions.h::countBits::9",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "task-009"
+  },
+  {
+   "category": "error_message",
+   "query": "where does it print 'Failed to open the file.'",
+   "relevance": {
+    "benchmark_tests/perft_tests.cpp::Test::BenchMark::standardPerft::107": 2.0
+   },
+   "relevant_functions": [
+    "benchmark_tests/perft_tests.cpp::Test::BenchMark::standardPerft::107"
+   ],
+   "seed": "benchmark_tests/perft_tests.cpp::Test::BenchMark::standardPerft::107",
+   "label_source": "source_string_literal",
+   "notes": "",
+   "query_id": "error_message-001"
+  },
+  {
+   "category": "error_message",
+   "query": "where does the message 'Mismatch between eval of the same position with mirrored boards' come from",
+   "relevance": {
+    "debug_tests/evaluation_tests.cpp::Test::Debug::mirrorEval::54": 2.0
+   },
+   "relevant_functions": [
+    "debug_tests/evaluation_tests.cpp::Test::Debug::mirrorEval::54"
+   ],
+   "seed": "debug_tests/evaluation_tests.cpp::Test::Debug::mirrorEval::54",
+   "label_source": "source_string_literal",
+   "notes": "",
+   "query_id": "error_message-002"
+  },
+  {
+   "category": "error_message",
+   "query": "who prints 'Perft suite took'",
+   "relevance": {
+    "benchmark_tests/perft_tests.cpp::Test::BenchMark::standardPerft::107": 2.0
+   },
+   "relevant_functions": [
+    "benchmark_tests/perft_tests.cpp::Test::BenchMark::standardPerft::107"
+   ],
+   "seed": "benchmark_tests/perft_tests.cpp::Test::BenchMark::standardPerft::107",
+   "label_source": "source_string_literal",
+   "notes": "",
+   "query_id": "error_message-003"
+  },
+  {
+   "category": "error_message",
+   "query": "the GUI shows 'id name Aramis', which function sends that",
+   "relevance": {
+    "src/UCI.cpp::handleUci::31": 2.0
+   },
+   "relevant_functions": [
+    "src/UCI.cpp::handleUci::31"
+   ],
+   "seed": "src/UCI.cpp::handleUci::31",
+   "label_source": "source_string_literal",
+   "notes": "",
+   "query_id": "error_message-004"
+  },
+  {
+   "category": "error_message",
+   "query": "got 'Bug inside Board::currentlyInCheck()' in the test output, where is that raised",
+   "relevance": {
+    "debug_tests/game_scenario.cpp::Test::Debug::boardInCheck::27": 2.0
+   },
+   "relevant_functions": [
+    "debug_tests/game_scenario.cpp::Test::Debug::boardInCheck::27"
+   ],
+   "seed": "debug_tests/game_scenario.cpp::Test::Debug::boardInCheck::27",
+   "label_source": "source_string_literal",
+   "notes": "",
+   "query_id": "error_message-005"
+  },
+  {
+   "category": "error_message",
+   "query": "which function replies readyok",
+   "relevance": {
+    "src/UCI.cpp::handleIsReady::118": 2.0
+   },
+   "relevant_functions": [
+    "src/UCI.cpp::handleIsReady::118"
+   ],
+   "seed": "src/UCI.cpp::handleIsReady::118",
+   "label_source": "source_string_literal",
+   "notes": "",
+   "query_id": "error_message-006"
+  },
+  {
+   "category": "error_message",
+   "query": "where is 'promotionPiece: is wrong' printed",
+   "relevance": {
+    "include/move.h::Move::promotionPiece::60": 2.0
+   },
+   "relevant_functions": [
+    "include/move.h::Move::promotionPiece::60"
+   ],
+   "seed": "include/move.h::Move::promotionPiece::60",
+   "label_source": "source_string_literal",
+   "notes": "",
+   "query_id": "error_message-007"
+  },
+  {
+   "category": "concept",
+   "query": "how does the engine order moves before searching them",
+   "relevance": {
+    "src/search/movesort.cpp::Searcher::scoreMove::66": 2.0,
+    "src/search/movesort.cpp::Searcher::giveScores::104": 1.0,
+    "src/search/movesort.cpp::Searcher::pickBestMove::116": 1.0
+   },
+   "relevant_functions": [
+    "src/search/movesort.cpp::Searcher::scoreMove::66",
+    "src/search/movesort.cpp::Searcher::giveScores::104",
+    "src/search/movesort.cpp::Searcher::pickBestMove::116"
+   ],
+   "seed": "src/search/movesort.cpp::Searcher::scoreMove::66",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "concept-001"
+  },
+  {
+   "category": "concept",
+   "query": "how are repeated positions detected during the search",
+   "relevance": {
+    "src/search/search_helper.cpp::Searcher::isRepetition::27": 2.0
+   },
+   "relevant_functions": [
+    "src/search/search_helper.cpp::Searcher::isRepetition::27"
+   ],
+   "seed": "src/search/search_helper.cpp::Searcher::isRepetition::27",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "concept-002"
+  },
+  {
+   "category": "concept",
+   "query": "how does the transposition table store and look up positions",
+   "relevance": {
+    "src/hashtable.cpp::probeHash::81": 2.0,
+    "src/hashtable.cpp::recordHash::114": 2.0
+   },
+   "relevant_functions": [
+    "src/hashtable.cpp::probeHash::81",
+    "src/hashtable.cpp::recordHash::114"
+   ],
+   "seed": "src/hashtable.cpp::probeHash::81",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "concept-003"
+  },
+  {
+   "category": "concept",
+   "query": "how is the late move reduction table computed",
+   "relevance": {
+    "src/search/search.cpp::initSearchTables::54": 2.0
+   },
+   "relevant_functions": [
+    "src/search/search.cpp::initSearchTables::54"
+   ],
+   "seed": "src/search/search.cpp::initSearchTables::54",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "concept-004"
+  },
+  {
+   "category": "concept",
+   "query": "how does quiescence search avoid the horizon effect",
+   "relevance": {
+    "src/search/search.cpp::Searcher::quiescenceSearch::105": 2.0
+   },
+   "relevant_functions": [
+    "src/search/search.cpp::Searcher::quiescenceSearch::105"
+   ],
+   "seed": "src/search/search.cpp::Searcher::quiescenceSearch::105",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "concept-005"
+  },
+  {
+   "category": "concept",
+   "query": "how does evaluation blend middlegame and endgame scores by game phase",
+   "relevance": {
+    "src/eval/evaluation.cpp::evaluate::35": 2.0
+   },
+   "relevant_functions": [
+    "src/eval/evaluation.cpp::evaluate::35"
+   ],
+   "seed": "src/eval/evaluation.cpp::evaluate::35",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "concept-006"
+  },
+  {
+   "category": "concept",
+   "query": "static exchange evaluation to decide if a capture wins material",
+   "relevance": {
+    "src/search/see.cpp::see::14": 2.0
+   },
+   "relevant_functions": [
+    "src/search/see.cpp::see::14"
+   ],
+   "seed": "src/search/see.cpp::see::14",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "concept-007"
+  },
+  {
+   "category": "concept",
+   "query": "how are killer moves and the history heuristic updated after a cutoff",
+   "relevance": {
+    "src/search/search.cpp::Searcher::updateKillers::63": 2.0,
+    "src/search/search.cpp::Searcher::updateHistory::78": 2.0
+   },
+   "relevant_functions": [
+    "src/search/search.cpp::Searcher::updateKillers::63",
+    "src/search/search.cpp::Searcher::updateHistory::78"
+   ],
+   "seed": "src/search/search.cpp::Searcher::updateKillers::63",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "concept-008"
+  },
+  {
+   "category": "impact",
+   "query": "I want to change what resetGame does, who calls it?",
+   "relevance": {
+    "benchmark_tests/search_and_eval.cpp::Test::BenchMark::staticSearch::71": 1.0,
+    "src/UCI.cpp::resetGameVariables::26": 1.0
+   },
+   "relevant_functions": [
+    "benchmark_tests/search_and_eval.cpp::Test::BenchMark::staticSearch::71",
+    "src/UCI.cpp::resetGameVariables::26"
+   ],
+   "seed": "benchmark_tests/search_and_eval.cpp::Test::BenchMark::staticSearch::71",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "impact-001"
+  },
+  {
+   "category": "impact",
+   "query": "what depends on Timer::elapsed",
+   "relevance": {
+    "src/search/search.cpp::Searcher::iterativeDeepening::476": 1.0,
+    "benchmark_tests/search_and_eval.cpp::Test::BenchMark::staticEval::125": 1.0,
+    "src/search/search_helper.cpp::Searcher::sendUciInfo::40": 1.0,
+    "src/search/time_manager.cpp::Searcher::isTimeUp::21": 1.0
+   },
+   "relevant_functions": [
+    "src/search/search.cpp::Searcher::iterativeDeepening::476",
+    "benchmark_tests/search_and_eval.cpp::Test::BenchMark::staticEval::125",
+    "src/search/search_helper.cpp::Searcher::sendUciInfo::40",
+    "src/search/time_manager.cpp::Searcher::isTimeUp::21"
+   ],
+   "seed": "src/search/search.cpp::Searcher::iterativeDeepening::476",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "impact-002"
+  },
+  {
+   "category": "impact",
+   "query": "which functions use Move::isCapture",
+   "relevance": {
+    "src/movegen/update.cpp::Board::makeMove::158": 1.0,
+    "src/search/see.cpp::see::14": 1.0,
+    "src/search/search.cpp::Searcher::quiescenceSearch::105": 1.0,
+    "src/search/search.cpp::Searcher::negamax::191": 1.0,
+    "include/move.h::Move::isNoisy::55": 1.0,
+    "src/search/movesort.cpp::Searcher::scoreMove::66": 1.0
+   },
+   "relevant_functions": [
+    "src/movegen/update.cpp::Board::makeMove::158",
+    "src/search/see.cpp::see::14",
+    "src/search/search.cpp::Searcher::quiescenceSearch::105",
+    "src/search/search.cpp::Searcher::negamax::191",
+    "include/move.h::Move::isNoisy::55",
+    "src/search/movesort.cpp::Searcher::scoreMove::66"
+   ],
+   "seed": "src/movegen/update.cpp::Board::makeMove::158",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "impact-003"
+  },
+  {
+   "category": "impact",
+   "query": "I'm changing pop_lsb, what could break",
+   "relevance": {
+    "src/hashtable.cpp::generateHashKey::26": 1.0,
+    "src/init.cpp::setOccupancies::269": 1.0,
+    "src/eval/evaluation.cpp::evaluate::35": 1.0,
+    "src/movegen/movegen.cpp::Board::generateMoves::16": 1.0
+   },
+   "relevant_functions": [
+    "src/hashtable.cpp::generateHashKey::26",
+    "src/init.cpp::setOccupancies::269",
+    "src/eval/evaluation.cpp::evaluate::35",
+    "src/movegen/movegen.cpp::Board::generateMoves::16"
+   ],
+   "seed": "src/hashtable.cpp::generateHashKey::26",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "impact-004"
+  },
+  {
+   "category": "impact",
+   "query": "what does iterativeDeepening call",
+   "relevance": {
+    "src/search/search.h::Searcher::resetSearchStates::80": 1.0,
+    "src/search/search.cpp::Searcher::aspirationWindow::443": 1.0,
+    "include/timer.h::Timer::reset::15": 1.0,
+    "include/timer.h::Timer::elapsed::21": 1.0
+   },
+   "relevant_functions": [
+    "src/search/search.h::Searcher::resetSearchStates::80",
+    "src/search/search.cpp::Searcher::aspirationWindow::443",
+    "include/timer.h::Timer::reset::15",
+    "include/timer.h::Timer::elapsed::21"
+   ],
+   "seed": "src/search/search.h::Searcher::resetSearchStates::80",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "impact-005"
+  },
+  {
+   "category": "impact",
+   "query": "which helpers does evaluate rely on",
+   "relevance": {
+    "include/inline_functions.h::pop_lsb::36": 1.0,
+    "include/inline_functions.h::getBishopAttacks::52": 1.0,
+    "include/inline_functions.h::shiftLeft::43": 1.0,
+    "include/inline_functions.h::getRookAttacks::66": 1.0,
+    "include/inline_functions.h::countBits::9": 1.0,
+    "include/inline_functions.h::getQueenAttacks::80": 1.0,
+    "include/inline_functions.h::shiftRight::47": 1.0
+   },
+   "relevant_functions": [
+    "include/inline_functions.h::pop_lsb::36",
+    "include/inline_functions.h::getBishopAttacks::52",
+    "include/inline_functions.h::shiftLeft::43",
+    "include/inline_functions.h::getRookAttacks::66",
+    "include/inline_functions.h::countBits::9",
+    "include/inline_functions.h::getQueenAttacks::80",
+    "include/inline_functions.h::shiftRight::47"
+   ],
+   "seed": "include/inline_functions.h::pop_lsb::36",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "impact-006"
+  }
+ ]
+}

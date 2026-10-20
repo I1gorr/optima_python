@@ -1,0 +1,49 @@
+{
+  "output_root": "experiments_dev_compiler_on",
+  "embedding_cache": "experiments/_embedding_cache",
+  "bootstrap_samples": 10000,
+  "bootstrap_samples_per_run": 2000,
+  "groups": [
+    "attribution"
+  ],
+  "embedding_models": [
+    "bge-small",
+    "bge-base",
+    "qwen3-0.6b"
+  ],
+  "primary_embedding": "bge-base",
+  "rerankers": [],
+  "rerank_pool": 30,
+  "_comment": "HELD-OUT developer benchmark; 2x2x2 attribution with the compiler-text weight fixed at 1.0 in every query class (pre-specified, not tuned).",
+  "suite_id": "dev-xxhash-attrib-compiler-on-v1",
+  "datasets": [
+    {
+      "name": "xxhash",
+      "base_json": "optima_outputs/base/xxHash-dev/base.json",
+      "benchmark": "benchmarks/xxhash/developer_v1.json",
+      "enriched_dir": "output/xxhash",
+      "primary_enrichment": "qwen-qwen2.5-coder-14b-instruct-xhash",
+      "enrichment_models": [
+        "qwen-qwen2.5-coder-14b-instruct-xhash",
+        "qwen-qwen2.5-14b-instruct",
+        "qwen-qwen2.5-7b-instruct",
+        "mistralai-ministral-8b-instruct-2410"
+      ]
+    }
+  ],
+  "embedding_prefixes": {
+    "bge-small": {
+      "query": "Represent this sentence for searching relevant passages: ",
+      "document": ""
+    },
+    "bge-base": {
+      "query": "Represent this sentence for searching relevant passages: ",
+      "document": ""
+    },
+    "qwen3-0.6b": {
+      "query": "Instruct: Given a question about source code, retrieve the function that implements or answers it\nQuery: ",
+      "document": ""
+    }
+  },
+  "routing_profiles_file": "configs/routing_profiles_compiler_on.json"
+}

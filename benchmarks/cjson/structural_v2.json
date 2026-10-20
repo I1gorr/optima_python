@@ -1,0 +1,3868 @@
+{
+ "schema_version": 1,
+ "benchmark_id": "cjson-structural",
+ "query_set_version": "2.0.0",
+ "ground_truth_version": "2.0.0",
+ "project": "cJSON-master",
+ "base_sha256": "c445c7750f27287a3340f88a01c3232705325e33e7653f9126218c2cd2e2dcc9",
+ "created": "2026-10-11T10:57:27+00:00",
+ "generator": {
+  "module": "optima.rag.research.benchmark",
+  "seed": 13,
+  "per_category": 20
+ },
+ "labeling": {
+  "independence": "labels come from base.json (names, source text, resolved call edges, LLVM CFG) or were hand-authored; no LLM enrichment, embedding or retrieval output was used",
+  "behavioral_review": "single annotator (AI-assisted authoring); not independently reviewed by a second person",
+  "caveat": "structural categories are labelled from the same call graph used by graph expansion"
+ },
+ "categories": {
+  "exact_name": "Exact function-name lookup",
+  "identifier_api": "Identifier / API usage lookup",
+  "behavioral": "Natural-language behavioural description (hand-authored)",
+  "control_flow": "Control-flow questions answered from the LLVM CFG",
+  "caller": "Who calls function X (direct callers)",
+  "callee": "What does function X call (direct callees)",
+  "cross_function": "Cross-function tracing (common callers / callees)",
+  "multi_hop": "Multi-hop structural reachability (graded by hop count)"
+ },
+ "unsupported_categories": {
+  "dependency": "the `dependencies` field is empty for every function in base.json, so no dependency ground truth exists"
+ },
+ "counts": {
+  "exact_name": 20,
+  "identifier_api": 20,
+  "behavioral": 100,
+  "control_flow": 20,
+  "caller": 20,
+  "callee": 20,
+  "cross_function": 20,
+  "multi_hop": 20
+ },
+ "queries": [
+  {
+   "category": "exact_name",
+   "query": "Where is the function cjson_replace_item_in_object_should_preserve_name defined?",
+   "relevance": {
+    "tests/misc_tests.c::cjson_replace_item_in_object_should_preserve_name::362": 1.0
+   },
+   "relevant_functions": [
+    "tests/misc_tests.c::cjson_replace_item_in_object_should_preserve_name::362"
+   ],
+   "seed": "tests/misc_tests.c::cjson_replace_item_in_object_should_preserve_name::362",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-001"
+  },
+  {
+   "category": "exact_name",
+   "query": "Show me the implementation of testLessThanINT",
+   "relevance": {
+    "tests/unity/test/tests/testunity.c::testLessThanINT::1529": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/tests/testunity.c::testLessThanINT::1529"
+   ],
+   "seed": "tests/unity/test/tests/testunity.c::testLessThanINT::1529",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-002"
+  },
+  {
+   "category": "exact_name",
+   "query": "Find the definition of the FindFunction_WhichIsBroken function",
+   "relevance": {
+    "tests/unity/examples/example_1/src/ProductionCode.c::FindFunction_WhichIsBroken::11": 1.0,
+    "tests/unity/examples/example_2/src/ProductionCode.c::FindFunction_WhichIsBroken::11": 1.0,
+    "tests/unity/examples/example_3/src/ProductionCode.c::FindFunction_WhichIsBroken::11": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/examples/example_1/src/ProductionCode.c::FindFunction_WhichIsBroken::11",
+    "tests/unity/examples/example_2/src/ProductionCode.c::FindFunction_WhichIsBroken::11",
+    "tests/unity/examples/example_3/src/ProductionCode.c::FindFunction_WhichIsBroken::11"
+   ],
+   "seed": "tests/unity/examples/example_1/src/ProductionCode.c::FindFunction_WhichIsBroken::11",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-003"
+  },
+  {
+   "category": "exact_name",
+   "query": "Where is the function testDoubleIsNotNan2 defined?",
+   "relevance": {
+    "tests/unity/test/tests/testunity.c::testDoubleIsNotNan2::4851": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/tests/testunity.c::testDoubleIsNotNan2::4851"
+   ],
+   "seed": "tests/unity/test/tests/testunity.c::testDoubleIsNotNan2::4851",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-004"
+  },
+  {
+   "category": "exact_name",
+   "query": "Show me the implementation of TEST_LeakDetection_BufferOverrunFoundDuringRealloc_run",
+   "relevance": {
+    "tests/unity/extras/fixture/test/unity_fixture_Test.c::TEST_LeakDetection_BufferOverrunFoundDuringRealloc_run::404": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/extras/fixture/test/unity_fixture_Test.c::TEST_LeakDetection_BufferOverrunFoundDuringRealloc_run::404"
+   ],
+   "seed": "tests/unity/extras/fixture/test/unity_fixture_Test.c::TEST_LeakDetection_BufferOverrunFoundDuringRealloc_run::404",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-005"
+  },
+  {
+   "category": "exact_name",
+   "query": "Find the definition of the file_test1_should_be_parsed_and_printed function",
+   "relevance": {
+    "tests/parse_examples.c::file_test1_should_be_parsed_and_printed::109": 1.0
+   },
+   "relevant_functions": [
+    "tests/parse_examples.c::file_test1_should_be_parsed_and_printed::109"
+   ],
+   "seed": "tests/parse_examples.c::file_test1_should_be_parsed_and_printed::109",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-006"
+  },
+  {
+   "category": "exact_name",
+   "query": "Where is the function testNotEqualHEX16Arrays2 defined?",
+   "relevance": {
+    "tests/unity/test/tests/testunity.c::testNotEqualHEX16Arrays2::2790": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/tests/testunity.c::testNotEqualHEX16Arrays2::2790"
+   ],
+   "seed": "tests/unity/test/tests/testunity.c::testNotEqualHEX16Arrays2::2790",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-007"
+  },
+  {
+   "category": "exact_name",
+   "query": "Show me the implementation of testDoublesNotEqualNegative1",
+   "relevance": {
+    "tests/unity/test/tests/testunity.c::testDoublesNotEqualNegative1::4632": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/tests/testunity.c::testDoublesNotEqualNegative1::4632"
+   ],
+   "seed": "tests/unity/test/tests/testunity.c::testDoublesNotEqualNegative1::4632",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-008"
+  },
+  {
+   "category": "exact_name",
+   "query": "Find the definition of the parse_value_should_parse_number function",
+   "relevance": {
+    "tests/parse_value.c::parse_value_should_parse_number::73": 1.0
+   },
+   "relevant_functions": [
+    "tests/parse_value.c::parse_value_should_parse_number::73"
+   ],
+   "seed": "tests/parse_value.c::parse_value_should_parse_number::73",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-009"
+  },
+  {
+   "category": "exact_name",
+   "query": "Where is the function cJSON_ReplaceItemInObjectCaseSensitive defined?",
+   "relevance": {
+    "cJSON.c::cJSON_ReplaceItemInObjectCaseSensitive::2455": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_ReplaceItemInObjectCaseSensitive::2455"
+   ],
+   "seed": "cJSON.c::cJSON_ReplaceItemInObjectCaseSensitive::2455",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-010"
+  },
+  {
+   "category": "exact_name",
+   "query": "Show me the implementation of testFloatsNotEqualActualNaN",
+   "relevance": {
+    "tests/unity/test/tests/testunity.c::testFloatsNotEqualActualNaN::3862": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/tests/testunity.c::testFloatsNotEqualActualNaN::3862"
+   ],
+   "seed": "tests/unity/test/tests/testunity.c::testFloatsNotEqualActualNaN::3862",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-011"
+  },
+  {
+   "category": "exact_name",
+   "query": "Find the definition of the cJSON_AddNullToObject function",
+   "relevance": {
+    "cJSON.c::cJSON_AddNullToObject::2150": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_AddNullToObject::2150"
+   ],
+   "seed": "cJSON.c::cJSON_AddNullToObject::2150",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-012"
+  },
+  {
+   "category": "exact_name",
+   "query": "Where is the function testNotVanilla defined?",
+   "relevance": {
+    "tests/unity/test/tests/testunity.c::testNotVanilla::157": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/tests/testunity.c::testNotVanilla::157"
+   ],
+   "seed": "tests/unity/test/tests/testunity.c::testNotVanilla::157",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-013"
+  },
+  {
+   "category": "exact_name",
+   "query": "Show me the implementation of TEST_ProductionCode2_IgnoredTest_run",
+   "relevance": {
+    "tests/unity/examples/example_2/test/TestProductionCode2.c::TEST_ProductionCode2_IgnoredTest_run::20": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/examples/example_2/test/TestProductionCode2.c::TEST_ProductionCode2_IgnoredTest_run::20"
+   ],
+   "seed": "tests/unity/examples/example_2/test/TestProductionCode2.c::TEST_ProductionCode2_IgnoredTest_run::20",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-014"
+  },
+  {
+   "category": "exact_name",
+   "query": "Find the definition of the cjson_minify_should_not_loop_infinitely function",
+   "relevance": {
+    "tests/minify_tests.c::cjson_minify_should_not_loop_infinitely::155": 1.0
+   },
+   "relevant_functions": [
+    "tests/minify_tests.c::cjson_minify_should_not_loop_infinitely::155"
+   ],
+   "seed": "tests/minify_tests.c::cjson_minify_should_not_loop_infinitely::155",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-015"
+  },
+  {
+   "category": "exact_name",
+   "query": "Where is the function testDoublesNotEqualExpectedNaN defined?",
+   "relevance": {
+    "tests/unity/test/tests/testunity.c::testDoublesNotEqualExpectedNaN::4665": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/tests/testunity.c::testDoublesNotEqualExpectedNaN::4665"
+   ],
+   "seed": "tests/unity/test/tests/testunity.c::testDoublesNotEqualExpectedNaN::4665",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-016"
+  },
+  {
+   "category": "exact_name",
+   "query": "Show me the implementation of cJSON_IsBool",
+   "relevance": {
+    "cJSON.c::cJSON_IsBool::3003": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_IsBool::3003"
+   ],
+   "seed": "cJSON.c::cJSON_IsBool::3003",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-017"
+  },
+  {
+   "category": "exact_name",
+   "query": "Find the definition of the testDoublesNotEqual function",
+   "relevance": {
+    "tests/unity/test/tests/testunity.c::testDoublesNotEqual::4621": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/tests/testunity.c::testDoublesNotEqual::4621"
+   ],
+   "seed": "tests/unity/test/tests/testunity.c::testDoublesNotEqual::4621",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-018"
+  },
+  {
+   "category": "exact_name",
+   "query": "Where is the function compare_strings defined?",
+   "relevance": {
+    "cJSON_Utils.c::compare_strings::83": 1.0
+   },
+   "relevant_functions": [
+    "cJSON_Utils.c::compare_strings::83"
+   ],
+   "seed": "cJSON_Utils.c::compare_strings::83",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-019"
+  },
+  {
+   "category": "exact_name",
+   "query": "Show me the implementation of testEqualHEX16Arrays",
+   "relevance": {
+    "tests/unity/test/tests/testunity.c::testEqualHEX16Arrays::2766": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/tests/testunity.c::testEqualHEX16Arrays::2766"
+   ],
+   "seed": "tests/unity/test/tests/testunity.c::testEqualHEX16Arrays::2766",
+   "label_source": "name_equality",
+   "notes": "",
+   "query_id": "exact_name-020"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Which functions use the identifier UNITY_SET_DETAIL?",
+   "relevance": {
+    "tests/unity/test/tests/testunity.c::testThatDetailsCanBeHandleOneDetail::5286": 1.0,
+    "tests/unity/test/tests/testunity.c::testThatDetailsCanBeHandleSingleDetailClearingTwoDetails::5325": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/tests/testunity.c::testThatDetailsCanBeHandleOneDetail::5286",
+    "tests/unity/test/tests/testunity.c::testThatDetailsCanBeHandleSingleDetailClearingTwoDetails::5325"
+   ],
+   "seed": "tests/unity/test/tests/testunity.c::testThatDetailsCanBeHandleOneDetail::5286",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-001"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Find code that references after_inserted",
+   "relevance": {
+    "cJSON.c::cJSON_InsertItemInArray::2334": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_InsertItemInArray::2334"
+   ],
+   "seed": "cJSON.c::cJSON_InsertItemInArray::2334",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-002"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Where is TEST_ASSERT_FLOAT_IS_NOT_INF used?",
+   "relevance": {
+    "tests/unity/test/tests/testunity.c::testFloatIsNotPosInf2::4008": 1.0,
+    "tests/unity/test/tests/testunity.c::testFloatIsPosInf2::3966": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/tests/testunity.c::testFloatIsNotPosInf2::4008",
+    "tests/unity/test/tests/testunity.c::testFloatIsPosInf2::3966"
+   ],
+   "seed": "tests/unity/test/tests/testunity.c::testFloatIsNotPosInf2::4008",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-003"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Which functions use the identifier expected_json1?",
+   "relevance": {
+    "tests/misc_tests.c::cjson_delete_item_from_array_should_not_broken_list_structure::659": 1.0
+   },
+   "relevant_functions": [
+    "tests/misc_tests.c::cjson_delete_item_from_array_should_not_broken_list_structure::659"
+   ],
+   "seed": "tests/misc_tests.c::cjson_delete_item_from_array_should_not_broken_list_structure::659",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-004"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Find code that references expected_path",
+   "relevance": {
+    "tests/parse_examples.c::do_test::46": 1.0
+   },
+   "relevant_functions": [
+    "tests/parse_examples.c::do_test::46"
+   ],
+   "seed": "tests/parse_examples.c::do_test::46",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-005"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Where is MINSTD used?",
+   "relevance": {
+    "tests/unity/test/tests/testunity.c::testFloatPrintingRandomSamples::4557": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/tests/testunity.c::testFloatPrintingRandomSamples::4557"
+   ],
+   "seed": "tests/unity/test/tests/testunity.c::testFloatPrintingRandomSamples::4557",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-006"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Which functions use the identifier UNITY_SET_DETAILS?",
+   "relevance": {
+    "tests/unity/test/tests/testunity.c::testThatDetailsCanBeHandleSingleDetailClearingTwoDetails::5325": 1.0,
+    "tests/unity/test/tests/testunity.c::testThatDetailsCanBeHandleTwoDetails::5312": 1.0,
+    "tests/unity/test/tests/testunity.c::testThatDetailsCanHandleTestFail::5299": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/tests/testunity.c::testThatDetailsCanBeHandleSingleDetailClearingTwoDetails::5325",
+    "tests/unity/test/tests/testunity.c::testThatDetailsCanBeHandleTwoDetails::5312",
+    "tests/unity/test/tests/testunity.c::testThatDetailsCanHandleTestFail::5299"
+   ],
+   "seed": "tests/unity/test/tests/testunity.c::testThatDetailsCanBeHandleSingleDetailClearingTwoDetails::5325",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-007"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Find code that references UNITY_OUTPUT_START",
+   "relevance": {
+    "tests/unity/src/unity.c::UnityBegin::1349": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/src/unity.c::UnityBegin::1349"
+   ],
+   "seed": "tests/unity/src/unity.c::UnityBegin::1349",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-008"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Where is valid_big_number_json_object1 used?",
+   "relevance": {
+    "tests/misc_tests.c::cjson_parse_big_numbers_should_not_report_error::786": 1.0
+   },
+   "relevant_functions": [
+    "tests/misc_tests.c::cjson_parse_big_numbers_should_not_report_error::786"
+   ],
+   "seed": "tests/misc_tests.c::cjson_parse_big_numbers_should_not_report_error::786",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-009"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Which functions use the identifier assert_has_child?",
+   "relevance": {
+    "tests/parse_array.c::parse_array_should_parse_arrays_with_multiple_elements::104": 1.0,
+    "tests/parse_array.c::parse_array_should_parse_arrays_with_one_element::77": 1.0
+   },
+   "relevant_functions": [
+    "tests/parse_array.c::parse_array_should_parse_arrays_with_multiple_elements::104",
+    "tests/parse_array.c::parse_array_should_parse_arrays_with_one_element::77"
+   ],
+   "seed": "tests/parse_array.c::parse_array_should_parse_arrays_with_multiple_elements::104",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-010"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Find code that references xFF55AA00",
+   "relevance": {
+    "tests/unity/test/tests/testunity.c::testEqualBits::714": 1.0,
+    "tests/unity/test/tests/testunity.c::testNotEqualBitLow::739": 1.0,
+    "tests/unity/test/tests/testunity.c::testNotEqualBitsHigh::748": 1.0,
+    "tests/unity/test/tests/testunity.c::testNotEqualBitsLow::759": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/tests/testunity.c::testEqualBits::714",
+    "tests/unity/test/tests/testunity.c::testNotEqualBitLow::739",
+    "tests/unity/test/tests/testunity.c::testNotEqualBitsHigh::748",
+    "tests/unity/test/tests/testunity.c::testNotEqualBitsLow::759"
+   ],
+   "seed": "tests/unity/test/tests/testunity.c::testEqualBits::714",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-011"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Where is UNITY_FLOAT_IS_NOT_INF used?",
+   "relevance": {
+    "tests/unity/src/unity.c::UnityAssertDoubleSpecial::903": 1.0,
+    "tests/unity/src/unity.c::UnityAssertFloatSpecial::773": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/src/unity.c::UnityAssertDoubleSpecial::903",
+    "tests/unity/src/unity.c::UnityAssertFloatSpecial::773"
+   ],
+   "seed": "tests/unity/src/unity.c::UnityAssertDoubleSpecial::903",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-012"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Which functions use the identifier xFC5DAE0F?",
+   "relevance": {
+    "tests/unity/test/tests/testunity.c::testEqualBits::714": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/tests/testunity.c::testEqualBits::714"
+   ],
+   "seed": "tests/unity/test/tests/testunity.c::testEqualBits::714",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-013"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Find code that references TEST_ASSERT_LESS_THAN_INT32",
+   "relevance": {
+    "tests/unity/test/tests/testunity.c::testLessThanINT32::1578": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/tests/testunity.c::testLessThanINT32::1578"
+   ],
+   "seed": "tests/unity/test/tests/testunity.c::testLessThanINT32::1578",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-014"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Where is constant_key used?",
+   "relevance": {
+    "cJSON.c::add_item_to_object::2082": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::add_item_to_object::2082"
+   ],
+   "seed": "cJSON.c::add_item_to_object::2082",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-015"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Which functions use the identifier xFF55CC00?",
+   "relevance": {
+    "tests/unity/test/tests/testunity.c::testEqualBits::714": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/tests/testunity.c::testEqualBits::714"
+   ],
+   "seed": "tests/unity/test/tests/testunity.c::testEqualBits::714",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-016"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Find code that references UNITY_FLOAT_IS_NEG_INF",
+   "relevance": {
+    "tests/unity/src/unity.c::UnityAssertDoubleSpecial::903": 1.0,
+    "tests/unity/src/unity.c::UnityAssertFloatSpecial::773": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/src/unity.c::UnityAssertDoubleSpecial::903",
+    "tests/unity/src/unity.c::UnityAssertFloatSpecial::773"
+   ],
+   "seed": "tests/unity/src/unity.c::UnityAssertDoubleSpecial::903",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-017"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Where is second_sequence used?",
+   "relevance": {
+    "cJSON.c::utf16_literal_to_utf8::703": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::utf16_literal_to_utf8::703"
+   ],
+   "seed": "cJSON.c::utf16_literal_to_utf8::703",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-018"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Which functions use the identifier NumbersToFind?",
+   "relevance": {
+    "tests/unity/examples/example_1/src/ProductionCode.c::FindFunction_WhichIsBroken::11": 1.0,
+    "tests/unity/examples/example_2/src/ProductionCode.c::FindFunction_WhichIsBroken::11": 1.0,
+    "tests/unity/examples/example_3/src/ProductionCode.c::FindFunction_WhichIsBroken::11": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/examples/example_1/src/ProductionCode.c::FindFunction_WhichIsBroken::11",
+    "tests/unity/examples/example_2/src/ProductionCode.c::FindFunction_WhichIsBroken::11",
+    "tests/unity/examples/example_3/src/ProductionCode.c::FindFunction_WhichIsBroken::11"
+   ],
+   "seed": "tests/unity/examples/example_1/src/ProductionCode.c::FindFunction_WhichIsBroken::11",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-019"
+  },
+  {
+   "category": "identifier_api",
+   "query": "Find code that references test_14",
+   "relevance": {
+    "tests/parse_examples.c::test14_should_not_be_parsed::227": 1.0
+   },
+   "relevant_functions": [
+    "tests/parse_examples.c::test14_should_not_be_parsed::227"
+   ],
+   "seed": "tests/parse_examples.c::test14_should_not_be_parsed::227",
+   "label_source": "source_token_presence",
+   "notes": "",
+   "query_id": "identifier_api-020"
+  },
+  {
+   "category": "behavioral",
+   "query": "Parse a JSON text string into a tree of items",
+   "relevance": {
+    "cJSON.c::cJSON_Parse::1227": 2.0,
+    "cJSON.c::cJSON_ParseWithLength::1232": 2.0,
+    "cJSON.c::cJSON_ParseWithOpts::1131": 2.0,
+    "cJSON.c::cJSON_ParseWithLengthOpts::1147": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_Parse::1227",
+    "cJSON.c::cJSON_ParseWithLength::1232",
+    "cJSON.c::cJSON_ParseWithOpts::1131",
+    "cJSON.c::cJSON_ParseWithLengthOpts::1147"
+   ],
+   "seed": "cJSON.c::cJSON_Parse::1227",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-001"
+  },
+  {
+   "category": "behavioral",
+   "query": "Parse JSON text and report the position of the error when the input is malformed",
+   "relevance": {
+    "cJSON.c::cJSON_ParseWithOpts::1131": 2.0,
+    "cJSON.c::cJSON_ParseWithLengthOpts::1147": 2.0,
+    "cJSON.c::cJSON_GetErrorPtr::94": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_ParseWithOpts::1131",
+    "cJSON.c::cJSON_ParseWithLengthOpts::1147",
+    "cJSON.c::cJSON_GetErrorPtr::94"
+   ],
+   "seed": "cJSON.c::cJSON_ParseWithOpts::1131",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-002"
+  },
+  {
+   "category": "behavioral",
+   "query": "Serialize a tree back to text with indentation for readability",
+   "relevance": {
+    "cJSON.c::cJSON_Print::1307": 2.0,
+    "cJSON.c::cJSON_PrintBuffered::1317": 1.0,
+    "cJSON.c::print::1239": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_Print::1307",
+    "cJSON.c::cJSON_PrintBuffered::1317",
+    "cJSON.c::print::1239"
+   ],
+   "seed": "cJSON.c::cJSON_Print::1307",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-003"
+  },
+  {
+   "category": "behavioral",
+   "query": "Serialize a tree to text without any extra whitespace",
+   "relevance": {
+    "cJSON.c::cJSON_PrintUnformatted::1312": 2.0,
+    "cJSON.c::print::1239": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_PrintUnformatted::1312",
+    "cJSON.c::print::1239"
+   ],
+   "seed": "cJSON.c::cJSON_PrintUnformatted::1312",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-004"
+  },
+  {
+   "category": "behavioral",
+   "query": "Print into a caller supplied fixed size buffer without allocating",
+   "relevance": {
+    "cJSON.c::cJSON_PrintPreallocated::1348": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_PrintPreallocated::1348"
+   ],
+   "seed": "cJSON.c::cJSON_PrintPreallocated::1348",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-005"
+  },
+  {
+   "category": "behavioral",
+   "query": "Free an entire tree of items including all children",
+   "relevance": {
+    "cJSON.c::cJSON_Delete::253": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_Delete::253"
+   ],
+   "seed": "cJSON.c::cJSON_Delete::253",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-006"
+  },
+  {
+   "category": "behavioral",
+   "query": "Install custom memory allocation and deallocation functions",
+   "relevance": {
+    "cJSON.c::cJSON_InitHooks::209": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_InitHooks::209"
+   ],
+   "seed": "cJSON.c::cJSON_InitHooks::209",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-007"
+  },
+  {
+   "category": "behavioral",
+   "query": "Return how many elements an array holds",
+   "relevance": {
+    "cJSON.c::cJSON_GetArraySize::1899": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_GetArraySize::1899"
+   ],
+   "seed": "cJSON.c::cJSON_GetArraySize::1899",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-008"
+  },
+  {
+   "category": "behavioral",
+   "query": "Fetch an array element by its position",
+   "relevance": {
+    "cJSON.c::cJSON_GetArrayItem::1941": 2.0,
+    "cJSON.c::get_array_item::1922": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_GetArrayItem::1941",
+    "cJSON.c::get_array_item::1922"
+   ],
+   "seed": "cJSON.c::cJSON_GetArrayItem::1941",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-009"
+  },
+  {
+   "category": "behavioral",
+   "query": "Look up a member of an object by key ignoring letter case",
+   "relevance": {
+    "cJSON.c::cJSON_GetObjectItem::1983": 2.0,
+    "cJSON.c::get_object_item::1951": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_GetObjectItem::1983",
+    "cJSON.c::get_object_item::1951"
+   ],
+   "seed": "cJSON.c::cJSON_GetObjectItem::1983",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-010"
+  },
+  {
+   "category": "behavioral",
+   "query": "Look up an object member requiring an exact case sensitive key match",
+   "relevance": {
+    "cJSON.c::cJSON_GetObjectItemCaseSensitive::1988": 2.0,
+    "cJSON.c::get_object_item::1951": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_GetObjectItemCaseSensitive::1988",
+    "cJSON.c::get_object_item::1951"
+   ],
+   "seed": "cJSON.c::cJSON_GetObjectItemCaseSensitive::1988",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-011"
+  },
+  {
+   "category": "behavioral",
+   "query": "Check whether an object contains a given key",
+   "relevance": {
+    "cJSON.c::cJSON_HasObjectItem::1993": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_HasObjectItem::1993"
+   ],
+   "seed": "cJSON.c::cJSON_HasObjectItem::1993",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-012"
+  },
+  {
+   "category": "behavioral",
+   "query": "Append an item to the end of an array",
+   "relevance": {
+    "cJSON.c::cJSON_AddItemToArray::2061": 2.0,
+    "cJSON.c::add_item_to_array::2027": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_AddItemToArray::2061",
+    "cJSON.c::add_item_to_array::2027"
+   ],
+   "seed": "cJSON.c::cJSON_AddItemToArray::2061",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-013"
+  },
+  {
+   "category": "behavioral",
+   "query": "Attach a child item to an object under a name",
+   "relevance": {
+    "cJSON.c::cJSON_AddItemToObject::2119": 2.0,
+    "cJSON.c::cJSON_AddItemToObjectCS::2125": 1.0,
+    "cJSON.c::add_item_to_object::2082": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_AddItemToObject::2119",
+    "cJSON.c::cJSON_AddItemToObjectCS::2125",
+    "cJSON.c::add_item_to_object::2082"
+   ],
+   "seed": "cJSON.c::cJSON_AddItemToObject::2119",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-014"
+  },
+  {
+   "category": "behavioral",
+   "query": "Create a numeric member and add it to an object in a single step",
+   "relevance": {
+    "cJSON.c::cJSON_AddNumberToObject::2198": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_AddNumberToObject::2198"
+   ],
+   "seed": "cJSON.c::cJSON_AddNumberToObject::2198",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-015"
+  },
+  {
+   "category": "behavioral",
+   "query": "Create a string member and add it to an object in a single step",
+   "relevance": {
+    "cJSON.c::cJSON_AddStringToObject::2210": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_AddStringToObject::2210"
+   ],
+   "seed": "cJSON.c::cJSON_AddStringToObject::2210",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-016"
+  },
+  {
+   "category": "behavioral",
+   "query": "Create a boolean member and add it to an object",
+   "relevance": {
+    "cJSON.c::cJSON_AddBoolToObject::2186": 2.0,
+    "cJSON.c::cJSON_AddTrueToObject::2162": 1.0,
+    "cJSON.c::cJSON_AddFalseToObject::2174": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_AddBoolToObject::2186",
+    "cJSON.c::cJSON_AddTrueToObject::2162",
+    "cJSON.c::cJSON_AddFalseToObject::2174"
+   ],
+   "seed": "cJSON.c::cJSON_AddBoolToObject::2186",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-017"
+  },
+  {
+   "category": "behavioral",
+   "query": "Remove an item from an array and hand it back without freeing it",
+   "relevance": {
+    "cJSON.c::cJSON_DetachItemFromArray::2294": 2.0,
+    "cJSON.c::cJSON_DetachItemViaPointer::2258": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_DetachItemFromArray::2294",
+    "cJSON.c::cJSON_DetachItemViaPointer::2258"
+   ],
+   "seed": "cJSON.c::cJSON_DetachItemFromArray::2294",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-018"
+  },
+  {
+   "category": "behavioral",
+   "query": "Remove an object member by key and free it",
+   "relevance": {
+    "cJSON.c::cJSON_DeleteItemFromObject::2323": 2.0,
+    "cJSON.c::cJSON_DeleteItemFromObjectCaseSensitive::2328": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_DeleteItemFromObject::2323",
+    "cJSON.c::cJSON_DeleteItemFromObjectCaseSensitive::2328"
+   ],
+   "seed": "cJSON.c::cJSON_DeleteItemFromObject::2323",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-019"
+  },
+  {
+   "category": "behavioral",
+   "query": "Insert an item at a given index shifting the following elements",
+   "relevance": {
+    "cJSON.c::cJSON_InsertItemInArray::2334": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_InsertItemInArray::2334"
+   ],
+   "seed": "cJSON.c::cJSON_InsertItemInArray::2334",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-020"
+  },
+  {
+   "category": "behavioral",
+   "query": "Replace an existing array element with a new item",
+   "relevance": {
+    "cJSON.c::cJSON_ReplaceItemInArray::2417": 2.0,
+    "cJSON.c::cJSON_ReplaceItemViaPointer::2368": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_ReplaceItemInArray::2417",
+    "cJSON.c::cJSON_ReplaceItemViaPointer::2368"
+   ],
+   "seed": "cJSON.c::cJSON_ReplaceItemInArray::2417",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-021"
+  },
+  {
+   "category": "behavioral",
+   "query": "Make a deep copy of a tree",
+   "relevance": {
+    "cJSON.c::cJSON_Duplicate::2784": 2.0,
+    "cJSON.c::cJSON_Duplicate_rec::2789": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_Duplicate::2784",
+    "cJSON.c::cJSON_Duplicate_rec::2789"
+   ],
+   "seed": "cJSON.c::cJSON_Duplicate::2784",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-022"
+  },
+  {
+   "category": "behavioral",
+   "query": "Strip whitespace and comments from a JSON string in place",
+   "relevance": {
+    "cJSON.c::cJSON_Minify::2924": 2.0,
+    "cJSON.c::minify_string::2902": 1.0,
+    "cJSON.c::skip_oneline_comment::2875": 1.0,
+    "cJSON.c::skip_multiline_comment::2888": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_Minify::2924",
+    "cJSON.c::minify_string::2902",
+    "cJSON.c::skip_oneline_comment::2875",
+    "cJSON.c::skip_multiline_comment::2888"
+   ],
+   "seed": "cJSON.c::cJSON_Minify::2924",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-023"
+  },
+  {
+   "category": "behavioral",
+   "query": "Compare two trees for structural equality",
+   "relevance": {
+    "cJSON.c::cJSON_Compare::3072": 2.0,
+    "cJSON.c::compare_double::589": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_Compare::3072",
+    "cJSON.c::compare_double::589"
+   ],
+   "seed": "cJSON.c::cJSON_Compare::3072",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-024"
+  },
+  {
+   "category": "behavioral",
+   "query": "Test whether an item holds a number",
+   "relevance": {
+    "cJSON.c::cJSON_IsNumber::3022": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_IsNumber::3022"
+   ],
+   "seed": "cJSON.c::cJSON_IsNumber::3022",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-025"
+  },
+  {
+   "category": "behavioral",
+   "query": "Test whether an item holds a string",
+   "relevance": {
+    "cJSON.c::cJSON_IsString::3032": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_IsString::3032"
+   ],
+   "seed": "cJSON.c::cJSON_IsString::3032",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-026"
+  },
+  {
+   "category": "behavioral",
+   "query": "Build an array of integers from a plain C array",
+   "relevance": {
+    "cJSON.c::cJSON_CreateIntArray::2621": 2.0,
+    "cJSON.c::cJSON_CreateFloatArray::2661": 1.0,
+    "cJSON.c::cJSON_CreateDoubleArray::2701": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_CreateIntArray::2621",
+    "cJSON.c::cJSON_CreateFloatArray::2661",
+    "cJSON.c::cJSON_CreateDoubleArray::2701"
+   ],
+   "seed": "cJSON.c::cJSON_CreateIntArray::2621",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-027"
+  },
+  {
+   "category": "behavioral",
+   "query": "Decode a quoted string literal handling escape sequences and unicode surrogate pairs",
+   "relevance": {
+    "cJSON.c::parse_string::824": 2.0,
+    "cJSON.c::utf16_literal_to_utf8::703": 2.0,
+    "cJSON.c::parse_hex4::666": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::parse_string::824",
+    "cJSON.c::utf16_literal_to_utf8::703",
+    "cJSON.c::parse_hex4::666"
+   ],
+   "seed": "cJSON.c::parse_string::824",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-028"
+  },
+  {
+   "category": "behavioral",
+   "query": "Convert a number into its text representation",
+   "relevance": {
+    "cJSON.c::print_number::596": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::print_number::596"
+   ],
+   "seed": "cJSON.c::print_number::596",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-029"
+  },
+  {
+   "category": "behavioral",
+   "query": "Enlarge the output buffer when printing needs more room",
+   "relevance": {
+    "cJSON.c::ensure::490": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::ensure::490"
+   ],
+   "seed": "cJSON.c::ensure::490",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-030"
+  },
+  {
+   "category": "behavioral",
+   "query": "Skip a byte order mark at the start of the input",
+   "relevance": {
+    "cJSON.c::skip_utf8_bom::1116": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::skip_utf8_bom::1116"
+   ],
+   "seed": "cJSON.c::skip_utf8_bom::1116",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-031"
+  },
+  {
+   "category": "behavioral",
+   "query": "Resolve a slash separated JSON Pointer path to an item inside a document",
+   "relevance": {
+    "cJSON_Utils.c::cJSONUtils_GetPointer::348": 2.0,
+    "cJSON_Utils.c::cJSONUtils_GetPointerCaseSensitive::353": 2.0,
+    "cJSON_Utils.c::get_item_from_pointer::301": 1.0
+   },
+   "relevant_functions": [
+    "cJSON_Utils.c::cJSONUtils_GetPointer::348",
+    "cJSON_Utils.c::cJSONUtils_GetPointerCaseSensitive::353",
+    "cJSON_Utils.c::get_item_from_pointer::301"
+   ],
+   "seed": "cJSON_Utils.c::cJSONUtils_GetPointer::348",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-032"
+  },
+  {
+   "category": "behavioral",
+   "query": "Compute the pointer path that leads to a given item",
+   "relevance": {
+    "cJSON_Utils.c::cJSONUtils_FindPointerFromObjectTo::198": 2.0,
+    "cJSON_Utils.c::encode_string_as_pointer::173": 1.0,
+    "cJSON_Utils.c::pointer_encoded_length::157": 1.0
+   },
+   "relevant_functions": [
+    "cJSON_Utils.c::cJSONUtils_FindPointerFromObjectTo::198",
+    "cJSON_Utils.c::encode_string_as_pointer::173",
+    "cJSON_Utils.c::pointer_encoded_length::157"
+   ],
+   "seed": "cJSON_Utils.c::cJSONUtils_FindPointerFromObjectTo::198",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-033"
+  },
+  {
+   "category": "behavioral",
+   "query": "Apply a list of patch operations to a document",
+   "relevance": {
+    "cJSON_Utils.c::cJSONUtils_ApplyPatches::1038": 2.0,
+    "cJSON_Utils.c::cJSONUtils_ApplyPatchesCaseSensitive::1067": 2.0,
+    "cJSON_Utils.c::apply_patch::807": 1.0
+   },
+   "relevant_functions": [
+    "cJSON_Utils.c::cJSONUtils_ApplyPatches::1038",
+    "cJSON_Utils.c::cJSONUtils_ApplyPatchesCaseSensitive::1067",
+    "cJSON_Utils.c::apply_patch::807"
+   ],
+   "seed": "cJSON_Utils.c::cJSONUtils_ApplyPatches::1038",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-034"
+  },
+  {
+   "category": "behavioral",
+   "query": "Produce a patch that describes the difference between two documents",
+   "relevance": {
+    "cJSON_Utils.c::cJSONUtils_GeneratePatches::1281": 2.0,
+    "cJSON_Utils.c::cJSONUtils_GeneratePatchesCaseSensitive::1296": 2.0,
+    "cJSON_Utils.c::create_patches::1141": 1.0
+   },
+   "relevant_functions": [
+    "cJSON_Utils.c::cJSONUtils_GeneratePatches::1281",
+    "cJSON_Utils.c::cJSONUtils_GeneratePatchesCaseSensitive::1296",
+    "cJSON_Utils.c::create_patches::1141"
+   ],
+   "seed": "cJSON_Utils.c::cJSONUtils_GeneratePatches::1281",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-035"
+  },
+  {
+   "category": "behavioral",
+   "query": "Merge a patch document into a target document",
+   "relevance": {
+    "cJSON_Utils.c::cJSONUtils_MergePatch::1385": 2.0,
+    "cJSON_Utils.c::cJSONUtils_MergePatchCaseSensitive::1390": 2.0,
+    "cJSON_Utils.c::merge_patch::1321": 1.0
+   },
+   "relevant_functions": [
+    "cJSON_Utils.c::cJSONUtils_MergePatch::1385",
+    "cJSON_Utils.c::cJSONUtils_MergePatchCaseSensitive::1390",
+    "cJSON_Utils.c::merge_patch::1321"
+   ],
+   "seed": "cJSON_Utils.c::cJSONUtils_MergePatch::1385",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-036"
+  },
+  {
+   "category": "behavioral",
+   "query": "Sort the members of an object alphabetically by key",
+   "relevance": {
+    "cJSON_Utils.c::cJSONUtils_SortObject::1311": 2.0,
+    "cJSON_Utils.c::cJSONUtils_SortObjectCaseSensitive::1316": 2.0,
+    "cJSON_Utils.c::sort_object::595": 1.0,
+    "cJSON_Utils.c::sort_list::484": 1.0
+   },
+   "relevant_functions": [
+    "cJSON_Utils.c::cJSONUtils_SortObject::1311",
+    "cJSON_Utils.c::cJSONUtils_SortObjectCaseSensitive::1316",
+    "cJSON_Utils.c::sort_object::595",
+    "cJSON_Utils.c::sort_list::484"
+   ],
+   "seed": "cJSON_Utils.c::cJSONUtils_SortObject::1311",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-037"
+  },
+  {
+   "category": "behavioral",
+   "query": "Return the library version as text",
+   "relevance": {
+    "cJSON.c::cJSON_Version::124": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_Version::124"
+   ],
+   "seed": "cJSON.c::cJSON_Version::124",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-038"
+  },
+  {
+   "category": "behavioral",
+   "query": "Change the string held by an existing item",
+   "relevance": {
+    "cJSON.c::cJSON_SetValuestring::435": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_SetValuestring::435"
+   ],
+   "seed": "cJSON.c::cJSON_SetValuestring::435",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-039"
+  },
+  {
+   "category": "behavioral",
+   "query": "Update the number stored in an item keeping the integer and floating point fields consistent",
+   "relevance": {
+    "cJSON.c::cJSON_SetNumberHelper::411": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_SetNumberHelper::411"
+   ],
+   "seed": "cJSON.c::cJSON_SetNumberHelper::411",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-040"
+  },
+  {
+   "category": "behavioral",
+   "query": "Allocate and zero a fresh item node using the configured allocator",
+   "relevance": {
+    "cJSON.c::cJSON_New_Item::241": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_New_Item::241"
+   ],
+   "seed": "cJSON.c::cJSON_New_Item::241",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-041"
+  },
+  {
+   "category": "behavioral",
+   "query": "Create an item that refers to an existing string without copying it",
+   "relevance": {
+    "cJSON.c::cJSON_CreateStringReference::2548": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_CreateStringReference::2548"
+   ],
+   "seed": "cJSON.c::cJSON_CreateStringReference::2548",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-042"
+  },
+  {
+   "category": "behavioral",
+   "query": "Return the text held by a string item, or nothing if the item is not a string",
+   "relevance": {
+    "cJSON.c::cJSON_GetStringValue::99": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_GetStringValue::99"
+   ],
+   "seed": "cJSON.c::cJSON_GetStringValue::99",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-043"
+  },
+  {
+   "category": "behavioral",
+   "query": "Return the number held by a numeric item",
+   "relevance": {
+    "cJSON.c::cJSON_GetNumberValue::109": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_GetNumberValue::109"
+   ],
+   "seed": "cJSON.c::cJSON_GetNumberValue::109",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-044"
+  },
+  {
+   "category": "behavioral",
+   "query": "Compare two strings ignoring the case of letters",
+   "relevance": {
+    "cJSON.c::case_insensitive_strcmp::133": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::case_insensitive_strcmp::133"
+   ],
+   "seed": "cJSON.c::case_insensitive_strcmp::133",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-045"
+  },
+  {
+   "category": "behavioral",
+   "query": "Make a heap copy of a text string using the configured allocator",
+   "relevance": {
+    "cJSON.c::cJSON_strdup::188": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_strdup::188"
+   ],
+   "seed": "cJSON.c::cJSON_strdup::188",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-046"
+  },
+  {
+   "category": "behavioral",
+   "query": "Determine which character the current locale uses as the decimal separator",
+   "relevance": {
+    "cJSON.c::get_decimal_point::279": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::get_decimal_point::279"
+   ],
+   "seed": "cJSON.c::get_decimal_point::279",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-047"
+  },
+  {
+   "category": "behavioral",
+   "query": "Read a numeric literal from the input text into a number item",
+   "relevance": {
+    "cJSON.c::parse_number::307": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::parse_number::307"
+   ],
+   "seed": "cJSON.c::parse_number::307",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-048"
+  },
+  {
+   "category": "behavioral",
+   "query": "Update the output offset after text was written into the print buffer",
+   "relevance": {
+    "cJSON.c::update_offset::576": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::update_offset::576"
+   ],
+   "seed": "cJSON.c::update_offset::576",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-049"
+  },
+  {
+   "category": "behavioral",
+   "query": "Write a string value with surrounding quotes and escape sequences",
+   "relevance": {
+    "cJSON.c::print_string_ptr::954": 2.0,
+    "cJSON.c::print_string::1076": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::print_string_ptr::954",
+    "cJSON.c::print_string::1076"
+   ],
+   "seed": "cJSON.c::print_string_ptr::954",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-050"
+  },
+  {
+   "category": "behavioral",
+   "query": "Advance the parse position past spaces, tabs and line breaks",
+   "relevance": {
+    "cJSON.c::buffer_skip_whitespace::1090": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::buffer_skip_whitespace::1090"
+   ],
+   "seed": "cJSON.c::buffer_skip_whitespace::1090",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-051"
+  },
+  {
+   "category": "behavioral",
+   "query": "Look at the first character of the input to decide which kind of value to parse",
+   "relevance": {
+    "cJSON.c::parse_value::1368": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::parse_value::1368"
+   ],
+   "seed": "cJSON.c::parse_value::1368",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-052"
+  },
+  {
+   "category": "behavioral",
+   "query": "Write a value of any type into the output buffer",
+   "relevance": {
+    "cJSON.c::print_value::1423": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::print_value::1423"
+   ],
+   "seed": "cJSON.c::print_value::1423",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-053"
+  },
+  {
+   "category": "behavioral",
+   "query": "Parse a bracketed list of comma separated values",
+   "relevance": {
+    "cJSON.c::parse_array::1497": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::parse_array::1497"
+   ],
+   "seed": "cJSON.c::parse_array::1497",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-054"
+  },
+  {
+   "category": "behavioral",
+   "query": "Parse a braced collection of name and value pairs",
+   "relevance": {
+    "cJSON.c::parse_object::1662": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::parse_object::1662"
+   ],
+   "seed": "cJSON.c::parse_object::1662",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-055"
+  },
+  {
+   "category": "behavioral",
+   "query": "Print an array as bracketed comma separated elements, optionally indented",
+   "relevance": {
+    "cJSON.c::print_array::1595": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::print_array::1595"
+   ],
+   "seed": "cJSON.c::print_array::1595",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-056"
+  },
+  {
+   "category": "behavioral",
+   "query": "Print an object as braced name and value pairs, optionally indented",
+   "relevance": {
+    "cJSON.c::print_object::1780": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::print_object::1780"
+   ],
+   "seed": "cJSON.c::print_object::1780",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-057"
+  },
+  {
+   "category": "behavioral",
+   "query": "Link two sibling items together in a list",
+   "relevance": {
+    "cJSON.c::suffix_object::1999": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::suffix_object::1999"
+   ],
+   "seed": "cJSON.c::suffix_object::1999",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-058"
+  },
+  {
+   "category": "behavioral",
+   "query": "Create an item that points at another item's contents without owning them",
+   "relevance": {
+    "cJSON.c::create_reference::2006": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::create_reference::2006"
+   ],
+   "seed": "cJSON.c::create_reference::2006",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-059"
+  },
+  {
+   "category": "behavioral",
+   "query": "Remove the const qualifier from a pointer",
+   "relevance": {
+    "cJSON.c::cast_away_const::2073": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cast_away_const::2073"
+   ],
+   "seed": "cJSON.c::cast_away_const::2073",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-060"
+  },
+  {
+   "category": "behavioral",
+   "query": "Add a null valued member with a given name to an object",
+   "relevance": {
+    "cJSON.c::cJSON_AddNullToObject::2150": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_AddNullToObject::2150"
+   ],
+   "seed": "cJSON.c::cJSON_AddNullToObject::2150",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-061"
+  },
+  {
+   "category": "behavioral",
+   "query": "Add a ready-made JSON text fragment under a name without parsing it",
+   "relevance": {
+    "cJSON.c::cJSON_AddRawToObject::2222": 2.0,
+    "cJSON.c::cJSON_CreateRaw::2581": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_AddRawToObject::2222",
+    "cJSON.c::cJSON_CreateRaw::2581"
+   ],
+   "seed": "cJSON.c::cJSON_AddRawToObject::2222",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-062"
+  },
+  {
+   "category": "behavioral",
+   "query": "Create an empty object and attach it under a name inside another object",
+   "relevance": {
+    "cJSON.c::cJSON_AddObjectToObject::2234": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_AddObjectToObject::2234"
+   ],
+   "seed": "cJSON.c::cJSON_AddObjectToObject::2234",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-063"
+  },
+  {
+   "category": "behavioral",
+   "query": "Create an empty array and attach it under a name inside an object",
+   "relevance": {
+    "cJSON.c::cJSON_AddArrayToObject::2246": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_AddArrayToObject::2246"
+   ],
+   "seed": "cJSON.c::cJSON_AddArrayToObject::2246",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-064"
+  },
+  {
+   "category": "behavioral",
+   "query": "Append a reference to an existing item to an array without copying the item",
+   "relevance": {
+    "cJSON.c::cJSON_AddItemReferenceToArray::2130": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_AddItemReferenceToArray::2130"
+   ],
+   "seed": "cJSON.c::cJSON_AddItemReferenceToArray::2130",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-065"
+  },
+  {
+   "category": "behavioral",
+   "query": "Remove an element at a given index from an array and free it",
+   "relevance": {
+    "cJSON.c::cJSON_DeleteItemFromArray::2304": 2.0,
+    "cJSON.c::cJSON_DetachItemFromArray::2294": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_DeleteItemFromArray::2304",
+    "cJSON.c::cJSON_DetachItemFromArray::2294"
+   ],
+   "seed": "cJSON.c::cJSON_DeleteItemFromArray::2304",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-066"
+  },
+  {
+   "category": "behavioral",
+   "query": "Detach a member from an object by name, ignoring letter case, and return it",
+   "relevance": {
+    "cJSON.c::cJSON_DetachItemFromObject::2309": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_DetachItemFromObject::2309"
+   ],
+   "seed": "cJSON.c::cJSON_DetachItemFromObject::2309",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-067"
+  },
+  {
+   "category": "behavioral",
+   "query": "Detach a member from an object by exact name and return it",
+   "relevance": {
+    "cJSON.c::cJSON_DetachItemFromObjectCaseSensitive::2316": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_DetachItemFromObjectCaseSensitive::2316"
+   ],
+   "seed": "cJSON.c::cJSON_DetachItemFromObjectCaseSensitive::2316",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-068"
+  },
+  {
+   "category": "behavioral",
+   "query": "Replace the member of an object that has a given name with a new item",
+   "relevance": {
+    "cJSON.c::replace_item_in_object::2427": 2.0,
+    "cJSON.c::cJSON_ReplaceItemInObject::2450": 1.0,
+    "cJSON.c::cJSON_ReplaceItemInObjectCaseSensitive::2455": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::replace_item_in_object::2427",
+    "cJSON.c::cJSON_ReplaceItemInObject::2450",
+    "cJSON.c::cJSON_ReplaceItemInObjectCaseSensitive::2455"
+   ],
+   "seed": "cJSON.c::replace_item_in_object::2427",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-069"
+  },
+  {
+   "category": "behavioral",
+   "query": "Create an item representing the boolean true",
+   "relevance": {
+    "cJSON.c::cJSON_CreateTrue::2472": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_CreateTrue::2472"
+   ],
+   "seed": "cJSON.c::cJSON_CreateTrue::2472",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-070"
+  },
+  {
+   "category": "behavioral",
+   "query": "Create an item representing the boolean false",
+   "relevance": {
+    "cJSON.c::cJSON_CreateFalse::2483": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_CreateFalse::2483"
+   ],
+   "seed": "cJSON.c::cJSON_CreateFalse::2483",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-071"
+  },
+  {
+   "category": "behavioral",
+   "query": "Create a boolean item from a C truth value",
+   "relevance": {
+    "cJSON.c::cJSON_CreateBool::2494": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_CreateBool::2494"
+   ],
+   "seed": "cJSON.c::cJSON_CreateBool::2494",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-072"
+  },
+  {
+   "category": "behavioral",
+   "query": "Create a number item from a double and also store a saturated integer view",
+   "relevance": {
+    "cJSON.c::cJSON_CreateNumber::2505": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_CreateNumber::2505"
+   ],
+   "seed": "cJSON.c::cJSON_CreateNumber::2505",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-073"
+  },
+  {
+   "category": "behavioral",
+   "query": "Create a string item that holds its own copy of the text",
+   "relevance": {
+    "cJSON.c::cJSON_CreateString::2531": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_CreateString::2531"
+   ],
+   "seed": "cJSON.c::cJSON_CreateString::2531",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-074"
+  },
+  {
+   "category": "behavioral",
+   "query": "Create an empty array item",
+   "relevance": {
+    "cJSON.c::cJSON_CreateArray::2598": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_CreateArray::2598"
+   ],
+   "seed": "cJSON.c::cJSON_CreateArray::2598",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-075"
+  },
+  {
+   "category": "behavioral",
+   "query": "Create an empty object item",
+   "relevance": {
+    "cJSON.c::cJSON_CreateObject::2609": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_CreateObject::2609"
+   ],
+   "seed": "cJSON.c::cJSON_CreateObject::2609",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-076"
+  },
+  {
+   "category": "behavioral",
+   "query": "Create an array item from a C array of text strings",
+   "relevance": {
+    "cJSON.c::cJSON_CreateStringArray::2741": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_CreateStringArray::2741"
+   ],
+   "seed": "cJSON.c::cJSON_CreateStringArray::2741",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-077"
+  },
+  {
+   "category": "behavioral",
+   "query": "Check whether an item is an array",
+   "relevance": {
+    "cJSON.c::cJSON_IsArray::3042": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_IsArray::3042"
+   ],
+   "seed": "cJSON.c::cJSON_IsArray::3042",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-078"
+  },
+  {
+   "category": "behavioral",
+   "query": "Check whether an item is an object",
+   "relevance": {
+    "cJSON.c::cJSON_IsObject::3052": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_IsObject::3052"
+   ],
+   "seed": "cJSON.c::cJSON_IsObject::3052",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-079"
+  },
+  {
+   "category": "behavioral",
+   "query": "Check whether an item holds raw unparsed JSON text",
+   "relevance": {
+    "cJSON.c::cJSON_IsRaw::3062": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_IsRaw::3062"
+   ],
+   "seed": "cJSON.c::cJSON_IsRaw::3062",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-080"
+  },
+  {
+   "category": "behavioral",
+   "query": "Check whether an item is the null value",
+   "relevance": {
+    "cJSON.c::cJSON_IsNull::3012": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_IsNull::3012"
+   ],
+   "seed": "cJSON.c::cJSON_IsNull::3012",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-081"
+  },
+  {
+   "category": "behavioral",
+   "query": "Check whether an item is either true or false",
+   "relevance": {
+    "cJSON.c::cJSON_IsBool::3003": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_IsBool::3003"
+   ],
+   "seed": "cJSON.c::cJSON_IsBool::3003",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-082"
+  },
+  {
+   "category": "behavioral",
+   "query": "Allocate memory through the library's replaceable allocator",
+   "relevance": {
+    "cJSON.c::cJSON_malloc::3197": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_malloc::3197"
+   ],
+   "seed": "cJSON.c::cJSON_malloc::3197",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-083"
+  },
+  {
+   "category": "behavioral",
+   "query": "Release memory through the library's replaceable deallocator",
+   "relevance": {
+    "cJSON.c::cJSON_free::3202": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_free::3202"
+   ],
+   "seed": "cJSON.c::cJSON_free::3202",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-084"
+  },
+  {
+   "category": "behavioral",
+   "query": "Compare two pointer path segments taking escape sequences into account",
+   "relevance": {
+    "cJSON_Utils.c::compare_pointers::120": 2.0
+   },
+   "relevant_functions": [
+    "cJSON_Utils.c::compare_pointers::120"
+   ],
+   "seed": "cJSON_Utils.c::compare_pointers::120",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-085"
+  },
+  {
+   "category": "behavioral",
+   "query": "Make a copy of a text string inside the utilities module",
+   "relevance": {
+    "cJSON_Utils.c::cJSONUtils_strdup::66": 2.0
+   },
+   "relevant_functions": [
+    "cJSON_Utils.c::cJSONUtils_strdup::66"
+   ],
+   "seed": "cJSON_Utils.c::cJSONUtils_strdup::66",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-086"
+  },
+  {
+   "category": "behavioral",
+   "query": "Compare two strings either case sensitively or not depending on a flag",
+   "relevance": {
+    "cJSON_Utils.c::compare_strings::83": 2.0
+   },
+   "relevant_functions": [
+    "cJSON_Utils.c::compare_strings::83"
+   ],
+   "seed": "cJSON_Utils.c::compare_strings::83",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-087"
+  },
+  {
+   "category": "behavioral",
+   "query": "Parse the decimal array index contained in a pointer segment",
+   "relevance": {
+    "cJSON_Utils.c::decode_array_index_from_pointer::274": 2.0
+   },
+   "relevant_functions": [
+    "cJSON_Utils.c::decode_array_index_from_pointer::274"
+   ],
+   "seed": "cJSON_Utils.c::decode_array_index_from_pointer::274",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-088"
+  },
+  {
+   "category": "behavioral",
+   "query": "Undo the escaping of tilde sequences in a pointer segment in place",
+   "relevance": {
+    "cJSON_Utils.c::decode_pointer_inplace::359": 2.0
+   },
+   "relevant_functions": [
+    "cJSON_Utils.c::decode_pointer_inplace::359"
+   ],
+   "seed": "cJSON_Utils.c::decode_pointer_inplace::359",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-089"
+  },
+  {
+   "category": "behavioral",
+   "query": "Detach the element found at the path given by a pointer",
+   "relevance": {
+    "cJSON_Utils.c::detach_path::430": 2.0,
+    "cJSON_Utils.c::detach_item_from_array::393": 1.0
+   },
+   "relevant_functions": [
+    "cJSON_Utils.c::detach_path::430",
+    "cJSON_Utils.c::detach_item_from_array::393"
+   ],
+   "seed": "cJSON_Utils.c::detach_path::430",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-090"
+  },
+  {
+   "category": "behavioral",
+   "query": "Compare two JSON values for deep equality while generating a patch",
+   "relevance": {
+    "cJSON_Utils.c::compare_json::604": 2.0
+   },
+   "relevant_functions": [
+    "cJSON_Utils.c::compare_json::604"
+   ],
+   "seed": "cJSON_Utils.c::compare_json::604",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-091"
+  },
+  {
+   "category": "behavioral",
+   "query": "Insert an element at a given index of an array shifting the following ones",
+   "relevance": {
+    "cJSON_Utils.c::insert_item_in_array::693": 2.0
+   },
+   "relevant_functions": [
+    "cJSON_Utils.c::insert_item_in_array::693"
+   ],
+   "seed": "cJSON_Utils.c::insert_item_in_array::693",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-092"
+  },
+  {
+   "category": "behavioral",
+   "query": "Decide which operation a patch entry requests such as add, remove or replace",
+   "relevance": {
+    "cJSON_Utils.c::decode_patch_operation::742": 2.0
+   },
+   "relevant_functions": [
+    "cJSON_Utils.c::decode_patch_operation::742"
+   ],
+   "seed": "cJSON_Utils.c::decode_patch_operation::742",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-093"
+  },
+  {
+   "category": "behavioral",
+   "query": "Overwrite an item in place with the contents of another item",
+   "relevance": {
+    "cJSON_Utils.c::overwrite_item::784": 2.0
+   },
+   "relevant_functions": [
+    "cJSON_Utils.c::overwrite_item::784"
+   ],
+   "seed": "cJSON_Utils.c::overwrite_item::784",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-094"
+  },
+  {
+   "category": "behavioral",
+   "query": "Build one patch operation entry with its operation name, path and value",
+   "relevance": {
+    "cJSON_Utils.c::compose_patch::1096": 2.0,
+    "cJSON_Utils.c::cJSONUtils_AddPatchToArray::1136": 1.0
+   },
+   "relevant_functions": [
+    "cJSON_Utils.c::compose_patch::1096",
+    "cJSON_Utils.c::cJSONUtils_AddPatchToArray::1136"
+   ],
+   "seed": "cJSON_Utils.c::compose_patch::1096",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-095"
+  },
+  {
+   "category": "behavioral",
+   "query": "Create a merge patch that describes the difference between two documents",
+   "relevance": {
+    "cJSON_Utils.c::generate_merge_patch::1395": 2.0,
+    "cJSON_Utils.c::cJSONUtils_GenerateMergePatch::1477": 1.0,
+    "cJSON_Utils.c::cJSONUtils_GenerateMergePatchCaseSensitive::1482": 1.0
+   },
+   "relevant_functions": [
+    "cJSON_Utils.c::generate_merge_patch::1395",
+    "cJSON_Utils.c::cJSONUtils_GenerateMergePatch::1477",
+    "cJSON_Utils.c::cJSONUtils_GenerateMergePatchCaseSensitive::1482"
+   ],
+   "seed": "cJSON_Utils.c::generate_merge_patch::1395",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-096"
+  },
+  {
+   "category": "behavioral",
+   "query": "Read the whole contents of a file into a newly allocated buffer",
+   "relevance": {
+    "fuzzing/afl.c::read_file::29": 2.0
+   },
+   "relevant_functions": [
+    "fuzzing/afl.c::read_file::29"
+   ],
+   "seed": "fuzzing/afl.c::read_file::29",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-097"
+  },
+  {
+   "category": "behavioral",
+   "query": "Fuzzer entry point that parses arbitrary bytes as JSON",
+   "relevance": {
+    "fuzzing/cjson_read_fuzzer.c::LLVMFuzzerTestOneInput::13": 2.0
+   },
+   "relevant_functions": [
+    "fuzzing/cjson_read_fuzzer.c::LLVMFuzzerTestOneInput::13"
+   ],
+   "seed": "fuzzing/cjson_read_fuzzer.c::LLVMFuzzerTestOneInput::13",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-098"
+  },
+  {
+   "category": "behavioral",
+   "query": "Build a sample document containing many different kinds of values for demonstration",
+   "relevance": {
+    "test.c::create_objects::109": 2.0
+   },
+   "relevant_functions": [
+    "test.c::create_objects::109"
+   ],
+   "seed": "test.c::create_objects::109",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-099"
+  },
+  {
+   "category": "behavioral",
+   "query": "Print a document into a preallocated buffer and report whether it fit",
+   "relevance": {
+    "test.c::print_preallocated::43": 2.0
+   },
+   "relevant_functions": [
+    "test.c::print_preallocated::43"
+   ],
+   "seed": "test.c::print_preallocated::43",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "behavioral-100"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which of the functions that call compare_strings contain a loop?",
+   "relevance": {
+    "cJSON_Utils.c::sort_list::484": 1.0
+   },
+   "relevant_functions": [
+    "cJSON_Utils.c::sort_list::484"
+   ],
+   "seed": "cJSON_Utils.c::compare_strings::83",
+   "label_source": "cfg_back_edge+call_graph",
+   "notes": "",
+   "query_id": "control_flow-001"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which of the functions that call cJSON_strdup contain a loop?",
+   "relevance": {
+    "cJSON.c::cJSON_Duplicate_rec::2789": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_Duplicate_rec::2789"
+   ],
+   "seed": "cJSON.c::cJSON_strdup::188",
+   "label_source": "cfg_back_edge+call_graph",
+   "notes": "",
+   "query_id": "control_flow-002"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which of the functions that call UnityDoublesWithin contain a loop?",
+   "relevance": {
+    "tests/unity/src/unity.c::UnityAssertEqualDoubleArray::842": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/src/unity.c::UnityAssertEqualDoubleArray::842"
+   ],
+   "seed": "tests/unity/src/unity.c::UnityDoublesWithin::836",
+   "label_source": "cfg_back_edge+call_graph",
+   "notes": "",
+   "query_id": "control_flow-003"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which of the functions that call assert_print_string contain a loop?",
+   "relevance": {
+    "tests/print_string.c::print_string_should_print_ascii::47": 1.0
+   },
+   "relevant_functions": [
+    "tests/print_string.c::print_string_should_print_ascii::47"
+   ],
+   "seed": "tests/print_string.c::assert_print_string::27",
+   "label_source": "cfg_back_edge+call_graph",
+   "notes": "",
+   "query_id": "control_flow-004"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which of the functions that call print_string_ptr contain a loop?",
+   "relevance": {
+    "cJSON.c::print_object::1780": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::print_object::1780"
+   ],
+   "seed": "cJSON.c::print_string_ptr::954",
+   "label_source": "cfg_back_edge+call_graph",
+   "notes": "",
+   "query_id": "control_flow-005"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which of the functions that call decode_array_index_from_pointer contain a loop?",
+   "relevance": {
+    "cJSON_Utils.c::get_item_from_pointer::301": 1.0
+   },
+   "relevant_functions": [
+    "cJSON_Utils.c::get_item_from_pointer::301"
+   ],
+   "seed": "cJSON_Utils.c::decode_array_index_from_pointer::274",
+   "label_source": "cfg_back_edge+call_graph",
+   "notes": "",
+   "query_id": "control_flow-006"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which of the functions that call reset contain a loop?",
+   "relevance": {
+    "tests/parse_array.c::parse_array_should_parse_arrays_with_multiple_elements::104": 1.0,
+    "tests/parse_object.c::parse_object_should_parse_objects_with_multiple_elements::107": 1.0
+   },
+   "relevant_functions": [
+    "tests/parse_array.c::parse_array_should_parse_arrays_with_multiple_elements::104",
+    "tests/parse_object.c::parse_object_should_parse_objects_with_multiple_elements::107"
+   ],
+   "seed": "tests/common.h::reset::29",
+   "label_source": "cfg_back_edge+call_graph",
+   "notes": "",
+   "query_id": "control_flow-007"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which of the functions that call buffer_skip_whitespace contain a loop?",
+   "relevance": {
+    "cJSON.c::parse_array::1497": 1.0,
+    "cJSON.c::parse_object::1662": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::parse_array::1497",
+    "cJSON.c::parse_object::1662"
+   ],
+   "seed": "cJSON.c::buffer_skip_whitespace::1090",
+   "label_source": "cfg_back_edge+call_graph",
+   "notes": "",
+   "query_id": "control_flow-008"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which of the functions that call assert_parse_array contain a loop?",
+   "relevance": {
+    "tests/parse_array.c::parse_array_should_parse_arrays_with_multiple_elements::104": 1.0
+   },
+   "relevant_functions": [
+    "tests/parse_array.c::parse_array_should_parse_arrays_with_multiple_elements::104"
+   ],
+   "seed": "tests/parse_array.c::assert_parse_array::56",
+   "label_source": "cfg_back_edge+call_graph",
+   "notes": "",
+   "query_id": "control_flow-009"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which of the functions that call UnityTestResultsFailBegin contain a loop?",
+   "relevance": {
+    "tests/unity/src/unity.c::UnityAssertEqualDoubleArray::842": 1.0,
+    "tests/unity/src/unity.c::UnityAssertEqualFloatArray::712": 1.0,
+    "tests/unity/src/unity.c::UnityAssertEqualIntArray::601": 1.0,
+    "tests/unity/src/unity.c::UnityAssertEqualMemory::1162": 1.0,
+    "tests/unity/src/unity.c::UnityAssertEqualString::1004": 1.0,
+    "tests/unity/src/unity.c::UnityAssertEqualStringArray::1083": 1.0,
+    "tests/unity/src/unity.c::UnityAssertEqualStringLen::1043": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/src/unity.c::UnityAssertEqualDoubleArray::842",
+    "tests/unity/src/unity.c::UnityAssertEqualFloatArray::712",
+    "tests/unity/src/unity.c::UnityAssertEqualIntArray::601",
+    "tests/unity/src/unity.c::UnityAssertEqualMemory::1162",
+    "tests/unity/src/unity.c::UnityAssertEqualString::1004",
+    "tests/unity/src/unity.c::UnityAssertEqualStringArray::1083",
+    "tests/unity/src/unity.c::UnityAssertEqualStringLen::1043"
+   ],
+   "seed": "tests/unity/src/unity.c::UnityTestResultsFailBegin::368",
+   "label_source": "cfg_back_edge+call_graph",
+   "notes": "",
+   "query_id": "control_flow-010"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which function in tests/misc_tests.c has the most complex control flow (highest cyclomatic complexity)?",
+   "relevance": {
+    "tests/misc_tests.c::cjson_functions_should_not_crash_with_null_pointers::384": 1.0
+   },
+   "relevant_functions": [
+    "tests/misc_tests.c::cjson_functions_should_not_crash_with_null_pointers::384"
+   ],
+   "seed": "tests/misc_tests.c::cjson_functions_should_not_crash_with_null_pointers::384",
+   "label_source": "cfg_cyclomatic",
+   "notes": "",
+   "query_id": "control_flow-011"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which function in tests/parse_examples.c has the most complex control flow (highest cyclomatic complexity)?",
+   "relevance": {
+    "tests/parse_examples.c::do_test::46": 1.0
+   },
+   "relevant_functions": [
+    "tests/parse_examples.c::do_test::46"
+   ],
+   "seed": "tests/parse_examples.c::do_test::46",
+   "label_source": "cfg_cyclomatic",
+   "notes": "",
+   "query_id": "control_flow-012"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which function in tests/print_object.c has the most complex control flow (highest cyclomatic complexity)?",
+   "relevance": {
+    "tests/print_object.c::assert_print_object::27": 1.0
+   },
+   "relevant_functions": [
+    "tests/print_object.c::assert_print_object::27"
+   ],
+   "seed": "tests/print_object.c::assert_print_object::27",
+   "label_source": "cfg_cyclomatic",
+   "notes": "",
+   "query_id": "control_flow-013"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which function in tests/parse_value.c has the most complex control flow (highest cyclomatic complexity)?",
+   "relevance": {
+    "tests/parse_value.c::assert_is_value::33": 1.0
+   },
+   "relevant_functions": [
+    "tests/parse_value.c::assert_is_value::33"
+   ],
+   "seed": "tests/parse_value.c::assert_is_value::33",
+   "label_source": "cfg_cyclomatic",
+   "notes": "",
+   "query_id": "control_flow-014"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which function in tests/readme_examples.c has the most complex control flow (highest cyclomatic complexity)?",
+   "relevance": {
+    "tests/readme_examples.c::supports_full_hd::169": 1.0
+   },
+   "relevant_functions": [
+    "tests/readme_examples.c::supports_full_hd::169"
+   ],
+   "seed": "tests/readme_examples.c::supports_full_hd::169",
+   "label_source": "cfg_cyclomatic",
+   "notes": "",
+   "query_id": "control_flow-015"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which function in tests/json_patch_tests.c has the most complex control flow (highest cyclomatic complexity)?",
+   "relevance": {
+    "tests/json_patch_tests.c::test_apply_patch::49": 1.0
+   },
+   "relevant_functions": [
+    "tests/json_patch_tests.c::test_apply_patch::49"
+   ],
+   "seed": "tests/json_patch_tests.c::test_apply_patch::49",
+   "label_source": "cfg_cyclomatic",
+   "notes": "",
+   "query_id": "control_flow-016"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which function in tests/unity/src/unity.c has the most complex control flow (highest cyclomatic complexity)?",
+   "relevance": {
+    "tests/unity/src/unity.c::UnityPrintFloat::266": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/src/unity.c::UnityPrintFloat::266"
+   ],
+   "seed": "tests/unity/src/unity.c::UnityPrintFloat::266",
+   "label_source": "cfg_cyclomatic",
+   "notes": "",
+   "query_id": "control_flow-017"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which function in tests/parse_number.c has the most complex control flow (highest cyclomatic complexity)?",
+   "relevance": {
+    "tests/parse_number.c::assert_is_number::33": 1.0
+   },
+   "relevant_functions": [
+    "tests/parse_number.c::assert_is_number::33"
+   ],
+   "seed": "tests/parse_number.c::assert_is_number::33",
+   "label_source": "cfg_cyclomatic",
+   "notes": "",
+   "query_id": "control_flow-018"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which function in tests/compare_tests.c has the most complex control flow (highest cyclomatic complexity)?",
+   "relevance": {
+    "tests/compare_tests.c::cjson_compare_should_compare_arrays::141": 1.0
+   },
+   "relevant_functions": [
+    "tests/compare_tests.c::cjson_compare_should_compare_arrays::141"
+   ],
+   "seed": "tests/compare_tests.c::cjson_compare_should_compare_arrays::141",
+   "label_source": "cfg_cyclomatic",
+   "notes": "",
+   "query_id": "control_flow-019"
+  },
+  {
+   "category": "control_flow",
+   "query": "Which function in tests/print_value.c has the most complex control flow (highest cyclomatic complexity)?",
+   "relevance": {
+    "tests/print_value.c::assert_print_value::31": 1.0
+   },
+   "relevant_functions": [
+    "tests/print_value.c::assert_print_value::31"
+   ],
+   "seed": "tests/print_value.c::assert_print_value::31",
+   "label_source": "cfg_cyclomatic",
+   "notes": "",
+   "query_id": "control_flow-020"
+  },
+  {
+   "category": "caller",
+   "query": "Which functions call cJSON_IsInvalid?",
+   "relevance": {
+    "tests/misc_tests.c::cjson_functions_should_not_crash_with_null_pointers::384": 1.0,
+    "tests/misc_tests.c::typecheck_functions_should_check_type::153": 1.0
+   },
+   "relevant_functions": [
+    "tests/misc_tests.c::cjson_functions_should_not_crash_with_null_pointers::384",
+    "tests/misc_tests.c::typecheck_functions_should_check_type::153"
+   ],
+   "seed": "cJSON.c::cJSON_IsInvalid::2972",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-001"
+  },
+  {
+   "category": "caller",
+   "query": "What are the direct callers of assert_is_value?",
+   "relevance": {
+    "tests/parse_value.c::assert_parse_value::44": 1.0
+   },
+   "relevant_functions": [
+    "tests/parse_value.c::assert_parse_value::44"
+   ],
+   "seed": "tests/parse_value.c::assert_is_value::33",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-002"
+  },
+  {
+   "category": "caller",
+   "query": "Find every function that invokes UnityPrintNumberHex",
+   "relevance": {
+    "tests/unity/src/unity.c::UnityPrint::70": 1.0,
+    "tests/unity/src/unity.c::UnityPrintLen::119": 1.0,
+    "tests/unity/src/unity.c::UnityPrintNumberByStyle::157": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/src/unity.c::UnityPrint::70",
+    "tests/unity/src/unity.c::UnityPrintLen::119",
+    "tests/unity/src/unity.c::UnityPrintNumberByStyle::157"
+   ],
+   "seed": "tests/unity/src/unity.c::UnityPrintNumberHex::210",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-003"
+  },
+  {
+   "category": "caller",
+   "query": "Which functions call assert_is_array?",
+   "relevance": {
+    "tests/parse_array.c::assert_parse_array::56": 1.0
+   },
+   "relevant_functions": [
+    "tests/parse_array.c::assert_parse_array::56"
+   ],
+   "seed": "tests/parse_array.c::assert_is_array::33",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-004"
+  },
+  {
+   "category": "caller",
+   "query": "What are the direct callers of release_memory?",
+   "relevance": {
+    "tests/unity/extras/fixture/src/unity_fixture.c::unity_free::243": 1.0,
+    "tests/unity/extras/fixture/src/unity_fixture.c::unity_realloc::268": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/extras/fixture/src/unity_fixture.c::unity_free::243",
+    "tests/unity/extras/fixture/src/unity_fixture.c::unity_realloc::268"
+   ],
+   "seed": "tests/unity/extras/fixture/src/unity_fixture.c::release_memory::227",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-005"
+  },
+  {
+   "category": "caller",
+   "query": "Find every function that invokes cJSON_CreateStringReference",
+   "relevance": {
+    "tests/misc_tests.c::cjson_create_string_reference_should_create_a_string_reference::576": 1.0,
+    "tests/misc_tests.c::cjson_set_bool_value_must_not_break_objects::728": 1.0,
+    "tests/misc_tests.c::cjson_set_valuestring_to_object_should_not_leak_memory::693": 1.0
+   },
+   "relevant_functions": [
+    "tests/misc_tests.c::cjson_create_string_reference_should_create_a_string_reference::576",
+    "tests/misc_tests.c::cjson_set_bool_value_must_not_break_objects::728",
+    "tests/misc_tests.c::cjson_set_valuestring_to_object_should_not_leak_memory::693"
+   ],
+   "seed": "cJSON.c::cJSON_CreateStringReference::2548",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-006"
+  },
+  {
+   "category": "caller",
+   "query": "Which functions call encode_string_as_pointer?",
+   "relevance": {
+    "cJSON_Utils.c::cJSONUtils_FindPointerFromObjectTo::198": 1.0,
+    "cJSON_Utils.c::compose_patch::1096": 1.0,
+    "cJSON_Utils.c::create_patches::1141": 1.0
+   },
+   "relevant_functions": [
+    "cJSON_Utils.c::cJSONUtils_FindPointerFromObjectTo::198",
+    "cJSON_Utils.c::compose_patch::1096",
+    "cJSON_Utils.c::create_patches::1141"
+   ],
+   "seed": "cJSON_Utils.c::encode_string_as_pointer::173",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-007"
+  },
+  {
+   "category": "caller",
+   "query": "What are the direct callers of assert_print_array?",
+   "relevance": {
+    "tests/print_array.c::print_array_should_print_arrays_with_multiple_elements::84": 1.0,
+    "tests/print_array.c::print_array_should_print_arrays_with_one_element::75": 1.0,
+    "tests/print_array.c::print_array_should_print_empty_arrays::70": 1.0
+   },
+   "relevant_functions": [
+    "tests/print_array.c::print_array_should_print_arrays_with_multiple_elements::84",
+    "tests/print_array.c::print_array_should_print_arrays_with_one_element::75",
+    "tests/print_array.c::print_array_should_print_empty_arrays::70"
+   ],
+   "seed": "tests/print_array.c::assert_print_array::27",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-008"
+  },
+  {
+   "category": "caller",
+   "query": "Find every function that invokes compare_json",
+   "relevance": {
+    "cJSON_Utils.c::apply_patch::807": 1.0,
+    "cJSON_Utils.c::generate_merge_patch::1395": 1.0
+   },
+   "relevant_functions": [
+    "cJSON_Utils.c::apply_patch::807",
+    "cJSON_Utils.c::generate_merge_patch::1395"
+   ],
+   "seed": "cJSON_Utils.c::compare_json::604",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-009"
+  },
+  {
+   "category": "caller",
+   "query": "Which functions call cJSON_CreateRaw?",
+   "relevance": {
+    "cJSON.c::cJSON_AddRawToObject::2222": 1.0,
+    "tests/misc_tests.c::cjson_functions_should_not_crash_with_null_pointers::384": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_AddRawToObject::2222",
+    "tests/misc_tests.c::cjson_functions_should_not_crash_with_null_pointers::384"
+   ],
+   "seed": "cJSON.c::cJSON_CreateRaw::2581",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-010"
+  },
+  {
+   "category": "caller",
+   "query": "What are the direct callers of test_generate_test?",
+   "relevance": {
+    "tests/json_patch_tests.c::cjson_utils_should_pass_json_patch_test_cjson_utils_tests::217": 1.0,
+    "tests/json_patch_tests.c::cjson_utils_should_pass_json_patch_test_spec_tests::200": 1.0,
+    "tests/json_patch_tests.c::cjson_utils_should_pass_json_patch_test_tests::183": 1.0
+   },
+   "relevant_functions": [
+    "tests/json_patch_tests.c::cjson_utils_should_pass_json_patch_test_cjson_utils_tests::217",
+    "tests/json_patch_tests.c::cjson_utils_should_pass_json_patch_test_spec_tests::200",
+    "tests/json_patch_tests.c::cjson_utils_should_pass_json_patch_test_tests::183"
+   ],
+   "seed": "tests/json_patch_tests.c::test_generate_test::122",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-011"
+  },
+  {
+   "category": "caller",
+   "query": "Find every function that invokes parse_string",
+   "relevance": {
+    "cJSON.c::parse_object::1662": 1.0,
+    "cJSON.c::parse_value::1368": 1.0,
+    "tests/parse_string.c::assert_not_parse_string::60": 1.0,
+    "tests/parse_string.c::assert_parse_string::46": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::parse_object::1662",
+    "cJSON.c::parse_value::1368",
+    "tests/parse_string.c::assert_not_parse_string::60",
+    "tests/parse_string.c::assert_parse_string::46"
+   ],
+   "seed": "cJSON.c::parse_string::824",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-012"
+  },
+  {
+   "category": "caller",
+   "query": "Which functions call selected?",
+   "relevance": {
+    "tests/unity/extras/fixture/src/unity_fixture.c::groupSelected::63": 1.0,
+    "tests/unity/extras/fixture/src/unity_fixture.c::testSelected::58": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/extras/fixture/src/unity_fixture.c::groupSelected::63",
+    "tests/unity/extras/fixture/src/unity_fixture.c::testSelected::58"
+   ],
+   "seed": "tests/unity/extras/fixture/src/unity_fixture.c::selected::51",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-013"
+  },
+  {
+   "category": "caller",
+   "query": "What are the direct callers of skip_oneline_comment?",
+   "relevance": {
+    "cJSON.c::cJSON_Minify::2924": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_Minify::2924"
+   ],
+   "seed": "cJSON.c::skip_oneline_comment::2875",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-014"
+  },
+  {
+   "category": "caller",
+   "query": "Find every function that invokes cJSON_HasObjectItem",
+   "relevance": {
+    "tests/misc_tests.c::cjson_functions_should_not_crash_with_null_pointers::384": 1.0
+   },
+   "relevant_functions": [
+    "tests/misc_tests.c::cjson_functions_should_not_crash_with_null_pointers::384"
+   ],
+   "seed": "cJSON.c::cJSON_HasObjectItem::1993",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-015"
+  },
+  {
+   "category": "caller",
+   "query": "Which functions call compare_strings?",
+   "relevance": {
+    "cJSON_Utils.c::compare_json::604": 1.0,
+    "cJSON_Utils.c::create_patches::1141": 1.0,
+    "cJSON_Utils.c::sort_list::484": 1.0
+   },
+   "relevant_functions": [
+    "cJSON_Utils.c::compare_json::604",
+    "cJSON_Utils.c::create_patches::1141",
+    "cJSON_Utils.c::sort_list::484"
+   ],
+   "seed": "cJSON_Utils.c::compare_strings::83",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-016"
+  },
+  {
+   "category": "caller",
+   "query": "What are the direct callers of UnityConcludeTest?",
+   "relevance": {
+    "tests/unity/src/unity.c::UnityDefaultTestRun::1330": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/src/unity.c::UnityDefaultTestRun::1330"
+   ],
+   "seed": "tests/unity/src/unity.c::UnityConcludeTest::376",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-017"
+  },
+  {
+   "category": "caller",
+   "query": "Find every function that invokes cJSON_AddNumberToObject",
+   "relevance": {
+    "tests/cjson_add.c::cjson_add_number_should_add_number::242": 1.0,
+    "tests/cjson_add.c::cjson_add_number_should_fail_on_allocation_failure::268": 1.0,
+    "tests/cjson_add.c::cjson_add_number_should_fail_with_null_pointers::258": 1.0,
+    "tests/readme_examples.c::create_monitor_with_helpers::117": 1.0
+   },
+   "relevant_functions": [
+    "tests/cjson_add.c::cjson_add_number_should_add_number::242",
+    "tests/cjson_add.c::cjson_add_number_should_fail_on_allocation_failure::268",
+    "tests/cjson_add.c::cjson_add_number_should_fail_with_null_pointers::258",
+    "tests/readme_examples.c::create_monitor_with_helpers::117"
+   ],
+   "seed": "cJSON.c::cJSON_AddNumberToObject::2198",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-018"
+  },
+  {
+   "category": "caller",
+   "query": "Which functions call skip_multiline_comment?",
+   "relevance": {
+    "cJSON.c::cJSON_Minify::2924": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_Minify::2924"
+   ],
+   "seed": "cJSON.c::skip_multiline_comment::2888",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-019"
+  },
+  {
+   "category": "caller",
+   "query": "What are the direct callers of cJSON_GetArraySize?",
+   "relevance": {
+    "tests/misc_tests.c::cjson_functions_should_not_crash_with_null_pointers::384": 1.0,
+    "tests/old_utils_tests.c::merge_patch_should_not_read_freed_memory_when_patch_is_subtree::192": 1.0
+   },
+   "relevant_functions": [
+    "tests/misc_tests.c::cjson_functions_should_not_crash_with_null_pointers::384",
+    "tests/old_utils_tests.c::merge_patch_should_not_read_freed_memory_when_patch_is_subtree::192"
+   ],
+   "seed": "cJSON.c::cJSON_GetArraySize::1899",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "caller-020"
+  },
+  {
+   "category": "callee",
+   "query": "Which functions does testFloatsNotEqualInfNaN call?",
+   "relevance": {
+    "tests/unity/test/tests/testunity.c::endPutcharSpy::3314": 1.0,
+    "tests/unity/test/tests/testunity.c::startPutcharSpy::3312": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/tests/testunity.c::endPutcharSpy::3314",
+    "tests/unity/test/tests/testunity.c::startPutcharSpy::3312"
+   ],
+   "seed": "tests/unity/test/tests/testunity.c::testFloatsNotEqualInfNaN::3893",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-001"
+  },
+  {
+   "category": "callee",
+   "query": "What functions are called directly by testNotEqualUINT16Arrays2?",
+   "relevance": {
+    "tests/unity/test/tests/testunity.c::endPutcharSpy::3314": 1.0,
+    "tests/unity/test/tests/testunity.c::startPutcharSpy::3312": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/tests/testunity.c::endPutcharSpy::3314",
+    "tests/unity/test/tests/testunity.c::startPutcharSpy::3312"
+   ],
+   "seed": "tests/unity/test/tests/testunity.c::testNotEqualUINT16Arrays2::2614",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-002"
+  },
+  {
+   "category": "callee",
+   "query": "List the callees of testDoublesNotEqualExpectedNaN",
+   "relevance": {
+    "tests/unity/test/tests/testunity.c::endPutcharSpy::3314": 1.0,
+    "tests/unity/test/tests/testunity.c::startPutcharSpy::3312": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/tests/testunity.c::endPutcharSpy::3314",
+    "tests/unity/test/tests/testunity.c::startPutcharSpy::3312"
+   ],
+   "seed": "tests/unity/test/tests/testunity.c::testDoublesNotEqualExpectedNaN::4665",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-003"
+  },
+  {
+   "category": "callee",
+   "query": "Which functions does parse_value_should_parse_string call?",
+   "relevance": {
+    "tests/common.h::reset::29": 1.0,
+    "tests/parse_value.c::assert_parse_value::44": 1.0
+   },
+   "relevant_functions": [
+    "tests/common.h::reset::29",
+    "tests/parse_value.c::assert_parse_value::44"
+   ],
+   "seed": "tests/parse_value.c::parse_value_should_parse_string::79",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-004"
+  },
+  {
+   "category": "callee",
+   "query": "What functions are called directly by cjson_add_null_should_add_null?",
+   "relevance": {
+    "cJSON.c::cJSON_AddNullToObject::2150": 1.0,
+    "cJSON.c::cJSON_CreateObject::2609": 1.0,
+    "cJSON.c::cJSON_Delete::253": 1.0,
+    "cJSON.c::cJSON_GetObjectItemCaseSensitive::1988": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_AddNullToObject::2150",
+    "cJSON.c::cJSON_CreateObject::2609",
+    "cJSON.c::cJSON_Delete::253",
+    "cJSON.c::cJSON_GetObjectItemCaseSensitive::1988"
+   ],
+   "seed": "tests/cjson_add.c::cjson_add_null_should_add_null::48",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-005"
+  },
+  {
+   "category": "callee",
+   "query": "List the callees of UnityFail",
+   "relevance": {
+    "tests/unity/src/unity.c::UnityPrint::70": 1.0,
+    "tests/unity/src/unity.c::UnityTestResultsBegin::357": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/src/unity.c::UnityPrint::70",
+    "tests/unity/src/unity.c::UnityTestResultsBegin::357"
+   ],
+   "seed": "tests/unity/src/unity.c::UnityFail::1280",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-006"
+  },
+  {
+   "category": "callee",
+   "query": "Which functions does parse_string_should_parse_bug_94 call?",
+   "relevance": {
+    "tests/common.h::reset::29": 1.0,
+    "tests/parse_string.c::assert_parse_string::46": 1.0
+   },
+   "relevant_functions": [
+    "tests/common.h::reset::29",
+    "tests/parse_string.c::assert_parse_string::46"
+   ],
+   "seed": "tests/parse_string.c::parse_string_should_parse_bug_94::115",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-007"
+  },
+  {
+   "category": "callee",
+   "query": "What functions are called directly by cJSON_CreateArrayReference?",
+   "relevance": {
+    "cJSON.c::cJSON_New_Item::241": 1.0,
+    "cJSON.c::cast_away_const::2073": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_New_Item::241",
+    "cJSON.c::cast_away_const::2073"
+   ],
+   "seed": "cJSON.c::cJSON_CreateArrayReference::2571",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-008"
+  },
+  {
+   "category": "callee",
+   "query": "List the callees of testUIntsNotWithinDeltaEvenThoughASignedIntWouldPassSmallFirstAndCustomMessage",
+   "relevance": {
+    "tests/unity/test/tests/testunity.c::endPutcharSpy::3314": 1.0,
+    "tests/unity/test/tests/testunity.c::startPutcharSpy::3312": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/tests/testunity.c::endPutcharSpy::3314",
+    "tests/unity/test/tests/testunity.c::startPutcharSpy::3312"
+   ],
+   "seed": "tests/unity/test/tests/testunity.c::testUIntsNotWithinDeltaEvenThoughASignedIntWouldPassSmallFirstAndCustomMessage::946",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-009"
+  },
+  {
+   "category": "callee",
+   "query": "Which functions does testNotEqualUINT32EachEqual3 call?",
+   "relevance": {
+    "tests/unity/test/tests/testunity.c::endPutcharSpy::3314": 1.0,
+    "tests/unity/test/tests/testunity.c::startPutcharSpy::3312": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/tests/testunity.c::endPutcharSpy::3314",
+    "tests/unity/test/tests/testunity.c::startPutcharSpy::3312"
+   ],
+   "seed": "tests/unity/test/tests/testunity.c::testNotEqualUINT32EachEqual3::2968",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-010"
+  },
+  {
+   "category": "callee",
+   "query": "What functions are called directly by testNotEqualFloatEachEqual1?",
+   "relevance": {
+    "tests/unity/test/tests/testunity.c::endPutcharSpy::3314": 1.0,
+    "tests/unity/test/tests/testunity.c::startPutcharSpy::3312": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/tests/testunity.c::endPutcharSpy::3314",
+    "tests/unity/test/tests/testunity.c::startPutcharSpy::3312"
+   ],
+   "seed": "tests/unity/test/tests/testunity.c::testNotEqualFloatEachEqual1::4346",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-011"
+  },
+  {
+   "category": "callee",
+   "query": "List the callees of testNotEqualHex16sIfSigned",
+   "relevance": {
+    "tests/unity/test/tests/testunity.c::endPutcharSpy::3314": 1.0,
+    "tests/unity/test/tests/testunity.c::startPutcharSpy::3312": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/tests/testunity.c::endPutcharSpy::3314",
+    "tests/unity/test/tests/testunity.c::startPutcharSpy::3312"
+   ],
+   "seed": "tests/unity/test/tests/testunity.c::testNotEqualHex16sIfSigned::361",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-012"
+  },
+  {
+   "category": "callee",
+   "query": "Which functions does testIgnoreMessage call?",
+   "relevance": {
+    "tests/unity/test/tests/testunity.c::endPutcharSpy::3314": 1.0,
+    "tests/unity/test/tests/testunity.c::startPutcharSpy::3312": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/tests/testunity.c::endPutcharSpy::3314",
+    "tests/unity/test/tests/testunity.c::startPutcharSpy::3312"
+   ],
+   "seed": "tests/unity/test/tests/testunity.c::testIgnoreMessage::234",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-013"
+  },
+  {
+   "category": "callee",
+   "query": "What functions are called directly by cjson_utils_functions_shouldnt_crash_with_null_pointers?",
+   "relevance": {
+    "cJSON.c::cJSON_CreateString::2531": 1.0,
+    "cJSON.c::cJSON_Delete::253": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_CreateString::2531",
+    "cJSON.c::cJSON_Delete::253"
+   ],
+   "seed": "tests/misc_utils_tests.c::cjson_utils_functions_shouldnt_crash_with_null_pointers::32",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-014"
+  },
+  {
+   "category": "callee",
+   "query": "List the callees of testNotEqualStringLen2",
+   "relevance": {
+    "tests/unity/test/tests/testunity.c::endPutcharSpy::3314": 1.0,
+    "tests/unity/test/tests/testunity.c::startPutcharSpy::3312": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/tests/testunity.c::endPutcharSpy::3314",
+    "tests/unity/test/tests/testunity.c::startPutcharSpy::3312"
+   ],
+   "seed": "tests/unity/test/tests/testunity.c::testNotEqualStringLen2::1771",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-015"
+  },
+  {
+   "category": "callee",
+   "query": "Which functions does testNotEqualUint64Arrays call?",
+   "relevance": {
+    "tests/unity/test/tests/testunity.c::endPutcharSpy::3314": 1.0,
+    "tests/unity/test/tests/testunity.c::startPutcharSpy::3312": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/tests/testunity.c::endPutcharSpy::3314",
+    "tests/unity/test/tests/testunity.c::startPutcharSpy::3312"
+   ],
+   "seed": "tests/unity/test/tests/testunity.c::testNotEqualUint64Arrays::3765",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-016"
+  },
+  {
+   "category": "callee",
+   "query": "What functions are called directly by cJSONUtils_MergePatch?",
+   "relevance": {
+    "cJSON_Utils.c::merge_patch::1321": 1.0
+   },
+   "relevant_functions": [
+    "cJSON_Utils.c::merge_patch::1321"
+   ],
+   "seed": "cJSON_Utils.c::cJSONUtils_MergePatch::1385",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-017"
+  },
+  {
+   "category": "callee",
+   "query": "List the callees of cjson_create_double_array_should_fail_on_allocation_failure",
+   "relevance": {
+    "cJSON.c::cJSON_CreateDoubleArray::2701": 1.0,
+    "cJSON.c::cJSON_InitHooks::209": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_CreateDoubleArray::2701",
+    "cJSON.c::cJSON_InitHooks::209"
+   ],
+   "seed": "tests/cjson_add.c::cjson_create_double_array_should_fail_on_allocation_failure::142",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-018"
+  },
+  {
+   "category": "callee",
+   "query": "Which functions does testNotEqualFloatArraysActualNull call?",
+   "relevance": {
+    "tests/unity/test/tests/testunity.c::endPutcharSpy::3314": 1.0,
+    "tests/unity/test/tests/testunity.c::startPutcharSpy::3312": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/tests/testunity.c::endPutcharSpy::3314",
+    "tests/unity/test/tests/testunity.c::startPutcharSpy::3312"
+   ],
+   "seed": "tests/unity/test/tests/testunity.c::testNotEqualFloatArraysActualNull::4179",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-019"
+  },
+  {
+   "category": "callee",
+   "query": "What functions are called directly by testNotEqualFloatArrays2?",
+   "relevance": {
+    "tests/unity/test/tests/testunity.c::endPutcharSpy::3314": 1.0,
+    "tests/unity/test/tests/testunity.c::startPutcharSpy::3312": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/tests/testunity.c::endPutcharSpy::3314",
+    "tests/unity/test/tests/testunity.c::startPutcharSpy::3312"
+   ],
+   "seed": "tests/unity/test/tests/testunity.c::testNotEqualFloatArrays2::4207",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "callee-020"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions call both cJSON_DeleteItemFromObjectCaseSensitive and cJSON_PrintUnformatted?",
+   "relevance": {
+    "tests/misc_tests.c::cjson_functions_should_not_crash_with_null_pointers::384": 1.0
+   },
+   "relevant_functions": [
+    "tests/misc_tests.c::cjson_functions_should_not_crash_with_null_pointers::384"
+   ],
+   "seed": "cJSON.c::cJSON_DeleteItemFromObjectCaseSensitive::2328",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callers",
+   "query_id": "cross_function-001"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions call both cJSON_AddItemToObjectCS and cJSON_IsArray?",
+   "relevance": {
+    "tests/misc_tests.c::cjson_functions_should_not_crash_with_null_pointers::384": 1.0
+   },
+   "relevant_functions": [
+    "tests/misc_tests.c::cjson_functions_should_not_crash_with_null_pointers::384"
+   ],
+   "seed": "cJSON.c::cJSON_AddItemToObjectCS::2125",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callers",
+   "query_id": "cross_function-002"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions call both cJSONUtils_strdup and decode_array_index_from_pointer?",
+   "relevance": {
+    "cJSON_Utils.c::apply_patch::807": 1.0,
+    "cJSON_Utils.c::detach_path::430": 1.0
+   },
+   "relevant_functions": [
+    "cJSON_Utils.c::apply_patch::807",
+    "cJSON_Utils.c::detach_path::430"
+   ],
+   "seed": "cJSON_Utils.c::cJSONUtils_strdup::66",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callers",
+   "query_id": "cross_function-003"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions call both cJSON_Minify and cJSON_ReplaceItemViaPointer?",
+   "relevance": {
+    "tests/misc_tests.c::cjson_functions_should_not_crash_with_null_pointers::384": 1.0
+   },
+   "relevant_functions": [
+    "tests/misc_tests.c::cjson_functions_should_not_crash_with_null_pointers::384"
+   ],
+   "seed": "cJSON.c::cJSON_Minify::2924",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callers",
+   "query_id": "cross_function-004"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions call both cJSON_Duplicate and cJSON_GetObjectItem?",
+   "relevance": {
+    "tests/misc_tests.c::cjson_functions_should_not_crash_with_null_pointers::384": 1.0
+   },
+   "relevant_functions": [
+    "tests/misc_tests.c::cjson_functions_should_not_crash_with_null_pointers::384"
+   ],
+   "seed": "cJSON.c::cJSON_Duplicate::2784",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callers",
+   "query_id": "cross_function-005"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions call both cJSON_GetErrorPtr and cJSON_IsString?",
+   "relevance": {
+    "tests/readme_examples.c::supports_full_hd::169": 1.0
+   },
+   "relevant_functions": [
+    "tests/readme_examples.c::supports_full_hd::169"
+   ],
+   "seed": "cJSON.c::cJSON_GetErrorPtr::94",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callers",
+   "query_id": "cross_function-006"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions call both cJSON_CreateStringArray and cJSON_IsBool?",
+   "relevance": {
+    "tests/misc_tests.c::cjson_functions_should_not_crash_with_null_pointers::384": 1.0
+   },
+   "relevant_functions": [
+    "tests/misc_tests.c::cjson_functions_should_not_crash_with_null_pointers::384"
+   ],
+   "seed": "cJSON.c::cJSON_CreateStringArray::2741",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callers",
+   "query_id": "cross_function-007"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions call both cJSON_InsertItemInArray and cJSON_IsRaw?",
+   "relevance": {
+    "tests/misc_tests.c::cjson_functions_should_not_crash_with_null_pointers::384": 1.0
+   },
+   "relevant_functions": [
+    "tests/misc_tests.c::cjson_functions_should_not_crash_with_null_pointers::384"
+   ],
+   "seed": "cJSON.c::cJSON_InsertItemInArray::2334",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callers",
+   "query_id": "cross_function-008"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions call both cJSON_AddItemReferenceToArray and cJSON_IsBool?",
+   "relevance": {
+    "tests/misc_tests.c::cjson_functions_should_not_crash_with_null_pointers::384": 1.0
+   },
+   "relevant_functions": [
+    "tests/misc_tests.c::cjson_functions_should_not_crash_with_null_pointers::384"
+   ],
+   "seed": "cJSON.c::cJSON_AddItemReferenceToArray::2130",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callers",
+   "query_id": "cross_function-009"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions call both cJSON_AddItemToArray and cJSON_PrintBuffered?",
+   "relevance": {
+    "tests/misc_tests.c::cjson_functions_should_not_crash_with_null_pointers::384": 1.0
+   },
+   "relevant_functions": [
+    "tests/misc_tests.c::cjson_functions_should_not_crash_with_null_pointers::384"
+   ],
+   "seed": "cJSON.c::cJSON_AddItemToArray::2061",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callers",
+   "query_id": "cross_function-010"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions are called by both testNotEqualString3 and testNotNullShouldFailIfNULL?",
+   "relevance": {
+    "tests/unity/test/tests/testunity.c::endPutcharSpy::3314": 1.0,
+    "tests/unity/test/tests/testunity.c::startPutcharSpy::3312": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/tests/testunity.c::endPutcharSpy::3314",
+    "tests/unity/test/tests/testunity.c::startPutcharSpy::3312"
+   ],
+   "seed": "tests/unity/test/tests/testunity.c::testNotEqualString3::1778",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callees",
+   "query_id": "cross_function-011"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions are called by both testNotEqualDoubleArraysActualNull and testNotEqualUINT8Arrays1?",
+   "relevance": {
+    "tests/unity/test/tests/testunity.c::endPutcharSpy::3314": 1.0,
+    "tests/unity/test/tests/testunity.c::startPutcharSpy::3312": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/tests/testunity.c::endPutcharSpy::3314",
+    "tests/unity/test/tests/testunity.c::startPutcharSpy::3312"
+   ],
+   "seed": "tests/unity/test/tests/testunity.c::testNotEqualDoubleArraysActualNull::4970",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callees",
+   "query_id": "cross_function-012"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions are called by both cJSON_add_array_should_add_array and cjson_utils_should_pass_json_patch_test_spec_tests?",
+   "relevance": {
+    "cJSON.c::cJSON_Delete::253": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_Delete::253"
+   ],
+   "seed": "tests/cjson_add.c::cJSON_add_array_should_add_array::390",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callees",
+   "query_id": "cross_function-013"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions are called by both testFloatsNotEqualActualNaN and testFloatsNotEqualExpectedNaN?",
+   "relevance": {
+    "tests/unity/test/tests/testunity.c::endPutcharSpy::3314": 1.0,
+    "tests/unity/test/tests/testunity.c::startPutcharSpy::3312": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/tests/testunity.c::endPutcharSpy::3314",
+    "tests/unity/test/tests/testunity.c::startPutcharSpy::3312"
+   ],
+   "seed": "tests/unity/test/tests/testunity.c::testFloatsNotEqualActualNaN::3862",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callees",
+   "query_id": "cross_function-014"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions are called by both testNotEqualStringArray2 and testNotEqualUINT32Arrays3?",
+   "relevance": {
+    "tests/unity/test/tests/testunity.c::endPutcharSpy::3314": 1.0,
+    "tests/unity/test/tests/testunity.c::startPutcharSpy::3312": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/tests/testunity.c::endPutcharSpy::3314",
+    "tests/unity/test/tests/testunity.c::startPutcharSpy::3312"
+   ],
+   "seed": "tests/unity/test/tests/testunity.c::testNotEqualStringArray2::1864",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callees",
+   "query_id": "cross_function-015"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions are called by both testDoublesNotEqualActualInf and testNotEqualHEXEachEqual3?",
+   "relevance": {
+    "tests/unity/test/tests/testunity.c::endPutcharSpy::3314": 1.0,
+    "tests/unity/test/tests/testunity.c::startPutcharSpy::3312": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/tests/testunity.c::endPutcharSpy::3314",
+    "tests/unity/test/tests/testunity.c::startPutcharSpy::3312"
+   ],
+   "seed": "tests/unity/test/tests/testunity.c::testDoublesNotEqualActualInf::4707",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callees",
+   "query_id": "cross_function-016"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions are called by both testHEX8sNotWithinDeltaAndCustomMessage and testNotEqualInt16s?",
+   "relevance": {
+    "tests/unity/test/tests/testunity.c::endPutcharSpy::3314": 1.0,
+    "tests/unity/test/tests/testunity.c::startPutcharSpy::3312": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/tests/testunity.c::endPutcharSpy::3314",
+    "tests/unity/test/tests/testunity.c::startPutcharSpy::3312"
+   ],
+   "seed": "tests/unity/test/tests/testunity.c::testHEX8sNotWithinDeltaAndCustomMessage::1078",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callees",
+   "query_id": "cross_function-017"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions are called by both parse_with_opts_should_handle_empty_strings and parse_with_opts_should_handle_incomplete_json?",
+   "relevance": {
+    "cJSON.c::cJSON_GetErrorPtr::94": 1.0,
+    "cJSON.c::cJSON_ParseWithOpts::1131": 1.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_GetErrorPtr::94",
+    "cJSON.c::cJSON_ParseWithOpts::1131"
+   ],
+   "seed": "tests/parse_with_opts.c::parse_with_opts_should_handle_empty_strings::39",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callees",
+   "query_id": "cross_function-018"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions are called by both testINT64sNotWithinDeltaAndDifferenceOverflows and testNotEqualHEX32EachEqual3?",
+   "relevance": {
+    "tests/unity/test/tests/testunity.c::endPutcharSpy::3314": 1.0,
+    "tests/unity/test/tests/testunity.c::startPutcharSpy::3312": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/tests/testunity.c::endPutcharSpy::3314",
+    "tests/unity/test/tests/testunity.c::startPutcharSpy::3312"
+   ],
+   "seed": "tests/unity/test/tests/testunity.c::testINT64sNotWithinDeltaAndDifferenceOverflows::3671",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callees",
+   "query_id": "cross_function-019"
+  },
+  {
+   "category": "cross_function",
+   "query": "Which functions are called by both testNotEqualIntArraysNullActual and testNotEqualIntArraysNullExpected?",
+   "relevance": {
+    "tests/unity/test/tests/testunity.c::endPutcharSpy::3314": 1.0,
+    "tests/unity/test/tests/testunity.c::startPutcharSpy::3312": 1.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/tests/testunity.c::endPutcharSpy::3314",
+    "tests/unity/test/tests/testunity.c::startPutcharSpy::3312"
+   ],
+   "seed": "tests/unity/test/tests/testunity.c::testNotEqualIntArraysNullActual::2059",
+   "label_source": "resolved_call_graph",
+   "notes": "common_callees",
+   "query_id": "cross_function-020"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can be reached from cjson_minify_should_remove_spaces through at most two calls?",
+   "relevance": {
+    "cJSON.c::minify_string::2902": 1.0,
+    "cJSON.c::skip_multiline_comment::2888": 1.0,
+    "cJSON.c::skip_oneline_comment::2875": 1.0,
+    "cJSON.c::cJSON_Minify::2924": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::minify_string::2902",
+    "cJSON.c::skip_multiline_comment::2888",
+    "cJSON.c::skip_oneline_comment::2875",
+    "cJSON.c::cJSON_Minify::2924"
+   ],
+   "seed": "tests/minify_tests.c::cjson_minify_should_remove_spaces::58",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-001"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can be reached from cjson_compare_should_compare_null through at most two calls?",
+   "relevance": {
+    "cJSON.c::cJSON_Compare::3072": 1.0,
+    "cJSON.c::cJSON_Delete::253": 1.0,
+    "cJSON.c::cJSON_Parse::1227": 1.0,
+    "tests/compare_tests.c::compare_from_string::27": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_Compare::3072",
+    "cJSON.c::cJSON_Delete::253",
+    "cJSON.c::cJSON_Parse::1227",
+    "tests/compare_tests.c::compare_from_string::27"
+   ],
+   "seed": "tests/compare_tests.c::cjson_compare_should_compare_null::92",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-002"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can reach assert_is_string through at most two calls?",
+   "relevance": {
+    "tests/parse_string.c::parse_string_should_parse_bug_94::115": 1.0,
+    "tests/parse_string.c::parse_string_should_parse_strings::73": 1.0,
+    "tests/parse_string.c::parse_string_should_parse_utf16_surrogate_pairs::87": 1.0,
+    "tests/parse_string.c::assert_parse_string::46": 2.0
+   },
+   "relevant_functions": [
+    "tests/parse_string.c::parse_string_should_parse_bug_94::115",
+    "tests/parse_string.c::parse_string_should_parse_strings::73",
+    "tests/parse_string.c::parse_string_should_parse_utf16_surrogate_pairs::87",
+    "tests/parse_string.c::assert_parse_string::46"
+   ],
+   "seed": "tests/parse_string.c::assert_is_string::33",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-003"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can be reached from assert_print_value through at most two calls?",
+   "relevance": {
+    "cJSON.c::cJSON_Delete::253": 1.0,
+    "cJSON.c::ensure::490": 1.0,
+    "cJSON.c::parse_array::1497": 1.0,
+    "cJSON.c::parse_number::307": 1.0,
+    "cJSON.c::parse_object::1662": 1.0,
+    "cJSON.c::parse_string::824": 1.0,
+    "cJSON.c::print_array::1595": 1.0,
+    "cJSON.c::print_number::596": 1.0,
+    "cJSON.c::print_object::1780": 1.0,
+    "cJSON.c::print_string::1076": 1.0,
+    "cJSON.c::parse_value::1368": 2.0,
+    "cJSON.c::print_value::1423": 2.0,
+    "tests/common.h::reset::29": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_Delete::253",
+    "cJSON.c::ensure::490",
+    "cJSON.c::parse_array::1497",
+    "cJSON.c::parse_number::307",
+    "cJSON.c::parse_object::1662",
+    "cJSON.c::parse_string::824",
+    "cJSON.c::print_array::1595",
+    "cJSON.c::print_number::596",
+    "cJSON.c::print_object::1780",
+    "cJSON.c::print_string::1076",
+    "cJSON.c::parse_value::1368",
+    "cJSON.c::print_value::1423",
+    "tests/common.h::reset::29"
+   ],
+   "seed": "tests/print_value.c::assert_print_value::31",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-004"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can be reached from cjson_set_valuestring_should_return_null_if_strings_overlap through at most two calls?",
+   "relevance": {
+    "cJSON.c::cJSON_ParseWithOpts::1131": 1.0,
+    "cJSON.c::cJSON_free::3202": 1.0,
+    "cJSON.c::cJSON_strdup::188": 1.0,
+    "cJSON.c::cJSON_Delete::253": 2.0,
+    "cJSON.c::cJSON_Parse::1227": 2.0,
+    "cJSON.c::cJSON_SetValuestring::435": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_ParseWithOpts::1131",
+    "cJSON.c::cJSON_free::3202",
+    "cJSON.c::cJSON_strdup::188",
+    "cJSON.c::cJSON_Delete::253",
+    "cJSON.c::cJSON_Parse::1227",
+    "cJSON.c::cJSON_SetValuestring::435"
+   ],
+   "seed": "tests/misc_tests.c::cjson_set_valuestring_should_return_null_if_strings_overlap::492",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-005"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can reach print through at most two calls?",
+   "relevance": {
+    "tests/json_patch_tests.c::test_generate_test::122": 1.0,
+    "tests/misc_tests.c::cjson_delete_item_from_array_should_not_broken_list_structure::659": 1.0,
+    "tests/misc_tests.c::cjson_functions_should_not_crash_with_null_pointers::384": 1.0,
+    "tests/old_utils_tests.c::generate_merge_tests::225": 1.0,
+    "tests/old_utils_tests.c::merge_tests::168": 1.0,
+    "tests/parse_examples.c::do_test::46": 1.0,
+    "tests/readme_examples.c::create_monitor::45": 1.0,
+    "tests/readme_examples.c::create_monitor_with_helpers::117": 1.0,
+    "cJSON.c::cJSON_Print::1307": 2.0,
+    "cJSON.c::cJSON_PrintUnformatted::1312": 2.0
+   },
+   "relevant_functions": [
+    "tests/json_patch_tests.c::test_generate_test::122",
+    "tests/misc_tests.c::cjson_delete_item_from_array_should_not_broken_list_structure::659",
+    "tests/misc_tests.c::cjson_functions_should_not_crash_with_null_pointers::384",
+    "tests/old_utils_tests.c::generate_merge_tests::225",
+    "tests/old_utils_tests.c::merge_tests::168",
+    "tests/parse_examples.c::do_test::46",
+    "tests/readme_examples.c::create_monitor::45",
+    "tests/readme_examples.c::create_monitor_with_helpers::117",
+    "cJSON.c::cJSON_Print::1307",
+    "cJSON.c::cJSON_PrintUnformatted::1312"
+   ],
+   "seed": "cJSON.c::print::1239",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-006"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can reach print_string through at most two calls?",
+   "relevance": {
+    "cJSON.c::cJSON_PrintBuffered::1317": 1.0,
+    "cJSON.c::cJSON_PrintPreallocated::1348": 1.0,
+    "cJSON.c::print::1239": 1.0,
+    "cJSON.c::print_array::1595": 1.0,
+    "cJSON.c::print_object::1780": 1.0,
+    "tests/print_value.c::assert_print_value::31": 1.0,
+    "cJSON.c::print_value::1423": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_PrintBuffered::1317",
+    "cJSON.c::cJSON_PrintPreallocated::1348",
+    "cJSON.c::print::1239",
+    "cJSON.c::print_array::1595",
+    "cJSON.c::print_object::1780",
+    "tests/print_value.c::assert_print_value::31",
+    "cJSON.c::print_value::1423"
+   ],
+   "seed": "cJSON.c::print_string::1076",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-007"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can be reached from cjson_add_number_should_fail_on_allocation_failure through at most two calls?",
+   "relevance": {
+    "cJSON.c::add_item_to_object::2082": 1.0,
+    "cJSON.c::cJSON_CreateNumber::2505": 1.0,
+    "cJSON.c::cJSON_New_Item::241": 1.0,
+    "cJSON.c::cJSON_AddNumberToObject::2198": 2.0,
+    "cJSON.c::cJSON_CreateObject::2609": 2.0,
+    "cJSON.c::cJSON_Delete::253": 2.0,
+    "cJSON.c::cJSON_InitHooks::209": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::add_item_to_object::2082",
+    "cJSON.c::cJSON_CreateNumber::2505",
+    "cJSON.c::cJSON_New_Item::241",
+    "cJSON.c::cJSON_AddNumberToObject::2198",
+    "cJSON.c::cJSON_CreateObject::2609",
+    "cJSON.c::cJSON_Delete::253",
+    "cJSON.c::cJSON_InitHooks::209"
+   ],
+   "seed": "tests/cjson_add.c::cjson_add_number_should_fail_on_allocation_failure::268",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-008"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can be reached from print_value_should_print_number through at most two calls?",
+   "relevance": {
+    "cJSON.c::parse_value::1368": 1.0,
+    "cJSON.c::print_value::1423": 1.0,
+    "tests/common.h::reset::29": 1.0,
+    "tests/print_value.c::assert_print_value::31": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::parse_value::1368",
+    "cJSON.c::print_value::1423",
+    "tests/common.h::reset::29",
+    "tests/print_value.c::assert_print_value::31"
+   ],
+   "seed": "tests/print_value.c::print_value_should_print_number::72",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-009"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can be reached from assert_parse_value through at most two calls?",
+   "relevance": {
+    "cJSON.c::parse_array::1497": 1.0,
+    "cJSON.c::parse_number::307": 1.0,
+    "cJSON.c::parse_object::1662": 1.0,
+    "cJSON.c::parse_string::824": 1.0,
+    "cJSON.c::parse_value::1368": 2.0,
+    "tests/parse_value.c::assert_is_value::33": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::parse_array::1497",
+    "cJSON.c::parse_number::307",
+    "cJSON.c::parse_object::1662",
+    "cJSON.c::parse_string::824",
+    "cJSON.c::parse_value::1368",
+    "tests/parse_value.c::assert_is_value::33"
+   ],
+   "seed": "tests/parse_value.c::assert_parse_value::44",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-010"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can reach ensure through at most two calls?",
+   "relevance": {
+    "cJSON.c::cJSON_PrintBuffered::1317": 1.0,
+    "cJSON.c::cJSON_PrintPreallocated::1348": 1.0,
+    "cJSON.c::print::1239": 1.0,
+    "cJSON.c::print_string::1076": 1.0,
+    "tests/print_array.c::assert_print_array::27": 1.0,
+    "tests/print_number.c::assert_print_number::27": 1.0,
+    "tests/print_object.c::assert_print_object::27": 1.0,
+    "tests/print_string.c::assert_print_string::27": 1.0,
+    "tests/print_value.c::assert_print_value::31": 1.0,
+    "cJSON.c::print_array::1595": 2.0,
+    "cJSON.c::print_number::596": 2.0,
+    "cJSON.c::print_object::1780": 2.0,
+    "cJSON.c::print_string_ptr::954": 2.0,
+    "cJSON.c::print_value::1423": 2.0,
+    "tests/misc_tests.c::ensure_should_fail_on_failed_realloc::517": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_PrintBuffered::1317",
+    "cJSON.c::cJSON_PrintPreallocated::1348",
+    "cJSON.c::print::1239",
+    "cJSON.c::print_string::1076",
+    "tests/print_array.c::assert_print_array::27",
+    "tests/print_number.c::assert_print_number::27",
+    "tests/print_object.c::assert_print_object::27",
+    "tests/print_string.c::assert_print_string::27",
+    "tests/print_value.c::assert_print_value::31",
+    "cJSON.c::print_array::1595",
+    "cJSON.c::print_number::596",
+    "cJSON.c::print_object::1780",
+    "cJSON.c::print_string_ptr::954",
+    "cJSON.c::print_value::1423",
+    "tests/misc_tests.c::ensure_should_fail_on_failed_realloc::517"
+   ],
+   "seed": "cJSON.c::ensure::490",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-011"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can reach parse_array through at most two calls?",
+   "relevance": {
+    "cJSON.c::cJSON_ParseWithLengthOpts::1147": 1.0,
+    "cJSON.c::parse_object::1662": 1.0,
+    "tests/parse_array.c::parse_array_should_not_parse_non_arrays::145": 1.0,
+    "tests/parse_array.c::parse_array_should_parse_arrays_with_multiple_elements::104": 1.0,
+    "tests/parse_array.c::parse_array_should_parse_arrays_with_one_element::77": 1.0,
+    "tests/parse_array.c::parse_array_should_parse_empty_arrays::67": 1.0,
+    "tests/parse_value.c::assert_parse_value::44": 1.0,
+    "tests/print_array.c::print_array_should_print_arrays_with_multiple_elements::84": 1.0,
+    "tests/print_array.c::print_array_should_print_arrays_with_one_element::75": 1.0,
+    "tests/print_array.c::print_array_should_print_empty_arrays::70": 1.0,
+    "tests/print_value.c::assert_print_value::31": 1.0,
+    "cJSON.c::parse_value::1368": 2.0,
+    "tests/parse_array.c::assert_not_array::45": 2.0,
+    "tests/parse_array.c::assert_parse_array::56": 2.0,
+    "tests/print_array.c::assert_print_array::27": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_ParseWithLengthOpts::1147",
+    "cJSON.c::parse_object::1662",
+    "tests/parse_array.c::parse_array_should_not_parse_non_arrays::145",
+    "tests/parse_array.c::parse_array_should_parse_arrays_with_multiple_elements::104",
+    "tests/parse_array.c::parse_array_should_parse_arrays_with_one_element::77",
+    "tests/parse_array.c::parse_array_should_parse_empty_arrays::67",
+    "tests/parse_value.c::assert_parse_value::44",
+    "tests/print_array.c::print_array_should_print_arrays_with_multiple_elements::84",
+    "tests/print_array.c::print_array_should_print_arrays_with_one_element::75",
+    "tests/print_array.c::print_array_should_print_empty_arrays::70",
+    "tests/print_value.c::assert_print_value::31",
+    "cJSON.c::parse_value::1368",
+    "tests/parse_array.c::assert_not_array::45",
+    "tests/parse_array.c::assert_parse_array::56",
+    "tests/print_array.c::assert_print_array::27"
+   ],
+   "seed": "cJSON.c::parse_array::1497",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-012"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can reach UnityPrintLen through at most two calls?",
+   "relevance": {
+    "tests/unity/src/unity.c::UnityAssertEqualStringLen::1043": 1.0,
+    "tests/unity/src/unity.c::UnityPrintExpectedAndActualStringsLen::449": 2.0
+   },
+   "relevant_functions": [
+    "tests/unity/src/unity.c::UnityAssertEqualStringLen::1043",
+    "tests/unity/src/unity.c::UnityPrintExpectedAndActualStringsLen::449"
+   ],
+   "seed": "tests/unity/src/unity.c::UnityPrintLen::119",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-013"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can be reached from add_item_to_object through at most two calls?",
+   "relevance": {
+    "cJSON.c::suffix_object::1999": 1.0,
+    "cJSON.c::add_item_to_array::2027": 2.0,
+    "cJSON.c::cJSON_strdup::188": 2.0,
+    "cJSON.c::cast_away_const::2073": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::suffix_object::1999",
+    "cJSON.c::add_item_to_array::2027",
+    "cJSON.c::cJSON_strdup::188",
+    "cJSON.c::cast_away_const::2073"
+   ],
+   "seed": "cJSON.c::add_item_to_object::2082",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-014"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can be reached from cjson_parse_big_numbers_should_not_report_error through at most two calls?",
+   "relevance": {
+    "cJSON.c::cJSON_ParseWithOpts::1131": 1.0,
+    "cJSON.c::cJSON_Delete::253": 2.0,
+    "cJSON.c::cJSON_Parse::1227": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_ParseWithOpts::1131",
+    "cJSON.c::cJSON_Delete::253",
+    "cJSON.c::cJSON_Parse::1227"
+   ],
+   "seed": "tests/misc_tests.c::cjson_parse_big_numbers_should_not_report_error::786",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-015"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can be reached from cJSON_CreateDoubleArray through at most two calls?",
+   "relevance": {
+    "cJSON.c::cJSON_New_Item::241": 1.0,
+    "cJSON.c::cJSON_CreateArray::2598": 2.0,
+    "cJSON.c::cJSON_CreateNumber::2505": 2.0,
+    "cJSON.c::cJSON_Delete::253": 2.0,
+    "cJSON.c::suffix_object::1999": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_New_Item::241",
+    "cJSON.c::cJSON_CreateArray::2598",
+    "cJSON.c::cJSON_CreateNumber::2505",
+    "cJSON.c::cJSON_Delete::253",
+    "cJSON.c::suffix_object::1999"
+   ],
+   "seed": "cJSON.c::cJSON_CreateDoubleArray::2701",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-016"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can be reached from generate_merge_patch through at most two calls?",
+   "relevance": {
+    "cJSON_Utils.c::compare_double::112": 1.0,
+    "cJSON_Utils.c::compare_strings::83": 1.0,
+    "cJSON_Utils.c::sort_list::484": 1.0,
+    "cJSON_Utils.c::cJSONUtils_GenerateMergePatch::1477": 2.0,
+    "cJSON_Utils.c::compare_json::604": 2.0,
+    "cJSON_Utils.c::sort_object::595": 2.0
+   },
+   "relevant_functions": [
+    "cJSON_Utils.c::compare_double::112",
+    "cJSON_Utils.c::compare_strings::83",
+    "cJSON_Utils.c::sort_list::484",
+    "cJSON_Utils.c::cJSONUtils_GenerateMergePatch::1477",
+    "cJSON_Utils.c::compare_json::604",
+    "cJSON_Utils.c::sort_object::595"
+   ],
+   "seed": "cJSON_Utils.c::generate_merge_patch::1395",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-017"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can reach assert_is_array through at most two calls?",
+   "relevance": {
+    "tests/parse_array.c::parse_array_should_parse_arrays_with_multiple_elements::104": 1.0,
+    "tests/parse_array.c::parse_array_should_parse_arrays_with_one_element::77": 1.0,
+    "tests/parse_array.c::parse_array_should_parse_empty_arrays::67": 1.0,
+    "tests/parse_array.c::assert_parse_array::56": 2.0
+   },
+   "relevant_functions": [
+    "tests/parse_array.c::parse_array_should_parse_arrays_with_multiple_elements::104",
+    "tests/parse_array.c::parse_array_should_parse_arrays_with_one_element::77",
+    "tests/parse_array.c::parse_array_should_parse_empty_arrays::67",
+    "tests/parse_array.c::assert_parse_array::56"
+   ],
+   "seed": "tests/parse_array.c::assert_is_array::33",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-018"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can be reached from cJSONUtils_GenerateMergePatch through at most two calls?",
+   "relevance": {
+    "cJSON_Utils.c::compare_json::604": 1.0,
+    "cJSON_Utils.c::sort_object::595": 1.0,
+    "cJSON_Utils.c::generate_merge_patch::1395": 2.0
+   },
+   "relevant_functions": [
+    "cJSON_Utils.c::compare_json::604",
+    "cJSON_Utils.c::sort_object::595",
+    "cJSON_Utils.c::generate_merge_patch::1395"
+   ],
+   "seed": "cJSON_Utils.c::cJSONUtils_GenerateMergePatch::1477",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-019"
+  },
+  {
+   "category": "multi_hop",
+   "query": "Which functions can be reached from parse_with_opts_should_handle_incomplete_json through at most two calls?",
+   "relevance": {
+    "cJSON.c::cJSON_ParseWithLengthOpts::1147": 1.0,
+    "cJSON.c::cJSON_GetErrorPtr::94": 2.0,
+    "cJSON.c::cJSON_ParseWithOpts::1131": 2.0
+   },
+   "relevant_functions": [
+    "cJSON.c::cJSON_ParseWithLengthOpts::1147",
+    "cJSON.c::cJSON_GetErrorPtr::94",
+    "cJSON.c::cJSON_ParseWithOpts::1131"
+   ],
+   "seed": "tests/parse_with_opts.c::parse_with_opts_should_handle_incomplete_json::52",
+   "label_source": "resolved_call_graph_2hop",
+   "notes": "graded: 1 hop = 2, 2 hops = 1",
+   "query_id": "multi_hop-020"
+  }
+ ]
+}

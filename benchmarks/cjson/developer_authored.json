@@ -1,0 +1,555 @@
+{
+ "_comment": "Developer-style queries for cJSON-master. Labels: hand-resolved targets, source string literals, or the resolved call graph; no retrieval/embedding/enrichment output was consulted; no system was run on these queries before they were fixed. Single annotator (AI-assisted); not independently reviewed.",
+ "queries": [
+  {
+   "intent": "vague_memory",
+   "query": "the function that frees a whole JSON tree",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_Delete",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "vague_memory",
+   "query": "that one that returns the library version string",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_Version",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "vague_memory",
+   "query": "what was it called, the one that strips whitespace and comments from a json string",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_Minify",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "vague_memory",
+   "query": "the function to get an element out of an array by position",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_GetArrayItem",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "vague_memory",
+   "query": "the setter for custom malloc and free",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_InitHooks",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "vague_memory",
+   "query": "the one that tells you where parsing failed",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_GetErrorPtr",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "vague_memory",
+   "query": "function that makes a deep copy of a JSON tree",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_Duplicate",
+     "grade": 2
+    },
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_Duplicate_rec",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "vague_memory",
+   "query": "the check that two doubles are close enough to be equal",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "compare_double",
+     "grade": 2
+    },
+    {
+     "file": "cJSON_Utils.c",
+     "qualified_name": "compare_double",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "task",
+   "query": "how do I parse a json string",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_Parse",
+     "grade": 2
+    },
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_ParseWithOpts",
+     "grade": 1
+    },
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_ParseWithLength",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "task",
+   "query": "how do I print a json object without any whitespace",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_PrintUnformatted",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "task",
+   "query": "how do I pretty print json",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_Print",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "task",
+   "query": "how do I print json into a buffer I already allocated",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_PrintPreallocated",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "task",
+   "query": "how do I look up a key in an object case sensitively",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_GetObjectItemCaseSensitive",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "task",
+   "query": "how do I add a string field to an object",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_AddStringToObject",
+     "grade": 2
+    },
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_AddItemToObject",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "task",
+   "query": "how do I add a number to an object",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_AddNumberToObject",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "task",
+   "query": "how do I create an array of integers",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_CreateIntArray",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "task",
+   "query": "how do I append an item to an array",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_AddItemToArray",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "task",
+   "query": "how do I remove a key from an object",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_DeleteItemFromObject",
+     "grade": 2
+    },
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_DeleteItemFromObjectCaseSensitive",
+     "grade": 1
+    },
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_DetachItemFromObject",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "task",
+   "query": "how do I check whether a value is a string",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_IsString",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "task",
+   "query": "how do I read the number stored in a json item",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_GetNumberValue",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "task",
+   "query": "how do I compare two json documents for equality",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_Compare",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "task",
+   "query": "how do I apply a JSON patch to a document",
+   "targets": [
+    {
+     "file": "cJSON_Utils.c",
+     "qualified_name": "cJSONUtils_ApplyPatches",
+     "grade": 2
+    },
+    {
+     "file": "cJSON_Utils.c",
+     "qualified_name": "cJSONUtils_ApplyPatchesCaseSensitive",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "task",
+   "query": "how do I generate a patch describing the difference between two documents",
+   "targets": [
+    {
+     "file": "cJSON_Utils.c",
+     "qualified_name": "cJSONUtils_GeneratePatches",
+     "grade": 2
+    },
+    {
+     "file": "cJSON_Utils.c",
+     "qualified_name": "cJSONUtils_GeneratePatchesCaseSensitive",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "task",
+   "query": "how do I fetch a value using a JSON pointer",
+   "targets": [
+    {
+     "file": "cJSON_Utils.c",
+     "qualified_name": "cJSONUtils_GetPointer",
+     "grade": 2
+    },
+    {
+     "file": "cJSON_Utils.c",
+     "qualified_name": "cJSONUtils_GetPointerCaseSensitive",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "task",
+   "query": "how do I sort the keys of an object",
+   "targets": [
+    {
+     "file": "cJSON_Utils.c",
+     "qualified_name": "cJSONUtils_SortObject",
+     "grade": 2
+    },
+    {
+     "file": "cJSON_Utils.c",
+     "qualified_name": "cJSONUtils_SortObjectCaseSensitive",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "task",
+   "query": "how do I change the text of an existing string item",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_SetValuestring",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "error_message",
+   "query": "where does it complain 'Failed to allocate memory.'",
+   "string_literal": "Failed to allocate memory."
+  },
+  {
+   "intent": "error_message",
+   "query": "who prints 'no input file'",
+   "string_literal": "no input file"
+  },
+  {
+   "intent": "error_message",
+   "query": "which function reports 'Failed to parse test json.'",
+   "string_literal": "Failed to parse test json."
+  },
+  {
+   "intent": "error_message",
+   "query": "where does 'Json is not an array.' come from",
+   "string_literal": "Json is not an array."
+  },
+  {
+   "intent": "error_message",
+   "query": "'Failed to generate patches.' which test prints that",
+   "string_literal": "Failed to generate patches."
+  },
+  {
+   "intent": "error_message",
+   "query": "what prints 'cJSON_PrintPreallocated failed to show error with insufficient memory!'",
+   "string_literal": "cJSON_PrintPreallocated failed to show error with insufficient memory!"
+  },
+  {
+   "intent": "concept",
+   "query": "how does the parser handle escaped unicode sequences in strings",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "parse_string",
+     "grade": 2
+    },
+    {
+     "file": "cJSON.c",
+     "qualified_name": "utf16_literal_to_utf8",
+     "grade": 2
+    },
+    {
+     "file": "cJSON.c",
+     "qualified_name": "parse_hex4",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "concept",
+   "query": "how does the printer make room when its buffer is full",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "ensure",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "concept",
+   "query": "how are json pointer path segments escaped",
+   "targets": [
+    {
+     "file": "cJSON_Utils.c",
+     "qualified_name": "encode_string_as_pointer",
+     "grade": 2
+    },
+    {
+     "file": "cJSON_Utils.c",
+     "qualified_name": "pointer_encoded_length",
+     "grade": 1
+    },
+    {
+     "file": "cJSON_Utils.c",
+     "qualified_name": "decode_pointer_inplace",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "concept",
+   "query": "how does merge patch work",
+   "targets": [
+    {
+     "file": "cJSON_Utils.c",
+     "qualified_name": "merge_patch",
+     "grade": 2
+    },
+    {
+     "file": "cJSON_Utils.c",
+     "qualified_name": "cJSONUtils_MergePatch",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "concept",
+   "query": "how are numbers printed with the right precision",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "print_number",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "concept",
+   "query": "how does it skip a UTF-8 byte order mark at the start of the input",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "skip_utf8_bom",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "concept",
+   "query": "how are object members sorted by name",
+   "targets": [
+    {
+     "file": "cJSON_Utils.c",
+     "qualified_name": "sort_list",
+     "grade": 2
+    },
+    {
+     "file": "cJSON_Utils.c",
+     "qualified_name": "sort_object",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "concept",
+   "query": "how are references to other items handled so they are not freed twice",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "create_reference",
+     "grade": 2
+    },
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_Delete",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "impact",
+   "query": "before I change cJSON_GetArraySize, which code uses it?",
+   "callers_of": {
+    "file": "cJSON.c",
+    "qualified_name": "cJSON_GetArraySize"
+   }
+  },
+  {
+   "intent": "impact",
+   "query": "what depends on get_object_item",
+   "callers_of": {
+    "file": "cJSON.c",
+    "qualified_name": "get_object_item"
+   }
+  },
+  {
+   "intent": "impact",
+   "query": "who calls cJSON_DetachItemViaPointer",
+   "callers_of": {
+    "file": "cJSON.c",
+    "qualified_name": "cJSON_DetachItemViaPointer"
+   }
+  },
+  {
+   "intent": "impact",
+   "query": "which functions use compare_double in the core library",
+   "callers_of": {
+    "file": "cJSON.c",
+    "qualified_name": "compare_double"
+   }
+  },
+  {
+   "intent": "impact",
+   "query": "what does cJSON_Minify call",
+   "callees_of": {
+    "file": "cJSON.c",
+    "qualified_name": "cJSON_Minify"
+   }
+  },
+  {
+   "intent": "impact",
+   "query": "which helpers does print_value rely on",
+   "callees_of": {
+    "file": "cJSON.c",
+    "qualified_name": "print_value"
+   }
+  },
+  {
+   "intent": "impact",
+   "query": "what does parse_object depend on",
+   "callees_of": {
+    "file": "cJSON.c",
+    "qualified_name": "parse_object"
+   }
+  }
+ ]
+}

@@ -1,0 +1,33 @@
+2026-10-11 21:57:49,566 - optima.rag.research.suite - ERROR - skipping enriched file output/cJson/enhanced_qwen-qwen2.5-3b-instruct.json for dataset cjson: enriched from a different base.json (recorded sha 9915580aa9b2, dataset 'xxhash-dev'; expected c445c7750f27)
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+2026-10-11 21:57:54,088 - huggingface_hub.utils._http - WARNING - Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 4197.97it/s]
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights:  90%|████████▉ | 179/199 [00:00<00:00, 1783.19it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 1756.91it/s]
+Loading weights:   0%|          | 0/310 [00:00<?, ?it/s]Loading weights:  53%|█████▎    | 165/310 [00:00<00:00, 1594.48it/s]Loading weights: 100%|██████████| 310/310 [00:00<00:00, 1726.40it/s]
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 18424.90it/s]
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 13853.39it/s]
+Loading weights:   0%|          | 0/310 [00:00<?, ?it/s]Loading weights: 100%|██████████| 310/310 [00:00<00:00, 8760.98it/s]
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 19710.63it/s]
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 12796.73it/s]
+Loading weights:   0%|          | 0/310 [00:00<?, ?it/s]Loading weights: 100%|██████████| 310/310 [00:00<00:00, 7837.65it/s]
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 9955.23it/s]
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 19025.91it/s]
+Loading weights:   0%|          | 0/310 [00:00<?, ?it/s]Loading weights: 100%|██████████| 310/310 [00:00<00:00, 11166.56it/s]
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 11993.37it/s]
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 18954.62it/s]
+Loading weights:   0%|          | 0/310 [00:00<?, ?it/s]Loading weights: 100%|██████████| 310/310 [00:00<00:00, 3670.30it/s]
+{
+  "summary": {
+    "ok": 75,
+    "partial": 0,
+    "failed": 0,
+    "reused": 0,
+    "skipped_resume": 0
+  },
+  "reports": {
+    "report": "experiments/coupled-cjson-v2/report.md",
+    "aggregate": "experiments/coupled-cjson-v2/aggregate.csv",
+    "comparisons": "experiments/coupled-cjson-v2/comparisons.csv"
+  },
+  "suite_dir": "experiments/coupled-cjson-v2"
+}

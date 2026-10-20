@@ -1,0 +1,28 @@
+{
+  "output_root": "experiments",
+  "embedding_cache": "experiments/_embedding_cache",
+  "bootstrap_samples": 10000,
+  "bootstrap_samples_per_run": 2000,
+  "groups": [
+    "grid"
+  ],
+  "embedding_models": [
+    "bge-small",
+    "bge-base",
+    "qwen3-0.6b"
+  ],
+  "primary_embedding": "bge-base",
+  "rerankers": [],
+  "rerank_pool": 30,
+  "_comment": "Same design and primary choices as chess-v1/cjson-v1 (bge-base; the Qwen2.5-Coder-14B enrichment), fixed before any xxHash result was seen.",
+  "suite_id": "xxhash-grid-v1",
+  "datasets": [
+    {
+      "name": "xxhash",
+      "base_json": "optima_outputs/base/xxHash-dev/base.json",
+      "benchmark": "benchmarks/xxhash/structural_v1.json",
+      "enriched_dir": "output/xxhash",
+      "primary_enrichment": "qwen-qwen2.5-coder-14b-instruct-xhash"
+    }
+  ]
+}

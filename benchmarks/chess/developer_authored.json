@@ -1,0 +1,450 @@
+{
+ "_comment": "Developer-style queries for Chess-Engine-in-cpp-master, written as a developer would ask them (vague memory, task, error message, concept, impact). Labels: hand-resolved targets, source string literals, or the resolved call graph. No retrieval, embedding or LLM-enrichment output was consulted; no system was run on these queries before they were fixed. Single annotator (AI-assisted); not independently reviewed.",
+ "queries": [
+  {
+   "intent": "vague_memory",
+   "query": "the function that prints the board with the unicode chess pieces",
+   "targets": [
+    {
+     "file": "misc.cpp",
+     "qualified_name": "Board::printBoardFancy",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "vague_memory",
+   "query": "forgot the name of the bit scan function that finds the lowest set bit",
+   "targets": [
+    {
+     "file": "inline_functions.h",
+     "qualified_name": "bsf",
+     "grade": 2
+    },
+    {
+     "file": "inline_functions.h",
+     "qualified_name": "pop_lsb",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "vague_memory",
+   "query": "where is the zobrist hashing code",
+   "targets": [
+    {
+     "file": "hashtable.cpp",
+     "qualified_name": "generateHashKey",
+     "grade": 2
+    },
+    {
+     "file": "init.cpp",
+     "qualified_name": "initRandomKeys",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "vague_memory",
+   "query": "the helper that turns a move string like e7e8q from the GUI into our move type",
+   "targets": [
+    {
+     "file": "misc.cpp",
+     "qualified_name": "parseMove",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "vague_memory",
+   "query": "that function with the de Bruijn table",
+   "targets": [
+    {
+     "file": "inline_functions.h",
+     "qualified_name": "bsf",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "vague_memory",
+   "query": "the tiny function that mirrors a square to the other side of the board",
+   "targets": [
+    {
+     "file": "evaluation.cpp",
+     "qualified_name": "flip",
+     "grade": 2
+    },
+    {
+     "file": "evaluation_tests.cpp",
+     "qualified_name": "flipVertical",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "vague_memory",
+   "query": "where do we stop thinking when the clock runs out",
+   "targets": [
+    {
+     "file": "time_manager.cpp",
+     "qualified_name": "Searcher::isTimeUp",
+     "grade": 2
+    },
+    {
+     "file": "time_manager.cpp",
+     "qualified_name": "Searcher::calculateMoveTime",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "vague_memory",
+   "query": "the logger method that prints warnings to the console",
+   "targets": [
+    {
+     "file": "logger.h",
+     "qualified_name": "Logger::logWarning",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "task",
+   "query": "how do I check if the side to move is in check",
+   "targets": [
+    {
+     "file": "board.cpp",
+     "qualified_name": "Board::currentlyInCheck",
+     "grade": 2
+    },
+    {
+     "file": "board.h",
+     "qualified_name": "Board::isSqAttacked",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "task",
+   "query": "how can I set up a position from a FEN string",
+   "targets": [
+    {
+     "file": "board.cpp",
+     "qualified_name": "Board::parseFEN",
+     "grade": 2
+    },
+    {
+     "file": "search.h",
+     "qualified_name": "Searcher::parseFEN",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "task",
+   "query": "how do I play a move on the board and then take it back",
+   "targets": [
+    {
+     "file": "update.cpp",
+     "qualified_name": "Board::makeMove",
+     "grade": 2
+    },
+    {
+     "file": "update.cpp",
+     "qualified_name": "Board::undo",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "task",
+   "query": "how do I generate all the moves for the current position",
+   "targets": [
+    {
+     "file": "movegen.cpp",
+     "qualified_name": "Board::generateMoves",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "task",
+   "query": "how do I run perft to validate the move generator",
+   "targets": [
+    {
+     "file": "perft_tests.cpp",
+     "qualified_name": "Test::BenchMark::perft",
+     "grade": 2
+    },
+    {
+     "file": "perft_tests.cpp",
+     "qualified_name": "Test::BenchMark::perftDriver",
+     "grade": 1
+    },
+    {
+     "file": "perft_tests.cpp",
+     "qualified_name": "Test::BenchMark::standardPerft",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "task",
+   "query": "how do I change the hash size when the GUI sends the Hash option",
+   "targets": [
+    {
+     "file": "UCI.cpp",
+     "qualified_name": "handleOption",
+     "grade": 2,
+     "line": 103
+    },
+    {
+     "file": "UCI.cpp",
+     "qualified_name": "handleOption",
+     "grade": 1,
+     "line": 66
+    },
+    {
+     "file": "hashtable.cpp",
+     "qualified_name": "initTranspositionTable",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "task",
+   "query": "how is the go command with wtime and btime parsed",
+   "targets": [
+    {
+     "file": "UCI.cpp",
+     "qualified_name": "handleGo",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "task",
+   "query": "how do I get the squares a queen attacks given the blockers",
+   "targets": [
+    {
+     "file": "inline_functions.h",
+     "qualified_name": "getQueenAttacks",
+     "grade": 2
+    },
+    {
+     "file": "inline_functions.h",
+     "qualified_name": "getRookAttacks",
+     "grade": 1
+    },
+    {
+     "file": "inline_functions.h",
+     "qualified_name": "getBishopAttacks",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "task",
+   "query": "how do I count the pieces on a bitboard",
+   "targets": [
+    {
+     "file": "inline_functions.h",
+     "qualified_name": "countBits",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "error_message",
+   "query": "where does it print 'Failed to open the file.'",
+   "string_literal": "Failed to open the file."
+  },
+  {
+   "intent": "error_message",
+   "query": "where does the message 'Mismatch between eval of the same position with mirrored boards' come from",
+   "string_literal": "Mismatch between eval of the same position with mirrored boards"
+  },
+  {
+   "intent": "error_message",
+   "query": "who prints 'Perft suite took'",
+   "string_literal": "Perft suite took"
+  },
+  {
+   "intent": "error_message",
+   "query": "the GUI shows 'id name Aramis', which function sends that",
+   "string_literal": "id name Aramis"
+  },
+  {
+   "intent": "error_message",
+   "query": "got 'Bug inside Board::currentlyInCheck()' in the test output, where is that raised",
+   "string_literal": "Bug inside Board::currentlyInCheck()"
+  },
+  {
+   "intent": "error_message",
+   "query": "which function replies readyok",
+   "string_literal": "readyok"
+  },
+  {
+   "intent": "error_message",
+   "query": "where is 'promotionPiece: is wrong' printed",
+   "string_literal": "promotionPiece: is wrong"
+  },
+  {
+   "intent": "concept",
+   "query": "how does the engine order moves before searching them",
+   "targets": [
+    {
+     "file": "movesort.cpp",
+     "qualified_name": "Searcher::scoreMove",
+     "grade": 2
+    },
+    {
+     "file": "movesort.cpp",
+     "qualified_name": "Searcher::giveScores",
+     "grade": 1
+    },
+    {
+     "file": "movesort.cpp",
+     "qualified_name": "Searcher::pickBestMove",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "concept",
+   "query": "how are repeated positions detected during the search",
+   "targets": [
+    {
+     "file": "search_helper.cpp",
+     "qualified_name": "Searcher::isRepetition",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "concept",
+   "query": "how does the transposition table store and look up positions",
+   "targets": [
+    {
+     "file": "hashtable.cpp",
+     "qualified_name": "probeHash",
+     "grade": 2
+    },
+    {
+     "file": "hashtable.cpp",
+     "qualified_name": "recordHash",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "concept",
+   "query": "how is the late move reduction table computed",
+   "targets": [
+    {
+     "file": "search.cpp",
+     "qualified_name": "initSearchTables",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "concept",
+   "query": "how does quiescence search avoid the horizon effect",
+   "targets": [
+    {
+     "file": "search.cpp",
+     "qualified_name": "Searcher::quiescenceSearch",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "concept",
+   "query": "how does evaluation blend middlegame and endgame scores by game phase",
+   "targets": [
+    {
+     "file": "evaluation.cpp",
+     "qualified_name": "evaluate",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "concept",
+   "query": "static exchange evaluation to decide if a capture wins material",
+   "targets": [
+    {
+     "file": "see.cpp",
+     "qualified_name": "see",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "concept",
+   "query": "how are killer moves and the history heuristic updated after a cutoff",
+   "targets": [
+    {
+     "file": "search.cpp",
+     "qualified_name": "Searcher::updateKillers",
+     "grade": 2
+    },
+    {
+     "file": "search.cpp",
+     "qualified_name": "Searcher::updateHistory",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "impact",
+   "query": "I want to change what resetGame does, who calls it?",
+   "callers_of": {
+    "file": "search.h",
+    "qualified_name": "Searcher::resetGame"
+   }
+  },
+  {
+   "intent": "impact",
+   "query": "what depends on Timer::elapsed",
+   "callers_of": {
+    "file": "timer.h",
+    "qualified_name": "Timer::elapsed"
+   }
+  },
+  {
+   "intent": "impact",
+   "query": "which functions use Move::isCapture",
+   "callers_of": {
+    "file": "move.h",
+    "qualified_name": "Move::isCapture"
+   }
+  },
+  {
+   "intent": "impact",
+   "query": "I'm changing pop_lsb, what could break",
+   "callers_of": {
+    "file": "inline_functions.h",
+    "qualified_name": "pop_lsb"
+   }
+  },
+  {
+   "intent": "impact",
+   "query": "what does iterativeDeepening call",
+   "callees_of": {
+    "file": "search.cpp",
+    "qualified_name": "Searcher::iterativeDeepening"
+   }
+  },
+  {
+   "intent": "impact",
+   "query": "which helpers does evaluate rely on",
+   "callees_of": {
+    "file": "evaluation.cpp",
+    "qualified_name": "evaluate"
+   }
+  }
+ ]
+}

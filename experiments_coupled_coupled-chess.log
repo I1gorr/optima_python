@@ -1,0 +1,32 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+2026-10-11 20:58:03,804 - huggingface_hub.utils._http - WARNING - Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 3724.59it/s]
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights:  61%|██████▏   | 122/199 [00:00<00:00, 1195.71it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 1242.08it/s]
+Loading weights:   0%|          | 0/310 [00:00<?, ?it/s]Loading weights:  21%|██▏       | 66/310 [00:00<00:00, 646.76it/s]Loading weights:  42%|████▏     | 131/310 [00:00<00:00, 612.54it/s]Loading weights:  62%|██████▏   | 193/310 [00:00<00:00, 590.76it/s]Loading weights:  82%|████████▏ | 253/310 [00:00<00:00, 583.24it/s]Loading weights: 100%|██████████| 310/310 [00:00<00:00, 635.65it/s]
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 12130.55it/s]
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 8901.78it/s]
+Loading weights:   0%|          | 0/310 [00:00<?, ?it/s]Loading weights: 100%|██████████| 310/310 [00:00<00:00, 15621.06it/s]
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 17590.81it/s]
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 15061.29it/s]
+Loading weights:   0%|          | 0/310 [00:00<?, ?it/s]Loading weights: 100%|██████████| 310/310 [00:00<00:00, 13010.41it/s]
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 13164.26it/s]
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 16710.04it/s]
+Loading weights:   0%|          | 0/310 [00:00<?, ?it/s]Loading weights: 100%|██████████| 310/310 [00:00<00:00, 22071.54it/s]
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 15313.86it/s]
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 14750.93it/s]
+Loading weights:   0%|          | 0/310 [00:00<?, ?it/s]Loading weights: 100%|██████████| 310/310 [00:00<00:00, 23220.96it/s]
+{
+  "summary": {
+    "ok": 75,
+    "partial": 0,
+    "failed": 0,
+    "reused": 0,
+    "skipped_resume": 0
+  },
+  "reports": {
+    "report": "experiments/coupled-chess-v1/report.md",
+    "aggregate": "experiments/coupled-chess-v1/aggregate.csv",
+    "comparisons": "experiments/coupled-chess-v1/comparisons.csv"
+  },
+  "suite_dir": "experiments/coupled-chess-v1"
+}

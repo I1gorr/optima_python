@@ -36,28 +36,36 @@ def query_metrics(retrieved: list[dict[str, Any]], relevant: set[str],
               for item in unique]
     if graded:
         gains = [float(graded.get(item_id, 0.0)) for item_id in ids]
+        # Ideal ranking comes from the *judgments*, not from what was retrieved.
+        ideal_gains = [float(g) for g in graded.values() if g and float(g) > 0]
     else:
         gains = binary
+        ideal_gains = [1.0] * len(relevant)
     first = next((i + 1 for i, value in enumerate(binary) if value), None)
     result: dict[str, Any] = {
         "first_relevant_rank": first,
         "mrr": 1.0 / first if first else 0.0,
         "num_relevant": len(relevant),
     }
-    for k in (1, 5, 10, 20):
+    for k in (1, 3, 5, 10, 20):
         top = ids[:k]
         top_binary = binary[:k]
         hits = sum(top_binary)
         result[f"recall_at_{k}"] = hits / len(relevant) if relevant else None
         result[f"precision_at_{k}"] = hits / k if k else None
         result[f"hit_at_{k}"] = 1.0 if hits else 0.0
-        result[f"ndcg_at_{k}"] = _ndcg(gains[:k], gains, k)
+        result[f"ndcg_at_{k}"] = _ndcg(gains[:k], ideal_gains, k)
     return result
 
 
-def _ndcg(gains: list[float], all_gains: list[float], k: int) -> float:
+def _ndcg(gains: list[float], ideal_gains: list[float], k: int) -> float:
+    """nDCG@k; ``ideal_gains`` are the judged gains of *all* relevant items.
+
+    (Earlier versions built the ideal ranking from the retrieved list only, which
+    overstated nDCG whenever a query had relevant items that were not retrieved.)
+    """
     dcg = sum(gain / math.log2(rank + 2) for rank, gain in enumerate(gains[:k]))
-    ideal = sorted(all_gains, reverse=True)[:k]
+    ideal = sorted(ideal_gains, reverse=True)[:k]
     idcg = sum(gain / math.log2(rank + 2) for rank, gain in enumerate(ideal))
     return dcg / idcg if idcg else 0.0
 

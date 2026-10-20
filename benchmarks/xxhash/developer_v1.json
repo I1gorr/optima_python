@@ -1,0 +1,673 @@
+{
+ "schema_version": 1,
+ "benchmark_id": "xxhash-developer",
+ "query_set_version": "1.0.0",
+ "ground_truth_version": "1.0.0",
+ "project": "xxHash-dev",
+ "base_sha256": "9915580aa9b2e76e48a5f913df641d8ee6feb0a4e36480e92cbc9738a35d5a46",
+ "created": "2026-10-11T13:00:14+00:00",
+ "generator": {
+  "module": "optima.rag.research.benchmark.build_developer_benchmark"
+ },
+ "labeling": {
+  "independence": "queries were written by hand as a developer would ask them; labels come from hand-resolved targets, source string literals or the resolved call graph; no LLM enrichment, embedding or retrieval output was used, and no system was run on these queries before they were fixed",
+  "review": "single annotator (AI-assisted authoring); not independently reviewed by a second person"
+ },
+ "categories": {
+  "vague_memory": "Half-remembered function ('the thing that ...')",
+  "task": "Task-oriented question ('how do I ...')",
+  "error_message": "Error text / log message / output string to code",
+  "concept": "Concept or mechanism to the code that implements it",
+  "impact": "Impact analysis: what uses / what does a function depend on"
+ },
+ "unsupported_categories": {},
+ "counts": {
+  "vague_memory": 8,
+  "task": 11,
+  "error_message": 7,
+  "concept": 8,
+  "impact": 6
+ },
+ "queries": [
+  {
+   "category": "vague_memory",
+   "query": "the function that tells which SIMD instruction sets the cpu supports",
+   "relevance": {
+    "xxh_x86dispatch.c::XXH_featureTest::343": 2.0,
+    "xxh_x86dispatch.c::XXH_cpuid::254": 1.0
+   },
+   "relevant_functions": [
+    "xxh_x86dispatch.c::XXH_featureTest::343",
+    "xxh_x86dispatch.c::XXH_cpuid::254"
+   ],
+   "seed": "xxh_x86dispatch.c::XXH_featureTest::343",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "vague_memory-001"
+  },
+  {
+   "category": "vague_memory",
+   "query": "that function that frees an XXH64 state",
+   "relevance": {
+    "xxhash.h::XXH64_freeState::3732": 2.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH64_freeState::3732"
+   ],
+   "seed": "xxhash.h::XXH64_freeState::3732",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "vague_memory-002"
+  },
+  {
+   "category": "vague_memory",
+   "query": "the constructor that runs at startup and picks the AVX version",
+   "relevance": {
+    "xxh_x86dispatch.c::XXH_setDispatch::681": 2.0
+   },
+   "relevant_functions": [
+    "xxh_x86dispatch.c::XXH_setDispatch::681"
+   ],
+   "seed": "xxh_x86dispatch.c::XXH_setDispatch::681",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "vague_memory-003"
+  },
+  {
+   "category": "vague_memory",
+   "query": "function that turns a hash into big endian bytes",
+   "relevance": {
+    "xxhash.h::XXH64_canonicalFromHash::3819": 2.0,
+    "xxhash.h::XXH32_canonicalFromHash::3324": 1.0,
+    "xxhash.h::XXH128_canonicalFromHash::7422": 1.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH64_canonicalFromHash::3819",
+    "xxhash.h::XXH32_canonicalFromHash::3324",
+    "xxhash.h::XXH128_canonicalFromHash::7422"
+   ],
+   "seed": "xxhash.h::XXH64_canonicalFromHash::3819",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "vague_memory-004"
+  },
+  {
+   "category": "vague_memory",
+   "query": "the thread pool add that does not block",
+   "relevance": {
+    "tests/collisions/pool.c::POOL_tryAdd::284": 2.0
+   },
+   "relevant_functions": [
+    "tests/collisions/pool.c::POOL_tryAdd::284"
+   ],
+   "seed": "tests/collisions/pool.c::POOL_tryAdd::284",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "vague_memory-005"
+  },
+  {
+   "category": "vague_memory",
+   "query": "the helper that prints a filename and escapes weird characters",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_printFilename::117": 2.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_printFilename::117"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_printFilename::117",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "vague_memory-006"
+  },
+  {
+   "category": "vague_memory",
+   "query": "the deliberately bad checksum used to test the collision tester",
+   "relevance": {
+    "tests/collisions/allcodecs/dummy.c::badsum32::30": 2.0
+   },
+   "relevant_functions": [
+    "tests/collisions/allcodecs/dummy.c::badsum32::30"
+   ],
+   "seed": "tests/collisions/allcodecs/dummy.c::badsum32::30",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "vague_memory-007"
+  },
+  {
+   "category": "vague_memory",
+   "query": "the one that returns the library version as an integer",
+   "relevance": {
+    "xxhash.h::XXH_versionNumber::2907": 2.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH_versionNumber::2907"
+   ],
+   "seed": "xxhash.h::XXH_versionNumber::2907",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "vague_memory-008"
+  },
+  {
+   "category": "task",
+   "query": "how do I hash a buffer and get 64 bits",
+   "relevance": {
+    "xxhash.h::XXH3_64bits::6469": 2.0,
+    "xxhash.h::XXH64::3705": 1.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH3_64bits::6469",
+    "xxhash.h::XXH64::3705"
+   ],
+   "seed": "xxhash.h::XXH3_64bits::6469",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "task-001"
+  },
+  {
+   "category": "task",
+   "query": "how do I hash data that arrives in chunks",
+   "relevance": {
+    "xxhash.h::XXH3_64bits_update::6833": 2.0,
+    "xxhash.h::XXH64_update::3755": 1.0,
+    "xxhash.h::XXH32_update::3259": 1.0,
+    "xxhash.h::XXH3_64bits_reset::6637": 1.0,
+    "xxhash.h::XXH3_64bits_digest::6877": 1.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH3_64bits_update::6833",
+    "xxhash.h::XXH64_update::3755",
+    "xxhash.h::XXH32_update::3259",
+    "xxhash.h::XXH3_64bits_reset::6637",
+    "xxhash.h::XXH3_64bits_digest::6877"
+   ],
+   "seed": "xxhash.h::XXH3_64bits_update::6833",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "task-002"
+  },
+  {
+   "category": "task",
+   "query": "how do I get a 128-bit hash",
+   "relevance": {
+    "xxhash.h::XXH3_128bits::7292": 2.0,
+    "xxhash.h::XXH128::7328": 1.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH3_128bits::7292",
+    "xxhash.h::XXH128::7328"
+   ],
+   "seed": "xxhash.h::XXH3_128bits::7292",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "task-003"
+  },
+  {
+   "category": "task",
+   "query": "how do I hash with my own secret",
+   "relevance": {
+    "xxhash.h::XXH3_64bits_withSecret::6476": 2.0,
+    "xxhash.h::XXH3_128bits_withSecret::7301": 1.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH3_64bits_withSecret::6476",
+    "xxhash.h::XXH3_128bits_withSecret::7301"
+   ],
+   "seed": "xxhash.h::XXH3_64bits_withSecret::6476",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "task-004"
+  },
+  {
+   "category": "task",
+   "query": "how do I build a secret from a seed",
+   "relevance": {
+    "xxhash.h::XXH3_generateSecret_fromSeed::7504": 2.0,
+    "xxhash.h::XXH3_generateSecret::7459": 1.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH3_generateSecret_fromSeed::7504",
+    "xxhash.h::XXH3_generateSecret::7459"
+   ],
+   "seed": "xxhash.h::XXH3_generateSecret_fromSeed::7504",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "task-005"
+  },
+  {
+   "category": "task",
+   "query": "how do I compare two 128-bit hashes",
+   "relevance": {
+    "xxhash.h::XXH128_isEqual::7397": 2.0,
+    "xxhash.h::XXH128_cmp::7408": 1.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH128_isEqual::7397",
+    "xxhash.h::XXH128_cmp::7408"
+   ],
+   "seed": "xxhash.h::XXH128_isEqual::7397",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "task-006"
+  },
+  {
+   "category": "task",
+   "query": "how do I verify a checksum file with xxhsum",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_checkFile::1043": 2.0,
+    "cli/xxhsum.c::XSUM_checkFiles::1142": 1.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_checkFile::1043",
+    "cli/xxhsum.c::XSUM_checkFiles::1142"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_checkFile::1043",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "task-007"
+  },
+  {
+   "category": "task",
+   "query": "how do I generate checksums for several files",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_generateFiles::1397": 2.0,
+    "cli/xxhsum.c::XSUM_generateFile::1316": 1.0,
+    "cli/xxhsum.c::XSUM_hashFiles::485": 1.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_generateFiles::1397",
+    "cli/xxhsum.c::XSUM_generateFile::1316",
+    "cli/xxhsum.c::XSUM_hashFiles::485"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_generateFiles::1397",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "task-008"
+  },
+  {
+   "category": "task",
+   "query": "how do I read a very long line from a file without overflowing a buffer",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_getLine::618": 2.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_getLine::618"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_getLine::618",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "task-009"
+  },
+  {
+   "category": "task",
+   "query": "how do I benchmark xxhash on my own file",
+   "relevance": {
+    "cli/xsum_bench.c::XSUM_benchFiles::387": 2.0,
+    "cli/xsum_bench.c::XSUM_benchMem::351": 1.0
+   },
+   "relevant_functions": [
+    "cli/xsum_bench.c::XSUM_benchFiles::387",
+    "cli/xsum_bench.c::XSUM_benchMem::351"
+   ],
+   "seed": "cli/xsum_bench.c::XSUM_benchFiles::387",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "task-010"
+  },
+  {
+   "category": "task",
+   "query": "how do I run the built in sanity tests",
+   "relevance": {
+    "cli/xsum_sanity_check.c::XSUM_sanityCheck::688": 2.0
+   },
+   "relevant_functions": [
+    "cli/xsum_sanity_check.c::XSUM_sanityCheck::688"
+   ],
+   "seed": "cli/xsum_sanity_check.c::XSUM_sanityCheck::688",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "task-011"
+  },
+  {
+   "category": "error_message",
+   "query": "which function prints 'AVX2 supported by the CPU, but not the OS.'",
+   "relevance": {
+    "xxh_x86dispatch.c::XXH_featureTest::343": 2.0
+   },
+   "relevant_functions": [
+    "xxh_x86dispatch.c::XXH_featureTest::343"
+   ],
+   "seed": "xxh_x86dispatch.c::XXH_featureTest::343",
+   "label_source": "source_string_literal",
+   "notes": "",
+   "query_id": "error_message-001"
+  },
+  {
+   "category": "error_message",
+   "query": "where is 'CPUID support is not detected!' logged",
+   "relevance": {
+    "xxh_x86dispatch.c::XXH_featureTest::343": 2.0
+   },
+   "relevant_functions": [
+    "xxh_x86dispatch.c::XXH_featureTest::343"
+   ],
+   "seed": "xxh_x86dispatch.c::XXH_featureTest::343",
+   "label_source": "source_string_literal",
+   "notes": "",
+   "query_id": "error_message-002"
+  },
+  {
+   "category": "error_message",
+   "query": "who prints 'Wrong parameters'",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_badusage::1472": 2.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_badusage::1472"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_badusage::1472",
+   "label_source": "source_string_literal",
+   "notes": "",
+   "query_id": "error_message-003"
+  },
+  {
+   "category": "error_message",
+   "query": "where does the usage text 'Create or verify checksums using fast non-cryptographic algorithm xxHash' live",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_usage::1426": 2.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_usage::1426"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_usage::1426",
+   "label_source": "source_string_literal",
+   "notes": "",
+   "query_id": "error_message-004"
+  },
+  {
+   "category": "error_message",
+   "query": "'Not enough memory for' shows up during a benchmark, which function prints it",
+   "relevance": {
+    "cli/xsum_bench.c::XSUM_selectBenchedSize::375": 2.0
+   },
+   "relevant_functions": [
+    "cli/xsum_bench.c::XSUM_selectBenchedSize::375"
+   ],
+   "seed": "cli/xsum_bench.c::XSUM_selectBenchedSize::375",
+   "label_source": "source_string_literal",
+   "notes": "",
+   "query_id": "error_message-005"
+  },
+  {
+   "category": "error_message",
+   "query": "where is the 'Advanced:' section of the xxhsum help printed",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_usage_advanced::1446": 2.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_usage_advanced::1446"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_usage_advanced::1446",
+   "label_source": "source_string_literal",
+   "notes": "",
+   "query_id": "error_message-006"
+  },
+  {
+   "category": "error_message",
+   "query": "which code prints 'Max CPUID leaves == 0!'",
+   "relevance": {
+    "xxh_x86dispatch.c::XXH_featureTest::343": 2.0
+   },
+   "relevant_functions": [
+    "xxh_x86dispatch.c::XXH_featureTest::343"
+   ],
+   "seed": "xxh_x86dispatch.c::XXH_featureTest::343",
+   "label_source": "source_string_literal",
+   "notes": "",
+   "query_id": "error_message-007"
+  },
+  {
+   "category": "concept",
+   "query": "how does the library pick the best implementation at runtime",
+   "relevance": {
+    "xxh_x86dispatch.c::XXH_setDispatch::681": 2.0,
+    "xxh_x86dispatch.c::XXH_featureTest::343": 1.0,
+    "xxh_x86dispatch.c::XXH3_64bits_dispatch::713": 1.0
+   },
+   "relevant_functions": [
+    "xxh_x86dispatch.c::XXH_setDispatch::681",
+    "xxh_x86dispatch.c::XXH_featureTest::343",
+    "xxh_x86dispatch.c::XXH3_64bits_dispatch::713"
+   ],
+   "seed": "xxh_x86dispatch.c::XXH_setDispatch::681",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "concept-001"
+  },
+  {
+   "category": "concept",
+   "query": "how does xxhsum choose between BSD and GNU output formats",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_printLine_BSD_internal::323": 2.0,
+    "cli/xxhsum.c::XSUM_printLine_GNU_internal::360": 2.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_printLine_BSD_internal::323",
+    "cli/xxhsum.c::XSUM_printLine_GNU_internal::360"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_printLine_BSD_internal::323",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "concept-002"
+  },
+  {
+   "category": "concept",
+   "query": "how does the collision tester avoid storing every hash",
+   "relevance": {
+    "tests/collisions/main.c::search_collisions::669": 2.0,
+    "tests/collisions/main.c::Filter_insert::423": 1.0
+   },
+   "relevant_functions": [
+    "tests/collisions/main.c::search_collisions::669",
+    "tests/collisions/main.c::Filter_insert::423"
+   ],
+   "seed": "tests/collisions/main.c::search_collisions::669",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "concept-003"
+  },
+  {
+   "category": "concept",
+   "query": "how does the thread pool change its number of workers",
+   "relevance": {
+    "tests/collisions/pool.c::POOL_resize::232": 2.0,
+    "tests/collisions/pool.c::POOL_resize_internal::203": 1.0
+   },
+   "relevant_functions": [
+    "tests/collisions/pool.c::POOL_resize::232",
+    "tests/collisions/pool.c::POOL_resize_internal::203"
+   ],
+   "seed": "tests/collisions/pool.c::POOL_resize::232",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "concept-004"
+  },
+  {
+   "category": "concept",
+   "query": "how does the checksum file parser deal with escaped file names",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_filenameUnescape::154": 2.0,
+    "cli/xxhsum.c::XSUM_parseLine1::739": 1.0,
+    "cli/xxhsum.c::XSUM_parseLine::841": 1.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_filenameUnescape::154",
+    "cli/xxhsum.c::XSUM_parseLine1::739",
+    "cli/xxhsum.c::XSUM_parseLine::841"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_filenameUnescape::154",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "concept-005"
+  },
+  {
+   "category": "concept",
+   "query": "how are the known answer test vectors created",
+   "relevance": {
+    "tests/sanity_test_vectors_generator.c::generate_sanity_test_vectors::406": 2.0,
+    "tests/sanity_test_vectors_generator.c::generate_sanity_test_vectors_xxh32::202": 1.0
+   },
+   "relevant_functions": [
+    "tests/sanity_test_vectors_generator.c::generate_sanity_test_vectors::406",
+    "tests/sanity_test_vectors_generator.c::generate_sanity_test_vectors_xxh32::202"
+   ],
+   "seed": "tests/sanity_test_vectors_generator.c::generate_sanity_test_vectors::406",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "concept-006"
+  },
+  {
+   "category": "concept",
+   "query": "how does the benchmark decide how much memory to use",
+   "relevance": {
+    "cli/xsum_bench.c::XSUM_findMaxMem::67": 2.0,
+    "cli/xsum_bench.c::XSUM_selectBenchedSize::375": 1.0
+   },
+   "relevant_functions": [
+    "cli/xsum_bench.c::XSUM_findMaxMem::67",
+    "cli/xsum_bench.c::XSUM_selectBenchedSize::375"
+   ],
+   "seed": "cli/xsum_bench.c::XSUM_findMaxMem::67",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "concept-007"
+  },
+  {
+   "category": "concept",
+   "query": "how is a 64-bit streaming hash finalised for short inputs",
+   "relevance": {
+    "xxhash.h::XXH64_digest::3800": 2.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH64_digest::3800"
+   ],
+   "seed": "xxhash.h::XXH64_digest::3800",
+   "label_source": "hand_authored",
+   "notes": "",
+   "query_id": "concept-008"
+  },
+  {
+   "category": "impact",
+   "query": "what uses XSUM_log",
+   "relevance": {
+    "tests/sanity_test.c::checkResult64::122": 1.0,
+    "tests/sanity_test.c::checkResultTestDataSample::161": 1.0,
+    "tests/sanity_test.c::abortSanityTest::48": 1.0,
+    "tests/sanity_test.c::main::671": 1.0,
+    "tests/sanity_test.c::checkResult128::141": 1.0,
+    "tests/sanity_test.c::checkResult32::104": 1.0
+   },
+   "relevant_functions": [
+    "tests/sanity_test.c::checkResult64::122",
+    "tests/sanity_test.c::checkResultTestDataSample::161",
+    "tests/sanity_test.c::abortSanityTest::48",
+    "tests/sanity_test.c::main::671",
+    "tests/sanity_test.c::checkResult128::141",
+    "tests/sanity_test.c::checkResult32::104"
+   ],
+   "seed": "tests/sanity_test.c::checkResult64::122",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "impact-001"
+  },
+  {
+   "category": "impact",
+   "query": "who calls XSUM_printFilename",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_printLine_BSD_internal::323": 1.0,
+    "cli/xxhsum.c::XSUM_parseFile1::854": 1.0,
+    "cli/xxhsum.c::XSUM_printLine_GNU_internal::360": 1.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_printLine_BSD_internal::323",
+    "cli/xxhsum.c::XSUM_parseFile1::854",
+    "cli/xxhsum.c::XSUM_printLine_GNU_internal::360"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_printLine_BSD_internal::323",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "impact-002"
+  },
+  {
+   "category": "impact",
+   "query": "I want to change errorOut, which code depends on it?",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_readU32FromChar::1533": 1.0,
+    "cli/xxhsum.c::XSUM_readU64FromChar::1543": 1.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_readU32FromChar::1533",
+    "cli/xxhsum.c::XSUM_readU64FromChar::1543"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_readU32FromChar::1533",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "impact-003"
+  },
+  {
+   "category": "impact",
+   "query": "what calls XSUM_getLine",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_parseFile1::854": 1.0,
+    "cli/xxhsum.c::XSUM_parseGenFile1::1195": 1.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_parseFile1::854",
+    "cli/xxhsum.c::XSUM_parseGenFile1::1195"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_parseFile1::854",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "impact-004"
+  },
+  {
+   "category": "impact",
+   "query": "what does XSUM_parseFile1 call",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_printFilename::117": 1.0,
+    "cli/xxhsum.c::XSUM_getLine::618": 1.0,
+    "cli/xxhsum.c::XSUM_hashStream::253": 1.0,
+    "cli/xxhsum.c::XSUM_parseLine::841": 1.0,
+    "cli/xxhsum.c::XSUM_filenameNeedsEscape::102": 1.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_printFilename::117",
+    "cli/xxhsum.c::XSUM_getLine::618",
+    "cli/xxhsum.c::XSUM_hashStream::253",
+    "cli/xxhsum.c::XSUM_parseLine::841",
+    "cli/xxhsum.c::XSUM_filenameNeedsEscape::102"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_printFilename::117",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "impact-005"
+  },
+  {
+   "category": "impact",
+   "query": "which functions does XXH3_generateSecret rely on",
+   "relevance": {
+    "xxhash.h::XXH128_canonicalFromHash::7422": 1.0,
+    "xxhash.h::XXH128_hashFromCanonical::7435": 1.0,
+    "xxhash.h::XXH128::7328": 1.0
+   },
+   "relevant_functions": [
+    "xxhash.h::XXH128_canonicalFromHash::7422",
+    "xxhash.h::XXH128_hashFromCanonical::7435",
+    "xxhash.h::XXH128::7328"
+   ],
+   "seed": "xxhash.h::XXH128_canonicalFromHash::7422",
+   "label_source": "resolved_call_graph",
+   "notes": "",
+   "query_id": "impact-006"
+  }
+ ]
+}

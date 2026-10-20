@@ -1,0 +1,1160 @@
+{
+ "_comment": "Hand-authored natural-language behavioural queries for Chess-Engine-in-cpp-master. Queries describe behaviour, not identifiers. Labels were assigned by reading the function source in base.json BEFORE any retrieval was run; no retrieval output, embedding, or LLM enrichment was consulted. grade 2 = the function that directly implements the described behaviour; grade 1 = a helper / closely supporting function. Single annotator (AI-assisted authoring); NOT independently reviewed by a second human. VERSION 2: the original queries are kept unchanged and additional queries were written afterwards, by reading further functions of base.json before any retrieval result for them was seen. The additional queries mostly target previously unused helper/utility functions. Still a single annotator, not independently reviewed.",
+ "queries": [
+  {
+   "query": "Check whether the king of the side to move is currently under attack",
+   "targets": [
+    {
+     "file": "board.cpp",
+     "qualified_name": "Board::currentlyInCheck",
+     "grade": 2
+    },
+    {
+     "file": "board.h",
+     "qualified_name": "Board::isSqAttacked",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Load a position from a Forsyth-Edwards Notation string into the internal board representation",
+   "targets": [
+    {
+     "file": "board.cpp",
+     "qualified_name": "Board::parseFEN",
+     "grade": 2
+    },
+    {
+     "file": "board.cpp",
+     "qualified_name": "charToPiece",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Compute a unique hash key that identifies a chess position",
+   "targets": [
+    {
+     "file": "hashtable.cpp",
+     "qualified_name": "generateHashKey",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Allocate the transposition table with a size given in megabytes",
+   "targets": [
+    {
+     "file": "hashtable.cpp",
+     "qualified_name": "initTranspositionTable",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Look up a previously stored search result for the current position in the hash table",
+   "targets": [
+    {
+     "file": "hashtable.cpp",
+     "qualified_name": "probeHash",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Store a search score together with its bound type and depth in the hash table",
+   "targets": [
+    {
+     "file": "hashtable.cpp",
+     "qualified_name": "recordHash",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Erase every entry in the transposition table",
+   "targets": [
+    {
+     "file": "hashtable.cpp",
+     "qualified_name": "clearTranspositionTable",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Report how full the transposition table currently is",
+   "targets": [
+    {
+     "file": "hashtable.cpp",
+     "qualified_name": "checkHashOccupancy",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Detect whether the current position has already occurred earlier in the game",
+   "targets": [
+    {
+     "file": "search_helper.cpp",
+     "qualified_name": "Searcher::isRepetition",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Estimate whether a capture wins or loses material by simulating the sequence of exchanges on a square",
+   "targets": [
+    {
+     "file": "see.cpp",
+     "qualified_name": "see",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Assign scores to candidate moves so the most promising ones are tried first",
+   "targets": [
+    {
+     "file": "movesort.cpp",
+     "qualified_name": "Searcher::giveScores",
+     "grade": 2
+    },
+    {
+     "file": "movesort.cpp",
+     "qualified_name": "Searcher::scoreMove",
+     "grade": 2
+    },
+    {
+     "file": "movesort.cpp",
+     "qualified_name": "Searcher::pickBestMove",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Pick the highest scored move remaining in a move list",
+   "targets": [
+    {
+     "file": "movesort.cpp",
+     "qualified_name": "Searcher::pickBestMove",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Extend the search past the nominal depth by examining only captures and promotions until the position is quiet",
+   "targets": [
+    {
+     "file": "search.cpp",
+     "qualified_name": "Searcher::quiescenceSearch",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Recursive alpha-beta search that returns the best score for a position at a given depth",
+   "targets": [
+    {
+     "file": "search.cpp",
+     "qualified_name": "Searcher::negamax",
+     "grade": 2
+    },
+    {
+     "file": "search.cpp",
+     "qualified_name": "Searcher::quiescenceSearch",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Re-run the search with a narrow score window around the previous iteration's result",
+   "targets": [
+    {
+     "file": "search.cpp",
+     "qualified_name": "Searcher::aspirationWindow",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Search progressively deeper one level at a time until the depth limit or the clock runs out",
+   "targets": [
+    {
+     "file": "search.cpp",
+     "qualified_name": "Searcher::iterativeDeepening",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Work out how much time to allocate to the current move from the remaining clock and increment",
+   "targets": [
+    {
+     "file": "time_manager.cpp",
+     "qualified_name": "Searcher::calculateMoveTime",
+     "grade": 2
+    },
+    {
+     "file": "time_manager.cpp",
+     "qualified_name": "Searcher::isTimeUp",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Stop the search when the allotted time has been exceeded",
+   "targets": [
+    {
+     "file": "time_manager.cpp",
+     "qualified_name": "Searcher::isTimeUp",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Send the GUI the depth, score, node count and principal variation after an iteration",
+   "targets": [
+    {
+     "file": "search_helper.cpp",
+     "qualified_name": "Searcher::sendUciInfo",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Handle the UCI command that starts a search with time controls or a fixed depth",
+   "targets": [
+    {
+     "file": "UCI.cpp",
+     "qualified_name": "handleGo",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Handle the UCI command that sets up the board from a start position or FEN followed by a list of moves",
+   "targets": [
+    {
+     "file": "UCI.cpp",
+     "qualified_name": "handlePosition",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Answer the UCI handshake by announcing the engine name and author",
+   "targets": [
+    {
+     "file": "UCI.cpp",
+     "qualified_name": "handleUci",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Play a move on the board, updating piece positions, castling rights and the hash key",
+   "targets": [
+    {
+     "file": "update.cpp",
+     "qualified_name": "Board::makeMove",
+     "grade": 2
+    },
+    {
+     "file": "update.cpp",
+     "qualified_name": "Board::movePiece",
+     "grade": 1
+    },
+    {
+     "file": "update.cpp",
+     "qualified_name": "Board::putPiece",
+     "grade": 1
+    },
+    {
+     "file": "update.cpp",
+     "qualified_name": "Board::removePiece",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Take back a move that was previously played, restoring the pieces",
+   "targets": [
+    {
+     "file": "update.cpp",
+     "qualified_name": "Board::undo",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Generate every pseudo-legal move for the side to move into a list",
+   "targets": [
+    {
+     "file": "movegen.cpp",
+     "qualified_name": "Board::generateMoves",
+     "grade": 2
+    },
+    {
+     "file": "movegen.h",
+     "qualified_name": "addMove",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Compute the static evaluation of a position from material and piece-square tables with a game phase",
+   "targets": [
+    {
+     "file": "evaluation.cpp",
+     "qualified_name": "evaluate",
+     "grade": 2
+    },
+    {
+     "file": "evaluation.cpp",
+     "qualified_name": "init_tables",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Count how many bits are set in a 64-bit integer",
+   "targets": [
+    {
+     "file": "inline_functions.h",
+     "qualified_name": "countBits",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Return the index of the least significant set bit and clear it",
+   "targets": [
+    {
+     "file": "inline_functions.h",
+     "qualified_name": "pop_lsb",
+     "grade": 2
+    },
+    {
+     "file": "inline_functions.h",
+     "qualified_name": "bsf",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Get the squares attacked by a sliding piece given the blockers currently on the board",
+   "targets": [
+    {
+     "file": "inline_functions.h",
+     "qualified_name": "getBishopAttacks",
+     "grade": 2
+    },
+    {
+     "file": "inline_functions.h",
+     "qualified_name": "getRookAttacks",
+     "grade": 2
+    },
+    {
+     "file": "inline_functions.h",
+     "qualified_name": "getQueenAttacks",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Convert a move into long algebraic text such as e2e4",
+   "targets": [
+    {
+     "file": "misc.cpp",
+     "qualified_name": "algebraicNotation",
+     "grade": 2
+    },
+    {
+     "file": "misc.cpp",
+     "qualified_name": "printMove",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Turn a move string received from the GUI into an internal move object",
+   "targets": [
+    {
+     "file": "misc.cpp",
+     "qualified_name": "parseMove",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Print a 64-bit bitboard as an eight by eight grid for debugging",
+   "targets": [
+    {
+     "file": "misc.cpp",
+     "qualified_name": "printBitBoard",
+     "grade": 2
+    },
+    {
+     "file": "misc.cpp",
+     "qualified_name": "Board::printBoardFancy",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Count the leaf nodes reachable at a given depth to verify that move generation is correct",
+   "targets": [
+    {
+     "file": "perft_tests.cpp",
+     "qualified_name": "Test::BenchMark::perft",
+     "grade": 2
+    },
+    {
+     "file": "perft_tests.cpp",
+     "qualified_name": "Test::BenchMark::perftDriver",
+     "grade": 2
+    },
+    {
+     "file": "perft_tests.cpp",
+     "qualified_name": "Test::BenchMark::standardPerft",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Precompute attack tables for knights and kings and pawns at engine startup",
+   "targets": [
+    {
+     "file": "init.cpp",
+     "qualified_name": "initLeaperPiecesAttacks",
+     "grade": 2
+    },
+    {
+     "file": "init.cpp",
+     "qualified_name": "maskKnightMoves",
+     "grade": 1
+    },
+    {
+     "file": "init.cpp",
+     "qualified_name": "maskKingMoves",
+     "grade": 1
+    },
+    {
+     "file": "init.cpp",
+     "qualified_name": "maskPawnAttacks",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Fill the tables of pseudo-random numbers used for position hashing",
+   "targets": [
+    {
+     "file": "init.cpp",
+     "qualified_name": "initRandomKeys",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Tell whether the side to move still owns any piece other than pawns and the king",
+   "targets": [
+    {
+     "file": "board.cpp",
+     "qualified_name": "Board::nonPawnMaterial",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Remember quiet moves that caused a cutoff so they are tried early at the same ply and reward them in a history table",
+   "targets": [
+    {
+     "file": "search.cpp",
+     "qualified_name": "Searcher::updateKillers",
+     "grade": 2
+    },
+    {
+     "file": "search.cpp",
+     "qualified_name": "Searcher::updateHistory",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Reset all engine state when a new game starts",
+   "targets": [
+    {
+     "file": "UCI.cpp",
+     "qualified_name": "resetGameVariables",
+     "grade": 2
+    },
+    {
+     "file": "search.h",
+     "qualified_name": "Searcher::resetGame",
+     "grade": 2
+    },
+    {
+     "file": "search.h",
+     "qualified_name": "Searcher::resetSearchStates",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Test whether a move captures a piece or promotes a pawn",
+   "targets": [
+    {
+     "file": "move.h",
+     "qualified_name": "Move::isNoisy",
+     "grade": 2
+    },
+    {
+     "file": "move.h",
+     "qualified_name": "Move::isCapture",
+     "grade": 1
+    },
+    {
+     "file": "move.h",
+     "qualified_name": "Move::isPromotion",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Extract the origin and destination squares from the packed 16-bit move encoding",
+   "targets": [
+    {
+     "file": "move.h",
+     "qualified_name": "Move::from",
+     "grade": 2
+    },
+    {
+     "file": "move.h",
+     "qualified_name": "Move::to",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Stopwatch that returns elapsed milliseconds since it was started",
+   "targets": [
+    {
+     "file": "timer.h",
+     "qualified_name": "Timer::elapsed",
+     "grade": 2
+    },
+    {
+     "file": "timer.h",
+     "qualified_name": "Timer::floorElapsed",
+     "grade": 1
+    },
+    {
+     "file": "timer.h",
+     "qualified_name": "Timer::reset",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Reflect a square index across the horizontal midline of the board",
+   "targets": [
+    {
+     "file": "evaluation.cpp",
+     "qualified_name": "flip",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Flip a bitboard vertically and swap piece colours to test that the evaluation is symmetric",
+   "targets": [
+    {
+     "file": "evaluation_tests.cpp",
+     "qualified_name": "mirrorBitboards",
+     "grade": 2
+    },
+    {
+     "file": "evaluation_tests.cpp",
+     "qualified_name": "swapColours",
+     "grade": 2
+    },
+    {
+     "file": "evaluation_tests.cpp",
+     "qualified_name": "flipVertical",
+     "grade": 1
+    },
+    {
+     "file": "evaluation_tests.cpp",
+     "qualified_name": "Test::Debug::mirrorEval",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Follow the principal variation from the previous iteration when ordering moves",
+   "targets": [
+    {
+     "file": "search_helper.cpp",
+     "qualified_name": "Searcher::enablePVscoring",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Split a string into tokens separated by a given delimiter character",
+   "targets": [
+    {
+     "file": "perft_tests.cpp",
+     "qualified_name": "split",
+     "grade": 2
+    },
+    {
+     "file": "misc.cpp",
+     "qualified_name": "split",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Tell whether a move is a castling move on either wing",
+   "targets": [
+    {
+     "file": "move.h",
+     "qualified_name": "Move::isCastling",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Tell whether a move captures a pawn en passant",
+   "targets": [
+    {
+     "file": "move.h",
+     "qualified_name": "Move::isEnPassant",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Report whether a move promotes a pawn to a queen",
+   "targets": [
+    {
+     "file": "move.h",
+     "qualified_name": "Move::isQueenPromotion",
+     "grade": 2
+    },
+    {
+     "file": "move.h",
+     "qualified_name": "Move::isPromotion",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Extract which piece type a pawn is promoted to from the bits of a move",
+   "targets": [
+    {
+     "file": "move.h",
+     "qualified_name": "Move::promotionPiece",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Check whether a move is the empty placeholder meaning no move",
+   "targets": [
+    {
+     "file": "move.h",
+     "qualified_name": "Move::isNone",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Get the kind of a piece regardless of its colour",
+   "targets": [
+    {
+     "file": "types.h",
+     "qualified_name": "pieceType",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Get the colour that owns a piece",
+   "targets": [
+    {
+     "file": "types.h",
+     "qualified_name": "color",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Build a piece value from a colour and a piece type",
+   "targets": [
+    {
+     "file": "types.h",
+     "qualified_name": "make_piece",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Clear the castling rights, captured piece and en passant square stored for one ply of history",
+   "targets": [
+    {
+     "file": "types.h",
+     "qualified_name": "UndoInfo::resetUndoInfo",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Remove every piece and restore the board to an empty state",
+   "targets": [
+    {
+     "file": "board.h",
+     "qualified_name": "Board::resetBoard",
+     "grade": 2
+    },
+    {
+     "file": "board.h",
+     "qualified_name": "Board::resetOcc",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Return the piece standing on the origin square of a move",
+   "targets": [
+    {
+     "file": "board.h",
+     "qualified_name": "Board::getMovedPiece",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Return the piece standing on the destination square of a move",
+   "targets": [
+    {
+     "file": "board.h",
+     "qualified_name": "Board::getCapturedPiece",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Shift every bit of a bitboard one file toward the higher files and discard bits that wrap onto the first file",
+   "targets": [
+    {
+     "file": "inline_functions.h",
+     "qualified_name": "shiftRight",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Shift every bit of a bitboard one file toward the lower files and discard bits that wrap onto the last file",
+   "targets": [
+    {
+     "file": "inline_functions.h",
+     "qualified_name": "shiftLeft",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Compute diagonal attacks that pass through a first blocker so pieces hidden behind it are revealed",
+   "targets": [
+    {
+     "file": "inline_functions.h",
+     "qualified_name": "getBishopXrayAttacks",
+     "grade": 2
+    },
+    {
+     "file": "inline_functions.h",
+     "qualified_name": "getRookXrayAttacks",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Collect every piece of both colours that attacks a given square for a given occupancy",
+   "targets": [
+    {
+     "file": "board.cpp",
+     "qualified_name": "Board::allAttackers",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Precompute the sliding attack tables for bishops and rooks at start-up",
+   "targets": [
+    {
+     "file": "init.cpp",
+     "qualified_name": "initSliderAttacks",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Compute the relevant blocker mask for a bishop on a square, leaving out the board edges",
+   "targets": [
+    {
+     "file": "init.cpp",
+     "qualified_name": "maskBishopMoves",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Compute the relevant blocker mask for a rook on a square, leaving out the board edges",
+   "targets": [
+    {
+     "file": "init.cpp",
+     "qualified_name": "maskRookMoves",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Generate bishop attacks by walking each diagonal until a blocker is hit instead of using a lookup table",
+   "targets": [
+    {
+     "file": "init.cpp",
+     "qualified_name": "bishopAttacksOnTheFly",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Generate rook attacks by walking along ranks and files until a blocker is hit instead of using a lookup table",
+   "targets": [
+    {
+     "file": "init.cpp",
+     "qualified_name": "rookAttacksOnTheFly",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Turn an index into one particular arrangement of blockers inside an attack mask",
+   "targets": [
+    {
+     "file": "init.cpp",
+     "qualified_name": "setOccupancies",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Build a bitboard covering a whole file and a whole rank",
+   "targets": [
+    {
+     "file": "init.cpp",
+     "qualified_name": "setFileAndRankMask",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Prepare the bitboard masks the evaluation uses, such as those for passed or isolated pawns",
+   "targets": [
+    {
+     "file": "init.cpp",
+     "qualified_name": "initEvaluationMasks",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Compute which diagonal a square lies on",
+   "targets": [
+    {
+     "file": "init.cpp",
+     "qualified_name": "diagonal_of",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Compute which anti-diagonal a square lies on",
+   "targets": [
+    {
+     "file": "init.cpp",
+     "qualified_name": "anti_diagonal_of",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Precompute the squares strictly between every pair of aligned squares",
+   "targets": [
+    {
+     "file": "init.cpp",
+     "qualified_name": "initialiseSquaresBetween",
+     "grade": 2
+    },
+    {
+     "file": "init.cpp",
+     "qualified_name": "initialiseLine",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Initialise every lookup table and the transposition table when the engine starts",
+   "targets": [
+    {
+     "file": "init.cpp",
+     "qualified_name": "initAll",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Answer the graphical interface's readiness query",
+   "targets": [
+    {
+     "file": "UCI.cpp",
+     "qualified_name": "handleIsReady",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Free the transposition table memory before the program exits",
+   "targets": [
+    {
+     "file": "UCI.cpp",
+     "qualified_name": "cleanUp",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Main loop that reads engine commands from standard input or from a file and dispatches them",
+   "targets": [
+    {
+     "file": "UCI.cpp",
+     "qualified_name": "UCI",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Convert a move flag into readable text",
+   "targets": [
+    {
+     "file": "misc.cpp",
+     "qualified_name": "getStringFlags",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Print a list of generated moves together with their flag bits",
+   "targets": [
+    {
+     "file": "misc.cpp",
+     "qualified_name": "printMovesList",
+     "grade": 2
+    },
+    {
+     "file": "misc.cpp",
+     "qualified_name": "getStringFlags",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Find the directory that contains the running executable",
+   "targets": [
+    {
+     "file": "logger.cpp",
+     "qualified_name": "getExecutableDirectory",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Decide whether logging is enabled for this platform and build type",
+   "targets": [
+    {
+     "file": "logger.cpp",
+     "qualified_name": "isLoggingEnabled",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Return a timestamp string to prefix log lines",
+   "targets": [
+    {
+     "file": "logger.h",
+     "qualified_name": "Logger::getCurrentTime",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Erase the contents of the log file",
+   "targets": [
+    {
+     "file": "logger.h",
+     "qualified_name": "Logger::clearLogFile",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Write an error message prefixed with the word ERROR to the log",
+   "targets": [
+    {
+     "file": "logger.h",
+     "qualified_name": "Logger::logError",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Pass the turn without moving a piece by flipping the side and updating the hash",
+   "targets": [
+    {
+     "file": "update.cpp",
+     "qualified_name": "Board::nullMove",
+     "grade": 2
+    },
+    {
+     "file": "update.cpp",
+     "qualified_name": "Board::undoNullMove",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Move a piece from one square to another without any capture handling",
+   "targets": [
+    {
+     "file": "update.cpp",
+     "qualified_name": "Board::movePieceQuiet",
+     "grade": 2
+    },
+    {
+     "file": "update.cpp",
+     "qualified_name": "Board::movePiece",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Precompute the table of search depth reductions indexed by depth and number of moves played",
+   "targets": [
+    {
+     "file": "search.cpp",
+     "qualified_name": "initSearchTables",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Check whether a move is one of the stored killer moves",
+   "targets": [
+    {
+     "file": "search_helper.cpp",
+     "qualified_name": "Searcher::isKiller",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Set up the searcher's position from a FEN string and clear its repetition history",
+   "targets": [
+    {
+     "file": "search.h",
+     "qualified_name": "Searcher::parseFEN",
+     "grade": 2
+    },
+    {
+     "file": "board.cpp",
+     "qualified_name": "Board::parseFEN",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Run the engine over a suite of mate-in-n puzzles and check that it finds the mate",
+   "targets": [
+    {
+     "file": "puzzle_tests.cpp",
+     "qualified_name": "Test::BenchMark::matingPuzzles",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Check that the number of knight moves from every square is consistent",
+   "targets": [
+    {
+     "file": "bitmask_tests.cpp",
+     "qualified_name": "Test::Debug::countKnightMoves",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Run static exchange evaluation against a file of positions with expected results",
+   "targets": [
+    {
+     "file": "see_tests.cpp",
+     "qualified_name": "Test::Debug::see_test",
+     "grade": 2
+    },
+    {
+     "file": "see.cpp",
+     "qualified_name": "see",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Print the order in which moves would be searched together with their scores for debugging",
+   "targets": [
+    {
+     "file": "move_tests.cpp",
+     "qualified_name": "Test::Debug::printMoveOrdering",
+     "grade": 2
+    },
+    {
+     "file": "move_tests.cpp",
+     "qualified_name": "Test::Debug::moveSorting",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Test that the board correctly reports whether the king is in check",
+   "targets": [
+    {
+     "file": "game_scenario.cpp",
+     "qualified_name": "Test::Debug::boardInCheck",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Store a test position, the expected mating move and the search depth of a puzzle",
+   "targets": [
+    {
+     "file": "benchmark_tests.h",
+     "qualified_name": "Test::BenchMark::Puzzle::Puzzle",
+     "grade": 2
+    }
+   ]
+  }
+ ]
+}

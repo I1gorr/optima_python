@@ -1,0 +1,510 @@
+{
+ "_comment": "Developer-style queries for xxHash-dev. Labels: hand-resolved targets, source string literals, or the resolved call graph; no retrieval/embedding/enrichment output was consulted; no system was run on these queries before they were fixed. Single annotator (AI-assisted); not independently reviewed.",
+ "queries": [
+  {
+   "intent": "vague_memory",
+   "query": "the function that tells which SIMD instruction sets the cpu supports",
+   "targets": [
+    {
+     "file": "xxh_x86dispatch.c",
+     "qualified_name": "XXH_featureTest",
+     "grade": 2
+    },
+    {
+     "file": "xxh_x86dispatch.c",
+     "qualified_name": "XXH_cpuid",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "vague_memory",
+   "query": "that function that frees an XXH64 state",
+   "targets": [
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH64_freeState",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "vague_memory",
+   "query": "the constructor that runs at startup and picks the AVX version",
+   "targets": [
+    {
+     "file": "xxh_x86dispatch.c",
+     "qualified_name": "XXH_setDispatch",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "vague_memory",
+   "query": "function that turns a hash into big endian bytes",
+   "targets": [
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH64_canonicalFromHash",
+     "grade": 2
+    },
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH32_canonicalFromHash",
+     "grade": 1
+    },
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH128_canonicalFromHash",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "vague_memory",
+   "query": "the thread pool add that does not block",
+   "targets": [
+    {
+     "file": "collisions/pool.c",
+     "qualified_name": "POOL_tryAdd",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "vague_memory",
+   "query": "the helper that prints a filename and escapes weird characters",
+   "targets": [
+    {
+     "file": "cli/xxhsum.c",
+     "qualified_name": "XSUM_printFilename",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "vague_memory",
+   "query": "the deliberately bad checksum used to test the collision tester",
+   "targets": [
+    {
+     "file": "dummy.c",
+     "qualified_name": "badsum32",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "vague_memory",
+   "query": "the one that returns the library version as an integer",
+   "targets": [
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH_versionNumber",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "task",
+   "query": "how do I hash a buffer and get 64 bits",
+   "targets": [
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH3_64bits",
+     "grade": 2
+    },
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH64",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "task",
+   "query": "how do I hash data that arrives in chunks",
+   "targets": [
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH3_64bits_update",
+     "grade": 2
+    },
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH64_update",
+     "grade": 1
+    },
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH32_update",
+     "grade": 1
+    },
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH3_64bits_reset",
+     "grade": 1
+    },
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH3_64bits_digest",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "task",
+   "query": "how do I get a 128-bit hash",
+   "targets": [
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH3_128bits",
+     "grade": 2
+    },
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH128",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "task",
+   "query": "how do I hash with my own secret",
+   "targets": [
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH3_64bits_withSecret",
+     "grade": 2
+    },
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH3_128bits_withSecret",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "task",
+   "query": "how do I build a secret from a seed",
+   "targets": [
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH3_generateSecret_fromSeed",
+     "grade": 2
+    },
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH3_generateSecret",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "task",
+   "query": "how do I compare two 128-bit hashes",
+   "targets": [
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH128_isEqual",
+     "grade": 2
+    },
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH128_cmp",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "task",
+   "query": "how do I verify a checksum file with xxhsum",
+   "targets": [
+    {
+     "file": "cli/xxhsum.c",
+     "qualified_name": "XSUM_checkFile",
+     "grade": 2
+    },
+    {
+     "file": "cli/xxhsum.c",
+     "qualified_name": "XSUM_checkFiles",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "task",
+   "query": "how do I generate checksums for several files",
+   "targets": [
+    {
+     "file": "cli/xxhsum.c",
+     "qualified_name": "XSUM_generateFiles",
+     "grade": 2
+    },
+    {
+     "file": "cli/xxhsum.c",
+     "qualified_name": "XSUM_generateFile",
+     "grade": 1
+    },
+    {
+     "file": "cli/xxhsum.c",
+     "qualified_name": "XSUM_hashFiles",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "task",
+   "query": "how do I read a very long line from a file without overflowing a buffer",
+   "targets": [
+    {
+     "file": "cli/xxhsum.c",
+     "qualified_name": "XSUM_getLine",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "task",
+   "query": "how do I benchmark xxhash on my own file",
+   "targets": [
+    {
+     "file": "xsum_bench.c",
+     "qualified_name": "XSUM_benchFiles",
+     "grade": 2
+    },
+    {
+     "file": "xsum_bench.c",
+     "qualified_name": "XSUM_benchMem",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "task",
+   "query": "how do I run the built in sanity tests",
+   "targets": [
+    {
+     "file": "xsum_sanity_check.c",
+     "qualified_name": "XSUM_sanityCheck",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "error_message",
+   "query": "which function prints 'AVX2 supported by the CPU, but not the OS.'",
+   "string_literal": "AVX2 supported by the CPU, but not the OS."
+  },
+  {
+   "intent": "error_message",
+   "query": "where is 'CPUID support is not detected!' logged",
+   "string_literal": "CPUID support is not detected!"
+  },
+  {
+   "intent": "error_message",
+   "query": "who prints 'Wrong parameters'",
+   "string_literal": "Wrong parameters"
+  },
+  {
+   "intent": "error_message",
+   "query": "where does the usage text 'Create or verify checksums using fast non-cryptographic algorithm xxHash' live",
+   "string_literal": "Create or verify checksums using fast non-cryptographic"
+  },
+  {
+   "intent": "error_message",
+   "query": "'Not enough memory for' shows up during a benchmark, which function prints it",
+   "string_literal": "Not enough memory for"
+  },
+  {
+   "intent": "error_message",
+   "query": "where is the 'Advanced:' section of the xxhsum help printed",
+   "string_literal": "Advanced: "
+  },
+  {
+   "intent": "error_message",
+   "query": "which code prints 'Max CPUID leaves == 0!'",
+   "string_literal": "Max CPUID leaves == 0!"
+  },
+  {
+   "intent": "concept",
+   "query": "how does the library pick the best implementation at runtime",
+   "targets": [
+    {
+     "file": "xxh_x86dispatch.c",
+     "qualified_name": "XXH_setDispatch",
+     "grade": 2
+    },
+    {
+     "file": "xxh_x86dispatch.c",
+     "qualified_name": "XXH_featureTest",
+     "grade": 1
+    },
+    {
+     "file": "xxh_x86dispatch.c",
+     "qualified_name": "XXH3_64bits_dispatch",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "concept",
+   "query": "how does xxhsum choose between BSD and GNU output formats",
+   "targets": [
+    {
+     "file": "cli/xxhsum.c",
+     "qualified_name": "XSUM_printLine_BSD_internal",
+     "grade": 2
+    },
+    {
+     "file": "cli/xxhsum.c",
+     "qualified_name": "XSUM_printLine_GNU_internal",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "concept",
+   "query": "how does the collision tester avoid storing every hash",
+   "targets": [
+    {
+     "file": "collisions/main.c",
+     "qualified_name": "search_collisions",
+     "grade": 2
+    },
+    {
+     "file": "collisions/main.c",
+     "qualified_name": "Filter_insert",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "concept",
+   "query": "how does the thread pool change its number of workers",
+   "targets": [
+    {
+     "file": "collisions/pool.c",
+     "qualified_name": "POOL_resize",
+     "grade": 2
+    },
+    {
+     "file": "collisions/pool.c",
+     "qualified_name": "POOL_resize_internal",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "concept",
+   "query": "how does the checksum file parser deal with escaped file names",
+   "targets": [
+    {
+     "file": "cli/xxhsum.c",
+     "qualified_name": "XSUM_filenameUnescape",
+     "grade": 2
+    },
+    {
+     "file": "cli/xxhsum.c",
+     "qualified_name": "XSUM_parseLine1",
+     "grade": 1
+    },
+    {
+     "file": "cli/xxhsum.c",
+     "qualified_name": "XSUM_parseLine",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "concept",
+   "query": "how are the known answer test vectors created",
+   "targets": [
+    {
+     "file": "sanity_test_vectors_generator.c",
+     "qualified_name": "generate_sanity_test_vectors",
+     "grade": 2
+    },
+    {
+     "file": "sanity_test_vectors_generator.c",
+     "qualified_name": "generate_sanity_test_vectors_xxh32",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "concept",
+   "query": "how does the benchmark decide how much memory to use",
+   "targets": [
+    {
+     "file": "xsum_bench.c",
+     "qualified_name": "XSUM_findMaxMem",
+     "grade": 2
+    },
+    {
+     "file": "xsum_bench.c",
+     "qualified_name": "XSUM_selectBenchedSize",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "intent": "concept",
+   "query": "how is a 64-bit streaming hash finalised for short inputs",
+   "targets": [
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH64_digest",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "intent": "impact",
+   "query": "what uses XSUM_log",
+   "callers_of": {
+    "file": "xsum_output.c",
+    "qualified_name": "XSUM_log"
+   }
+  },
+  {
+   "intent": "impact",
+   "query": "who calls XSUM_printFilename",
+   "callers_of": {
+    "file": "cli/xxhsum.c",
+    "qualified_name": "XSUM_printFilename"
+   }
+  },
+  {
+   "intent": "impact",
+   "query": "I want to change errorOut, which code depends on it?",
+   "callers_of": {
+    "file": "cli/xxhsum.c",
+    "qualified_name": "errorOut"
+   }
+  },
+  {
+   "intent": "impact",
+   "query": "what calls XSUM_getLine",
+   "callers_of": {
+    "file": "cli/xxhsum.c",
+    "qualified_name": "XSUM_getLine"
+   }
+  },
+  {
+   "intent": "impact",
+   "query": "what does XSUM_parseFile1 call",
+   "callees_of": {
+    "file": "cli/xxhsum.c",
+    "qualified_name": "XSUM_parseFile1"
+   }
+  },
+  {
+   "intent": "impact",
+   "query": "which functions does XXH3_generateSecret rely on",
+   "callees_of": {
+    "file": "xxhash.h",
+    "qualified_name": "XXH3_generateSecret"
+   }
+  }
+ ]
+}

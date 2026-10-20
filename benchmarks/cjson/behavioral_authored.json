@@ -1,0 +1,630 @@
+{
+ "_comment": "Hand-authored natural-language behavioural queries for cJSON-master. Queries describe behaviour, not identifiers. Labels were assigned from knowledge of the cJSON API and the function source in base.json BEFORE any retrieval was run; no retrieval output, embedding or LLM enrichment was consulted. grade 2 = the function that directly implements the described behaviour (several when public variants differ only by options); grade 1 = an internal helper or a closely related sibling. Single annotator (AI-assisted authoring); NOT independently reviewed by a second human.",
+ "queries": [
+  {
+   "query": "Parse a JSON text string into a tree of items",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_Parse",
+     "grade": 2
+    },
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_ParseWithLength",
+     "grade": 2
+    },
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_ParseWithOpts",
+     "grade": 2
+    },
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_ParseWithLengthOpts",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Parse JSON text and report the position of the error when the input is malformed",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_ParseWithOpts",
+     "grade": 2
+    },
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_ParseWithLengthOpts",
+     "grade": 2
+    },
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_GetErrorPtr",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Serialize a tree back to text with indentation for readability",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_Print",
+     "grade": 2
+    },
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_PrintBuffered",
+     "grade": 1
+    },
+    {
+     "file": "cJSON.c",
+     "qualified_name": "print",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Serialize a tree to text without any extra whitespace",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_PrintUnformatted",
+     "grade": 2
+    },
+    {
+     "file": "cJSON.c",
+     "qualified_name": "print",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Print into a caller supplied fixed size buffer without allocating",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_PrintPreallocated",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Free an entire tree of items including all children",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_Delete",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Install custom memory allocation and deallocation functions",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_InitHooks",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Return how many elements an array holds",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_GetArraySize",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Fetch an array element by its position",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_GetArrayItem",
+     "grade": 2
+    },
+    {
+     "file": "cJSON.c",
+     "qualified_name": "get_array_item",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Look up a member of an object by key ignoring letter case",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_GetObjectItem",
+     "grade": 2
+    },
+    {
+     "file": "cJSON.c",
+     "qualified_name": "get_object_item",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Look up an object member requiring an exact case sensitive key match",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_GetObjectItemCaseSensitive",
+     "grade": 2
+    },
+    {
+     "file": "cJSON.c",
+     "qualified_name": "get_object_item",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Check whether an object contains a given key",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_HasObjectItem",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Append an item to the end of an array",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_AddItemToArray",
+     "grade": 2
+    },
+    {
+     "file": "cJSON.c",
+     "qualified_name": "add_item_to_array",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Attach a child item to an object under a name",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_AddItemToObject",
+     "grade": 2
+    },
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_AddItemToObjectCS",
+     "grade": 1
+    },
+    {
+     "file": "cJSON.c",
+     "qualified_name": "add_item_to_object",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Create a numeric member and add it to an object in a single step",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_AddNumberToObject",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Create a string member and add it to an object in a single step",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_AddStringToObject",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Create a boolean member and add it to an object",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_AddBoolToObject",
+     "grade": 2
+    },
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_AddTrueToObject",
+     "grade": 1
+    },
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_AddFalseToObject",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Remove an item from an array and hand it back without freeing it",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_DetachItemFromArray",
+     "grade": 2
+    },
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_DetachItemViaPointer",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Remove an object member by key and free it",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_DeleteItemFromObject",
+     "grade": 2
+    },
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_DeleteItemFromObjectCaseSensitive",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Insert an item at a given index shifting the following elements",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_InsertItemInArray",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Replace an existing array element with a new item",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_ReplaceItemInArray",
+     "grade": 2
+    },
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_ReplaceItemViaPointer",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Make a deep copy of a tree",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_Duplicate",
+     "grade": 2
+    },
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_Duplicate_rec",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Strip whitespace and comments from a JSON string in place",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_Minify",
+     "grade": 2
+    },
+    {
+     "file": "cJSON.c",
+     "qualified_name": "minify_string",
+     "grade": 1
+    },
+    {
+     "file": "cJSON.c",
+     "qualified_name": "skip_oneline_comment",
+     "grade": 1
+    },
+    {
+     "file": "cJSON.c",
+     "qualified_name": "skip_multiline_comment",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Compare two trees for structural equality",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_Compare",
+     "grade": 2
+    },
+    {
+     "file": "cJSON.c",
+     "qualified_name": "compare_double",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Test whether an item holds a number",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_IsNumber",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Test whether an item holds a string",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_IsString",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Build an array of integers from a plain C array",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_CreateIntArray",
+     "grade": 2
+    },
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_CreateFloatArray",
+     "grade": 1
+    },
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_CreateDoubleArray",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Decode a quoted string literal handling escape sequences and unicode surrogate pairs",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "parse_string",
+     "grade": 2
+    },
+    {
+     "file": "cJSON.c",
+     "qualified_name": "utf16_literal_to_utf8",
+     "grade": 2
+    },
+    {
+     "file": "cJSON.c",
+     "qualified_name": "parse_hex4",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Convert a number into its text representation",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "print_number",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Enlarge the output buffer when printing needs more room",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "ensure",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Skip a byte order mark at the start of the input",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "skip_utf8_bom",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Resolve a slash separated JSON Pointer path to an item inside a document",
+   "targets": [
+    {
+     "file": "cJSON_Utils.c",
+     "qualified_name": "cJSONUtils_GetPointer",
+     "grade": 2
+    },
+    {
+     "file": "cJSON_Utils.c",
+     "qualified_name": "cJSONUtils_GetPointerCaseSensitive",
+     "grade": 2
+    },
+    {
+     "file": "cJSON_Utils.c",
+     "qualified_name": "get_item_from_pointer",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Compute the pointer path that leads to a given item",
+   "targets": [
+    {
+     "file": "cJSON_Utils.c",
+     "qualified_name": "cJSONUtils_FindPointerFromObjectTo",
+     "grade": 2
+    },
+    {
+     "file": "cJSON_Utils.c",
+     "qualified_name": "encode_string_as_pointer",
+     "grade": 1
+    },
+    {
+     "file": "cJSON_Utils.c",
+     "qualified_name": "pointer_encoded_length",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Apply a list of patch operations to a document",
+   "targets": [
+    {
+     "file": "cJSON_Utils.c",
+     "qualified_name": "cJSONUtils_ApplyPatches",
+     "grade": 2
+    },
+    {
+     "file": "cJSON_Utils.c",
+     "qualified_name": "cJSONUtils_ApplyPatchesCaseSensitive",
+     "grade": 2
+    },
+    {
+     "file": "cJSON_Utils.c",
+     "qualified_name": "apply_patch",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Produce a patch that describes the difference between two documents",
+   "targets": [
+    {
+     "file": "cJSON_Utils.c",
+     "qualified_name": "cJSONUtils_GeneratePatches",
+     "grade": 2
+    },
+    {
+     "file": "cJSON_Utils.c",
+     "qualified_name": "cJSONUtils_GeneratePatchesCaseSensitive",
+     "grade": 2
+    },
+    {
+     "file": "cJSON_Utils.c",
+     "qualified_name": "create_patches",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Merge a patch document into a target document",
+   "targets": [
+    {
+     "file": "cJSON_Utils.c",
+     "qualified_name": "cJSONUtils_MergePatch",
+     "grade": 2
+    },
+    {
+     "file": "cJSON_Utils.c",
+     "qualified_name": "cJSONUtils_MergePatchCaseSensitive",
+     "grade": 2
+    },
+    {
+     "file": "cJSON_Utils.c",
+     "qualified_name": "merge_patch",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Sort the members of an object alphabetically by key",
+   "targets": [
+    {
+     "file": "cJSON_Utils.c",
+     "qualified_name": "cJSONUtils_SortObject",
+     "grade": 2
+    },
+    {
+     "file": "cJSON_Utils.c",
+     "qualified_name": "cJSONUtils_SortObjectCaseSensitive",
+     "grade": 2
+    },
+    {
+     "file": "cJSON_Utils.c",
+     "qualified_name": "sort_object",
+     "grade": 1
+    },
+    {
+     "file": "cJSON_Utils.c",
+     "qualified_name": "sort_list",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Return the library version as text",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_Version",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Change the string held by an existing item",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_SetValuestring",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Update the number stored in an item keeping the integer and floating point fields consistent",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_SetNumberHelper",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Allocate and zero a fresh item node using the configured allocator",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_New_Item",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Create an item that refers to an existing string without copying it",
+   "targets": [
+    {
+     "file": "cJSON.c",
+     "qualified_name": "cJSON_CreateStringReference",
+     "grade": 2
+    }
+   ]
+  }
+ ]
+}

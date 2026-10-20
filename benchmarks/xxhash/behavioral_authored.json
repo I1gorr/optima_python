@@ -1,0 +1,1065 @@
+{
+ "_comment": "Hand-authored natural-language behavioural queries for xxHash-dev (v0.8.x). Queries describe behaviour, not identifiers. Labels were assigned by reading the function source in base.json BEFORE any retrieval was run on this project; no retrieval output, embedding, or LLM enrichment was consulted. grade 2 = the function that directly implements the described behaviour (several equivalent copies of a helper, e.g. test-buffer fillers, are all grade 2); grade 1 = a variant, wrapper or closely supporting function. Single annotator (AI-assisted authoring); NOT independently reviewed by a second human.",
+ "queries": [
+  {
+   "query": "Compute a 32-bit hash of a memory buffer in a single call, given a seed",
+   "targets": [
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH32",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Compute a 64-bit hash of a buffer in one call using the classic 64-bit algorithm",
+   "targets": [
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH64",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Hash a buffer with the newer generation of the algorithm and a 64-bit result, with no seed or secret",
+   "targets": [
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH3_64bits",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Hash a buffer with a caller-chosen 64-bit seed using the newer algorithm and return 64 bits",
+   "targets": [
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH3_64bits_withSeed",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Hash a buffer using a custom secret byte array instead of the built-in default secret, producing 64 bits",
+   "targets": [
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH3_64bits_withSecret",
+     "grade": 2
+    },
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH3_64bits_withSecretandSeed",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Hash input with both a custom secret and a seed and return a 64-bit value",
+   "targets": [
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH3_64bits_withSecretandSeed",
+     "grade": 2
+    },
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH3_64bits_withSecret",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Compute a 128-bit hash of a buffer",
+   "targets": [
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH3_128bits",
+     "grade": 2
+    },
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH128",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Compute a 128-bit hash with a seed through the short convenience name",
+   "targets": [
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH128",
+     "grade": 2
+    },
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH3_128bits_withSeed",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Allocate a state object used to hash 32-bit data incrementally",
+   "targets": [
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH32_createState",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Release the memory of a 64-bit streaming hash state",
+   "targets": [
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH64_freeState",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Duplicate a streaming 32-bit hash state into another state object",
+   "targets": [
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH32_copyState",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Initialise a 64-bit streaming hash state with a seed so a new hash can begin",
+   "targets": [
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH64_reset",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Feed another chunk of bytes into an ongoing 32-bit hash computation",
+   "targets": [
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH32_update",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Finish a streaming 64-bit computation and return the final hash value",
+   "targets": [
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH64_digest",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Convert a 32-bit hash into a platform-independent big-endian byte form",
+   "targets": [
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH32_canonicalFromHash",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Read a 64-bit hash value back from its portable big-endian byte representation",
+   "targets": [
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH64_hashFromCanonical",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Rebuild a 128-bit hash value from its canonical big-endian bytes",
+   "targets": [
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH128_hashFromCanonical",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Check whether two 128-bit hash values are identical",
+   "targets": [
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH128_isEqual",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Order two 128-bit hash values so they can be sorted, returning negative, zero or positive",
+   "targets": [
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH128_cmp",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Derive a high-entropy secret buffer from arbitrary user supplied seed material",
+   "targets": [
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH3_generateSecret",
+     "grade": 2
+    },
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH3_generateSecret_fromSeed",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Generate a secret buffer from a single 64-bit seed value",
+   "targets": [
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH3_generateSecret_fromSeed",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Return the library version as a single number",
+   "targets": [
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH_versionNumber",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Allocate a 64-byte aligned state object for streaming hashing with the newer algorithm",
+   "targets": [
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH3_createState",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Prepare a streaming state for a 64-bit hash that uses the default secret",
+   "targets": [
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH3_64bits_reset",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Prepare a 128-bit streaming state to hash with a custom secret",
+   "targets": [
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH3_128bits_reset_withSecret",
+     "grade": 2
+    },
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH3_64bits_reset_withSecret",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Return the final 128-bit value of a streaming hash",
+   "targets": [
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH3_128bits_digest",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Process one stripe of input into the accumulators with 256-bit vector instructions",
+   "targets": [
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH3_accumulate_512_avx2",
+     "grade": 2
+    },
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH3_accumulate_avx2",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Mix the accumulators with the secret to scramble them using 512-bit vector instructions",
+   "targets": [
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH3_scrambleAcc_avx512",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Fill a custom secret buffer derived from a seed using 512-bit vector instructions",
+   "targets": [
+    {
+     "file": "xxhash.h",
+     "qualified_name": "XXH3_initCustomSecret_avx512",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Detect which vector instruction sets the processor and operating system support and pick the best one",
+   "targets": [
+    {
+     "file": "xxh_x86dispatch.c",
+     "qualified_name": "XXH_featureTest",
+     "grade": 2
+    },
+    {
+     "file": "xxh_x86dispatch.c",
+     "qualified_name": "XXH_cpuid",
+     "grade": 1
+    },
+    {
+     "file": "xxh_x86dispatch.c",
+     "qualified_name": "XXH_xgetbv",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Execute the processor identification instruction to query CPU capabilities",
+   "targets": [
+    {
+     "file": "xxh_x86dispatch.c",
+     "qualified_name": "XXH_cpuid",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Read the extended control register to learn whether the OS saves wide vector register state",
+   "targets": [
+    {
+     "file": "xxh_x86dispatch.c",
+     "qualified_name": "XXH_xgetbv",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Run automatically at startup to install function pointers for the best available vector implementation",
+   "targets": [
+    {
+     "file": "xxh_x86dispatch.c",
+     "qualified_name": "XXH_setDispatch",
+     "grade": 2
+    },
+    {
+     "file": "xxh_x86dispatch.c",
+     "qualified_name": "XXH_featureTest",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Hash a buffer through the runtime-dispatched entry point returning 64 bits",
+   "targets": [
+    {
+     "file": "xxh_x86dispatch.c",
+     "qualified_name": "XXH3_64bits_dispatch",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Update a 128-bit streaming hash through the dispatch layer",
+   "targets": [
+    {
+     "file": "xxh_x86dispatch.c",
+     "qualified_name": "XXH3_128bits_update_dispatch",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Escape special characters such as backslash and newline when printing a filename in a checksum line",
+   "targets": [
+    {
+     "file": "cli/xxhsum.c",
+     "qualified_name": "XSUM_printFilename",
+     "grade": 2
+    },
+    {
+     "file": "cli/xxhsum.c",
+     "qualified_name": "XSUM_filenameNeedsEscape",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Decide whether a filename contains characters that must be escaped in checksum output",
+   "targets": [
+    {
+     "file": "cli/xxhsum.c",
+     "qualified_name": "XSUM_filenameNeedsEscape",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Turn escape sequences in a filename read from a checksum file back into the original characters",
+   "targets": [
+    {
+     "file": "cli/xxhsum.c",
+     "qualified_name": "XSUM_filenameUnescape",
+     "grade": 2
+    },
+    {
+     "file": "cli/xxhsum.c",
+     "qualified_name": "XSUM_lineNeedsUnescape",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Hash the contents of an open file block by block with a chosen algorithm",
+   "targets": [
+    {
+     "file": "cli/xxhsum.c",
+     "qualified_name": "XSUM_hashStream",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Print a checksum line in the BSD style with the algorithm name as a tag",
+   "targets": [
+    {
+     "file": "cli/xxhsum.c",
+     "qualified_name": "XSUM_printLine_BSD_internal",
+     "grade": 2
+    },
+    {
+     "file": "cli/xxhsum.c",
+     "qualified_name": "XSUM_printLine_BSD",
+     "grade": 1
+    },
+    {
+     "file": "cli/xxhsum.c",
+     "qualified_name": "XSUM_printLine_BSD_LE",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Print a checksum line in the GNU coreutils style",
+   "targets": [
+    {
+     "file": "cli/xxhsum.c",
+     "qualified_name": "XSUM_printLine_GNU_internal",
+     "grade": 2
+    },
+    {
+     "file": "cli/xxhsum.c",
+     "qualified_name": "XSUM_printLine_GNU",
+     "grade": 1
+    },
+    {
+     "file": "cli/xxhsum.c",
+     "qualified_name": "XSUM_printLine_GNU_LE",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Print raw hash bytes starting from the least significant byte",
+   "targets": [
+    {
+     "file": "cli/xxhsum.c",
+     "qualified_name": "XSUM_display_LittleEndian",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Verify files against a list of recorded checksums and report which ones do not match",
+   "targets": [
+    {
+     "file": "cli/xxhsum.c",
+     "qualified_name": "XSUM_checkFile",
+     "grade": 2
+    },
+    {
+     "file": "cli/xxhsum.c",
+     "qualified_name": "XSUM_checkFiles",
+     "grade": 1
+    },
+    {
+     "file": "cli/xxhsum.c",
+     "qualified_name": "XSUM_parseFile1",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Parse one line of a checksum file into algorithm, hash value and filename",
+   "targets": [
+    {
+     "file": "cli/xxhsum.c",
+     "qualified_name": "XSUM_parseLine1",
+     "grade": 2
+    },
+    {
+     "file": "cli/xxhsum.c",
+     "qualified_name": "XSUM_parseLine",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Convert a hexadecimal digit character into its numeric value",
+   "targets": [
+    {
+     "file": "cli/xxhsum.c",
+     "qualified_name": "charToHex",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Convert a hexadecimal string into the canonical hash bytes, optionally reversing the byte order",
+   "targets": [
+    {
+     "file": "cli/xxhsum.c",
+     "qualified_name": "XSUM_canonicalFromString",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Read an unsigned 32-bit decimal number from a command line argument and abort when it overflows",
+   "targets": [
+    {
+     "file": "cli/xxhsum.c",
+     "qualified_name": "XSUM_readU32FromChar",
+     "grade": 2
+    },
+    {
+     "file": "cli/xxhsum.c",
+     "qualified_name": "XSUM_readU32FromCharChecked",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Strip the directory part of an executable path to obtain the program name",
+   "targets": [
+    {
+     "file": "cli/xxhsum.c",
+     "qualified_name": "XSUM_lastNameFromPath",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Read an arbitrarily long line from a file, growing the buffer as needed",
+   "targets": [
+    {
+     "file": "cli/xxhsum.c",
+     "qualified_name": "XSUM_getLine",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Find the largest block of memory that can be allocated for a benchmark",
+   "targets": [
+    {
+     "file": "xsum_bench.c",
+     "qualified_name": "XSUM_findMaxMem",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Measure how fast one hash function runs over a buffer and print the throughput",
+   "targets": [
+    {
+     "file": "xsum_bench.c",
+     "qualified_name": "XSUM_benchHash",
+     "grade": 2
+    },
+    {
+     "file": "xsum_bench.c",
+     "qualified_name": "XSUM_benchMem",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Choose how many bytes of an input file to use for benchmarking depending on its size",
+   "targets": [
+    {
+     "file": "xsum_bench.c",
+     "qualified_name": "XSUM_selectBenchedSize",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Concatenate two strings into a newly allocated string",
+   "targets": [
+    {
+     "file": "xsum_bench.c",
+     "qualified_name": "XSUM_strcatDup",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Hash a buffer through the streaming interface with a seed using the newer algorithm",
+   "targets": [
+    {
+     "file": "xsum_bench.c",
+     "qualified_name": "localXXH3_stream_seeded",
+     "grade": 2
+    },
+    {
+     "file": "xsum_bench.c",
+     "qualified_name": "localXXH3_stream",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Check whether an output stream is attached to an interactive terminal",
+   "targets": [
+    {
+     "file": "xsum_os_specific.c",
+     "qualified_name": "XSUM_isConsole",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Switch a stream to binary mode on platforms that distinguish text from binary files",
+   "targets": [
+    {
+     "file": "xsum_os_specific.c",
+     "qualified_name": "XSUM_setBinaryMode",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Report the size of a file on disk",
+   "targets": [
+    {
+     "file": "xsum_os_specific.c",
+     "qualified_name": "XSUM_getFileSize",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Test whether a path refers to a directory",
+   "targets": [
+    {
+     "file": "xsum_os_specific.c",
+     "qualified_name": "XSUM_isDirectory",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Write a formatted message to standard error only when the verbosity level is high enough",
+   "targets": [
+    {
+     "file": "xsum_output.c",
+     "qualified_name": "XSUM_logVerbose",
+     "grade": 2
+    },
+    {
+     "file": "xsum_output.c",
+     "qualified_name": "XSUM_log",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Fill a buffer with deterministic pseudo-random bytes so tests are reproducible",
+   "targets": [
+    {
+     "file": "xsum_sanity_check.c",
+     "qualified_name": "XSUM_fillTestBuffer",
+     "grade": 2
+    },
+    {
+     "file": "tests/sanity_test.c",
+     "qualified_name": "fillTestBuffer",
+     "grade": 2
+    },
+    {
+     "file": "sanity_test_vectors_generator.c",
+     "qualified_name": "fillTestBuffer",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Compare an expected and an actual 128-bit hash and report an error on mismatch",
+   "targets": [
+    {
+     "file": "xsum_sanity_check.c",
+     "qualified_name": "XSUM_checkResult128",
+     "grade": 2
+    },
+    {
+     "file": "tests/sanity_test.c",
+     "qualified_name": "checkResult128",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Generate the table of known-answer test vectors for the 32-bit hash",
+   "targets": [
+    {
+     "file": "sanity_test_vectors_generator.c",
+     "qualified_name": "generate_sanity_test_vectors_xxh32",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Return a pseudo-random 32-bit number from an internal 64-bit state",
+   "targets": [
+    {
+     "file": "xsum_sanity_check.c",
+     "qualified_name": "XSUM_rand",
+     "grade": 2
+    },
+    {
+     "file": "tests/sanity_test.c",
+     "qualified_name": "SANITY_TEST_rand",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Fuzzer entry point that hashes arbitrary input with several algorithm variants",
+   "targets": [
+    {
+     "file": "fuzz/fuzzer.c",
+     "qualified_name": "LLVMFuzzerTestOneInput",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Diffuse the bits of a 64-bit value with a mixing step so that every output bit depends on every input bit",
+   "targets": [
+    {
+     "file": "collisions/main.c",
+     "qualified_name": "avalanche64",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Count the number of ways to choose m items out of n",
+   "targets": [
+    {
+     "file": "collisions/main.c",
+     "qualified_name": "Cnm",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Flip a single bit at a given position in a buffer",
+   "targets": [
+    {
+     "file": "collisions/main.c",
+     "qualified_name": "flipbit",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Insert a hash into a probabilistic membership filter and report whether it was probably already there",
+   "targets": [
+    {
+     "file": "collisions/main.c",
+     "qualified_name": "Filter_insert",
+     "grade": 2
+    },
+    {
+     "file": "collisions/main.c",
+     "qualified_name": "Filter_check",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Create a Bloom-style filter whose size is given as a power of two",
+   "targets": [
+    {
+     "file": "collisions/main.c",
+     "qualified_name": "create_Filter",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Estimate how many collisions are expected for a number of hashes of a given bit width",
+   "targets": [
+    {
+     "file": "collisions/main.c",
+     "qualified_name": "estimateNbCollisions",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Return the index of the highest bit set in a 64-bit integer",
+   "targets": [
+    {
+     "file": "collisions/main.c",
+     "qualified_name": "highestBitSet",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Search for hash collisions over many generated inputs",
+   "targets": [
+    {
+     "file": "collisions/main.c",
+     "qualified_name": "search_collisions",
+     "grade": 2
+    },
+    {
+     "file": "collisions/main.c",
+     "qualified_name": "time_collisions",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Create a thread pool with a fixed number of worker threads and a bounded job queue",
+   "targets": [
+    {
+     "file": "collisions/pool.c",
+     "qualified_name": "POOL_create",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Submit a job to the pool without blocking and fail when the queue is full",
+   "targets": [
+    {
+     "file": "collisions/pool.c",
+     "qualified_name": "POOL_tryAdd",
+     "grade": 2
+    },
+    {
+     "file": "collisions/pool.c",
+     "qualified_name": "POOL_add",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Change the number of worker threads of an existing pool",
+   "targets": [
+    {
+     "file": "collisions/pool.c",
+     "qualified_name": "POOL_resize",
+     "grade": 2
+    },
+    {
+     "file": "collisions/pool.c",
+     "qualified_name": "POOL_resize_internal",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Shut down the job queue and wait for all worker threads to finish",
+   "targets": [
+    {
+     "file": "collisions/pool.c",
+     "qualified_name": "POOL_join",
+     "grade": 2
+    },
+    {
+     "file": "collisions/pool.c",
+     "qualified_name": "POOL_free",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Sort an array of 128-bit hash values",
+   "targets": [
+    {
+     "file": "collisions/sort.cc",
+     "qualified_name": "sort128",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Sort an array of 64-bit hash values in ascending order",
+   "targets": [
+    {
+     "file": "collisions/sort.cc",
+     "qualified_name": "sort64",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "A deliberately poor 32-bit checksum that sums the input bytes, used as a low-quality baseline",
+   "targets": [
+    {
+     "file": "dummy.c",
+     "qualified_name": "badsum32",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Wrap the 128-bit hash so that only its lower 64 bits are used for collision testing",
+   "targets": [
+    {
+     "file": "collisions/hashes.h",
+     "qualified_name": "XXH128l_wrapper",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Wrap the 128-bit hash so that only its upper 64 bits are used for collision testing",
+   "targets": [
+    {
+     "file": "collisions/hashes.h",
+     "qualified_name": "XXH128h_wrapper",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Measure the latency of a hash function on inputs of random length",
+   "targets": [
+    {
+     "file": "bhDisplay.c",
+     "qualified_name": "bench_latency_randomInputLength",
+     "grade": 2
+    },
+    {
+     "file": "bhDisplay.c",
+     "qualified_name": "bench_latency_oneHash_randomInputLength",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Run a function repeatedly within a time budget and return the measured outcome",
+   "targets": [
+    {
+     "file": "benchfn.c",
+     "qualified_name": "BMK_benchTimedFn",
+     "grade": 2
+    },
+    {
+     "file": "benchfn.c",
+     "qualified_name": "BMK_benchFunction",
+     "grade": 1
+    }
+   ]
+  },
+  {
+   "query": "Create a state that tracks a total time budget and a per-run time budget for a timed benchmark",
+   "targets": [
+    {
+     "file": "benchfn.c",
+     "qualified_name": "BMK_createTimedFnState",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Check whether a benchmark run finished without error",
+   "targets": [
+    {
+     "file": "benchfn.c",
+     "qualified_name": "BMK_isSuccessful_runOutcome",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Return a high resolution timestamp",
+   "targets": [
+    {
+     "file": "timefn.c",
+     "qualified_name": "UTIL_getTime",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Busy-wait until the clock advances to the next tick before starting a measurement",
+   "targets": [
+    {
+     "file": "timefn.c",
+     "qualified_name": "UTIL_waitForNextTick",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "List the names of the hash functions available for benchmarking",
+   "targets": [
+    {
+     "file": "bench/main.c",
+     "qualified_name": "display_hash_names",
+     "grade": 2
+    }
+   ]
+  },
+  {
+   "query": "Look up a hash function by its name and return its index in the table",
+   "targets": [
+    {
+     "file": "bench/main.c",
+     "qualified_name": "hashID",
+     "grade": 2
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,28 @@
+{
+  "output_root": "experiments",
+  "embedding_cache": "experiments/_embedding_cache",
+  "bootstrap_samples": 10000,
+  "bootstrap_samples_per_run": 2000,
+  "groups": [
+    "grid"
+  ],
+  "embedding_models": [
+    "bge-small",
+    "bge-base",
+    "qwen3-0.6b"
+  ],
+  "primary_embedding": "bge-base",
+  "rerankers": [],
+  "rerank_pool": 30,
+  "_comment": "Fully crossed enrichment x embedding grid added after the first suites showed enrichment models were only evaluated with bge-base. Same benchmark, query_set_version and ground truth as the *-v1 suite; bge-base cells repeat v1 runs on purpose (determinism check). Enriched files whose recorded base_sha256 does not match base.json are skipped and listed under datasets[]._skipped_enriched. v2 benchmark (more behavioural queries).",
+  "suite_id": "cjson-grid-v2",
+  "datasets": [
+    {
+      "name": "cjson",
+      "base_json": "optima_outputs/base/cJSON-master/base.json",
+      "benchmark": "benchmarks/cjson/structural_v2.json",
+      "enriched_dir": "output/cJson",
+      "primary_enrichment": "qwen-qwen2.5-coder-14b-instruct"
+    }
+  ]
+}

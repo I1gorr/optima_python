@@ -1,0 +1,410 @@
+{
+ "schema_version": 1,
+ "benchmark_id": "chess-literal-tuning",
+ "query_set_version": "tuning-1",
+ "ground_truth_version": "tuning-1",
+ "project": "Chess-Engine-in-cpp-master",
+ "base_sha256": "4f647d32e73069a1a7245e066ff614efce65edccc74ff38d3058c271459cc634",
+ "labeling": {
+  "independence": "templated sentences + mechanical literal labels; TUNING ONLY, never reported as a result"
+ },
+ "categories": {
+  "literal": "message / string literal to code"
+ },
+ "unsupported_categories": {},
+ "counts": {
+  "literal": 30
+ },
+ "queries": [
+  {
+   "category": "literal",
+   "query": "where does it print 'recordHash: Trying to store a null move'",
+   "relevance": {
+    "src/hashtable.cpp::recordHash::114": 2.0
+   },
+   "relevant_functions": [
+    "src/hashtable.cpp::recordHash::114"
+   ],
+   "seed": "src/hashtable.cpp::recordHash::114",
+   "label_source": "source_string_literal",
+   "query_id": "literal-001"
+  },
+  {
+   "category": "literal",
+   "query": "which function outputs 'giveScores: score is too large'",
+   "relevance": {
+    "src/search/movesort.cpp::Searcher::giveScores::104": 2.0
+   },
+   "relevant_functions": [
+    "src/search/movesort.cpp::Searcher::giveScores::104"
+   ],
+   "seed": "src/search/movesort.cpp::Searcher::giveScores::104",
+   "label_source": "source_string_literal",
+   "query_id": "literal-002"
+  },
+  {
+   "category": "literal",
+   "query": "find the code that logs ' << duration.count() << '",
+   "relevance": {
+    "benchmark_tests/puzzle_tests.cpp::Test::BenchMark::matingPuzzles::29": 2.0
+   },
+   "relevant_functions": [
+    "benchmark_tests/puzzle_tests.cpp::Test::BenchMark::matingPuzzles::29"
+   ],
+   "seed": "benchmark_tests/puzzle_tests.cpp::Test::BenchMark::matingPuzzles::29",
+   "label_source": "source_string_literal",
+   "query_id": "literal-003"
+  },
+  {
+   "category": "literal",
+   "query": "who is responsible for the message 'Unrecognized go input '",
+   "relevance": {
+    "src/UCI.cpp::handleGo::194": 2.0
+   },
+   "relevant_functions": [
+    "src/UCI.cpp::handleGo::194"
+   ],
+   "seed": "src/UCI.cpp::handleGo::194",
+   "label_source": "source_string_literal",
+   "query_id": "literal-004"
+  },
+  {
+   "category": "literal",
+   "query": "where does it print 'getMoveTime: movetime is zero/negative'",
+   "relevance": {
+    "src/search/time_manager.cpp::Searcher::calculateMoveTime::4": 2.0
+   },
+   "relevant_functions": [
+    "src/search/time_manager.cpp::Searcher::calculateMoveTime::4"
+   ],
+   "seed": "src/search/time_manager.cpp::Searcher::calculateMoveTime::4",
+   "label_source": "source_string_literal",
+   "query_id": "literal-005"
+  },
+  {
+   "category": "literal",
+   "query": "which function outputs 'countKnightMoves Test successfull'",
+   "relevance": {
+    "debug_tests/bitmask_tests.cpp::Test::Debug::countKnightMoves::39": 2.0
+   },
+   "relevant_functions": [
+    "debug_tests/bitmask_tests.cpp::Test::Debug::countKnightMoves::39"
+   ],
+   "seed": "debug_tests/bitmask_tests.cpp::Test::Debug::countKnightMoves::39",
+   "label_source": "source_string_literal",
+   "query_id": "literal-006"
+  },
+  {
+   "category": "literal",
+   "query": "find the code that logs 'movePieceQuiet: out of bounds capture hashkey indexing'",
+   "relevance": {
+    "src/movegen/update.cpp::Board::movePieceQuiet::28": 2.0
+   },
+   "relevant_functions": [
+    "src/movegen/update.cpp::Board::movePieceQuiet::28"
+   ],
+   "seed": "src/movegen/update.cpp::Board::movePieceQuiet::28",
+   "label_source": "source_string_literal",
+   "query_id": "literal-007"
+  },
+  {
+   "category": "literal",
+   "query": "who is responsible for the message 'negamax: depth is negative'",
+   "relevance": {
+    "src/search/search.cpp::Searcher::negamax::191": 2.0
+   },
+   "relevant_functions": [
+    "src/search/search.cpp::Searcher::negamax::191"
+   ],
+   "seed": "src/search/search.cpp::Searcher::negamax::191",
+   "label_source": "source_string_literal",
+   "query_id": "literal-008"
+  },
+  {
+   "category": "literal",
+   "query": "where does it print ' << move.isCapture() << '",
+   "relevance": {
+    "debug_tests/move_tests.cpp::Test::Debug::printMoveOrdering::50": 2.0
+   },
+   "relevant_functions": [
+    "debug_tests/move_tests.cpp::Test::Debug::printMoveOrdering::50"
+   ],
+   "seed": "debug_tests/move_tests.cpp::Test::Debug::printMoveOrdering::50",
+   "label_source": "source_string_literal",
+   "query_id": "literal-009"
+  },
+  {
+   "category": "literal",
+   "query": "which function outputs 'Error opening log file: '",
+   "relevance": {
+    "src/logger/logger.h::Logger::log::75": 2.0
+   },
+   "relevant_functions": [
+    "src/logger/logger.h::Logger::log::75"
+   ],
+   "seed": "src/logger/logger.h::Logger::log::75",
+   "label_source": "source_string_literal",
+   "query_id": "literal-010"
+  },
+  {
+   "category": "literal",
+   "query": "find the code that logs 'movePiece: out of bounds capture hashkey indexing'",
+   "relevance": {
+    "src/movegen/update.cpp::Board::movePiece::45": 2.0
+   },
+   "relevant_functions": [
+    "src/movegen/update.cpp::Board::movePiece::45"
+   ],
+   "seed": "src/movegen/update.cpp::Board::movePiece::45",
+   "label_source": "source_string_literal",
+   "query_id": "literal-011"
+  },
+  {
+   "category": "literal",
+   "query": "who is responsible for the message 'undo: undoing a NULL MOVE'",
+   "relevance": {
+    "src/movegen/update.cpp::Board::undo::87": 2.0
+   },
+   "relevant_functions": [
+    "src/movegen/update.cpp::Board::undo::87"
+   ],
+   "seed": "src/movegen/update.cpp::Board::undo::87",
+   "label_source": "source_string_literal",
+   "query_id": "literal-012"
+  },
+  {
+   "category": "literal",
+   "query": "where does it print 'Move inputStream Null '",
+   "relevance": {
+    "src/UCI.cpp::handlePosition::122": 2.0
+   },
+   "relevant_functions": [
+    "src/UCI.cpp::handlePosition::122"
+   ],
+   "seed": "src/UCI.cpp::handlePosition::122",
+   "label_source": "source_string_literal",
+   "query_id": "literal-013"
+  },
+  {
+   "category": "literal",
+   "query": "which function outputs 'makeMove: hashKey is wrong'",
+   "relevance": {
+    "src/movegen/update.cpp::Board::makeMove::158": 2.0
+   },
+   "relevant_functions": [
+    "src/movegen/update.cpp::Board::makeMove::158"
+   ],
+   "seed": "src/movegen/update.cpp::Board::makeMove::158",
+   "label_source": "source_string_literal",
+   "query_id": "literal-014"
+  },
+  {
+   "category": "literal",
+   "query": "find the code that logs 'putPiece: piece is NO_PIECE'",
+   "relevance": {
+    "src/movegen/update.cpp::Board::putPiece::65": 2.0
+   },
+   "relevant_functions": [
+    "src/movegen/update.cpp::Board::putPiece::65"
+   ],
+   "seed": "src/movegen/update.cpp::Board::putPiece::65",
+   "label_source": "source_string_literal",
+   "query_id": "literal-015"
+  },
+  {
+   "category": "literal",
+   "query": "who is responsible for the message 'scoreMove: scorePV is unitialized'",
+   "relevance": {
+    "src/search/movesort.cpp::Searcher::scoreMove::66": 2.0
+   },
+   "relevant_functions": [
+    "src/search/movesort.cpp::Searcher::scoreMove::66"
+   ],
+   "seed": "src/search/movesort.cpp::Searcher::scoreMove::66",
+   "label_source": "source_string_literal",
+   "query_id": "literal-016"
+  },
+  {
+   "category": "literal",
+   "query": "where does it print 'updateHistory: history bonus is too large'",
+   "relevance": {
+    "src/search/search.cpp::Searcher::updateHistory::78": 2.0
+   },
+   "relevant_functions": [
+    "src/search/search.cpp::Searcher::updateHistory::78"
+   ],
+   "seed": "src/search/search.cpp::Searcher::updateHistory::78",
+   "label_source": "source_string_literal",
+   "query_id": "literal-017"
+  },
+  {
+   "category": "literal",
+   "query": "which function outputs 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'",
+   "relevance": {
+    "src/UCI.cpp::handlePosition::122": 2.0
+   },
+   "relevant_functions": [
+    "src/UCI.cpp::handlePosition::122"
+   ],
+   "seed": "src/UCI.cpp::handlePosition::122",
+   "label_source": "source_string_literal",
+   "query_id": "literal-018"
+  },
+  {
+   "category": "literal",
+   "query": "find the code that logs 'Error: Could not open file '",
+   "relevance": {
+    "src/UCI.cpp::UCI::238": 2.0
+   },
+   "relevant_functions": [
+    "src/UCI.cpp::UCI::238"
+   ],
+   "seed": "src/UCI.cpp::UCI::238",
+   "label_source": "source_string_literal",
+   "query_id": "literal-019"
+  },
+  {
+   "category": "literal",
+   "query": "who is responsible for the message ' Branching Ratio: '",
+   "relevance": {
+    "benchmark_tests/search_and_eval.cpp::Test::BenchMark::staticSearch::71": 2.0
+   },
+   "relevant_functions": [
+    "benchmark_tests/search_and_eval.cpp::Test::BenchMark::staticSearch::71"
+   ],
+   "seed": "benchmark_tests/search_and_eval.cpp::Test::BenchMark::staticSearch::71",
+   "label_source": "source_string_literal",
+   "query_id": "literal-020"
+  },
+  {
+   "category": "literal",
+   "query": "where does it print 'undoNullMove: gameply is negative'",
+   "relevance": {
+    "src/movegen/update.cpp::Board::undoNullMove::334": 2.0
+   },
+   "relevant_functions": [
+    "src/movegen/update.cpp::Board::undoNullMove::334"
+   ],
+   "seed": "src/movegen/update.cpp::Board::undoNullMove::334",
+   "label_source": "source_string_literal",
+   "query_id": "literal-021"
+  },
+  {
+   "category": "literal",
+   "query": "which function outputs 'movePiece: start square is empty'",
+   "relevance": {
+    "src/movegen/update.cpp::Board::movePiece::45": 2.0
+   },
+   "relevant_functions": [
+    "src/movegen/update.cpp::Board::movePiece::45"
+   ],
+   "seed": "src/movegen/update.cpp::Board::movePiece::45",
+   "label_source": "source_string_literal",
+   "query_id": "literal-022"
+  },
+  {
+   "category": "literal",
+   "query": "find the code that logs 'iterativeDeepening: searchPly too small'",
+   "relevance": {
+    "src/search/search.cpp::Searcher::iterativeDeepening::476": 2.0
+   },
+   "relevant_functions": [
+    "src/search/search.cpp::Searcher::iterativeDeepening::476"
+   ],
+   "seed": "src/search/search.cpp::Searcher::iterativeDeepening::476",
+   "label_source": "source_string_literal",
+   "query_id": "literal-023"
+  },
+  {
+   "category": "literal",
+   "query": "who is responsible for the message 'nullMove: hashKey is wrong'",
+   "relevance": {
+    "src/movegen/update.cpp::Board::nullMove::322": 2.0
+   },
+   "relevant_functions": [
+    "src/movegen/update.cpp::Board::nullMove::322"
+   ],
+   "seed": "src/movegen/update.cpp::Board::nullMove::322",
+   "label_source": "source_string_literal",
+   "query_id": "literal-024"
+  },
+  {
+   "category": "literal",
+   "query": "where does it print 'updateKillers: bestMove is empty'",
+   "relevance": {
+    "src/search/search.cpp::Searcher::updateKillers::63": 2.0
+   },
+   "relevant_functions": [
+    "src/search/search.cpp::Searcher::updateKillers::63"
+   ],
+   "seed": "src/search/search.cpp::Searcher::updateKillers::63",
+   "label_source": "source_string_literal",
+   "query_id": "literal-025"
+  },
+  {
+   "category": "literal",
+   "query": "which function outputs 'rnb1kb1r/pp1qpppp/2pp4/2Q5/3P2P1/2NB1n2/PPP1N3/R1B1K2R w KQkq - 0 11'",
+   "relevance": {
+    "debug_tests/game_scenario.cpp::Test::Debug::boardInCheck::27": 2.0
+   },
+   "relevant_functions": [
+    "debug_tests/game_scenario.cpp::Test::Debug::boardInCheck::27"
+   ],
+   "seed": "debug_tests/game_scenario.cpp::Test::Debug::boardInCheck::27",
+   "label_source": "source_string_literal",
+   "query_id": "literal-026"
+  },
+  {
+   "category": "literal",
+   "query": "find the code that logs ') std::cout << checkHashOccupancy() << '",
+   "relevance": {
+    "src/UCI.cpp::UCI::238": 2.0
+   },
+   "relevant_functions": [
+    "src/UCI.cpp::UCI::238"
+   ],
+   "seed": "src/UCI.cpp::UCI::238",
+   "label_source": "source_string_literal",
+   "query_id": "literal-027"
+  },
+  {
+   "category": "literal",
+   "query": "who is responsible for the message 'Perft suite took: '",
+   "relevance": {
+    "benchmark_tests/perft_tests.cpp::Test::BenchMark::standardPerft::107": 2.0
+   },
+   "relevant_functions": [
+    "benchmark_tests/perft_tests.cpp::Test::BenchMark::standardPerft::107"
+   ],
+   "seed": "benchmark_tests/perft_tests.cpp::Test::BenchMark::standardPerft::107",
+   "label_source": "source_string_literal",
+   "query_id": "literal-028"
+  },
+  {
+   "category": "literal",
+   "query": "where does it print 'countKingMoves Test successfull'",
+   "relevance": {
+    "debug_tests/bitmask_tests.cpp::Test::Debug::countKingMoves::67": 2.0
+   },
+   "relevant_functions": [
+    "debug_tests/bitmask_tests.cpp::Test::Debug::countKingMoves::67"
+   ],
+   "seed": "debug_tests/bitmask_tests.cpp::Test::Debug::countKingMoves::67",
+   "label_source": "source_string_literal",
+   "query_id": "literal-029"
+  },
+  {
+   "category": "literal",
+   "query": "which function outputs 'Error: Buffer size too small for executable path.'",
+   "relevance": {
+    "src/logger/logger.cpp::getExecutableDirectory::16": 2.0
+   },
+   "relevant_functions": [
+    "src/logger/logger.cpp::getExecutableDirectory::16"
+   ],
+   "seed": "src/logger/logger.cpp::getExecutableDirectory::16",
+   "label_source": "source_string_literal",
+   "query_id": "literal-030"
+  }
+ ]
+}

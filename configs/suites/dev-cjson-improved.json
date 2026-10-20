@@ -1,0 +1,50 @@
+{
+  "output_root": "experiments_dev",
+  "embedding_cache": "experiments/_embedding_cache",
+  "bootstrap_samples": 10000,
+  "bootstrap_samples_per_run": 2000,
+  "groups": [
+    "grid",
+    "improved"
+  ],
+  "embedding_models": [
+    "bge-small",
+    "bge-base",
+    "qwen3-0.6b"
+  ],
+  "primary_embedding": "bge-base",
+  "rerankers": [],
+  "rerank_pool": 30,
+  "_comment": "HELD-OUT developer-style benchmark (developer_v1) with the improvements fixed beforehand: query instruction prefixes (chosen on the v2 tuning benchmarks) and rule-based routing with profiles tuned on v2 + generated literal queries only. Enrichment models limited to 4 to bound runtime.",
+  "suite_id": "dev-cjson-improved-v1",
+  "datasets": [
+    {
+      "name": "cjson",
+      "base_json": "optima_outputs/base/cJSON-master/base.json",
+      "benchmark": "benchmarks/cjson/developer_v1.json",
+      "enriched_dir": "output/cJson",
+      "primary_enrichment": "qwen-qwen2.5-coder-14b-instruct",
+      "enrichment_models": [
+        "qwen-qwen2.5-coder-14b-instruct",
+        "qwen-qwen2.5-14b-instruct-cjson",
+        "qwen-qwen2.5-7b-instruct",
+        "mistralai-ministral-8b-instruct-2410"
+      ]
+    }
+  ],
+  "embedding_prefixes": {
+    "bge-small": {
+      "query": "Represent this sentence for searching relevant passages: ",
+      "document": ""
+    },
+    "bge-base": {
+      "query": "Represent this sentence for searching relevant passages: ",
+      "document": ""
+    },
+    "qwen3-0.6b": {
+      "query": "Instruct: Given a question about source code, retrieve the function that implements or answers it\nQuery: ",
+      "document": ""
+    }
+  },
+  "routing_profiles_file": "configs/routing_profiles.json"
+}

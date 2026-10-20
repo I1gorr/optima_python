@@ -1,0 +1,28 @@
+{
+  "output_root": "experiments_dev_compiler_on",
+  "embedding_cache": "experiments/_embedding_cache",
+  "bootstrap_samples": 10000,
+  "bootstrap_samples_per_run": 2000,
+  "groups": [
+    "embedding"
+  ],
+  "embedding_models": [
+    "bge-small",
+    "bge-base",
+    "qwen3-0.6b"
+  ],
+  "primary_embedding": "bge-base",
+  "rerankers": [],
+  "rerank_pool": 30,
+  "_comment": "Reference runs (default baseline_rag and default compiler_hybrid_rag, no instruction, no routing) for the compiler-on attribution.",
+  "suite_id": "dev-chess-baseline-ref-v1",
+  "datasets": [
+    {
+      "name": "chess",
+      "base_json": "optima_outputs/base/chess-engine-in-cpp-master/base.json",
+      "benchmark": "benchmarks/chess/developer_v1.json",
+      "enriched_dir": "output/chess Engine",
+      "primary_enrichment": "qwen-qwen2.5-coder-14b-instruct-chess"
+    }
+  ]
+}

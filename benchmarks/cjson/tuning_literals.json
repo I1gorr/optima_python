@@ -1,0 +1,426 @@
+{
+ "schema_version": 1,
+ "benchmark_id": "cjson-literal-tuning",
+ "query_set_version": "tuning-1",
+ "ground_truth_version": "tuning-1",
+ "project": "cJSON-master",
+ "base_sha256": "c445c7750f27287a3340f88a01c3232705325e33e7653f9126218c2cd2e2dcc9",
+ "labeling": {
+  "independence": "templated sentences + mechanical literal labels; TUNING ONLY, never reported as a result"
+ },
+ "categories": {
+  "literal": "message / string literal to code"
+ },
+ "unsupported_categories": {},
+ "counts": {
+  "literal": 30
+ },
+ "queries": [
+  {
+   "category": "literal",
+   "query": "where does it print 'Failed to fail on NULL string.'",
+   "relevance": {
+    "tests/misc_tests.c::cjson_get_object_item_case_sensitive_should_get_object_items::98": 2.0,
+    "tests/misc_tests.c::cjson_get_object_item_should_get_object_items::67": 2.0
+   },
+   "relevant_functions": [
+    "tests/misc_tests.c::cjson_get_object_item_case_sensitive_should_get_object_items::98",
+    "tests/misc_tests.c::cjson_get_object_item_should_get_object_items::67"
+   ],
+   "seed": "tests/misc_tests.c::cjson_get_object_item_case_sensitive_should_get_object_items::98",
+   "label_source": "source_string_literal",
+   "query_id": "literal-001"
+  },
+  {
+   "category": "literal",
+   "query": "which function outputs 'Expected for testing'",
+   "relevance": {
+    "tests/unity/test/tests/testunity.c::testFail::192": 2.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/tests/testunity.c::testFail::192"
+   ],
+   "seed": "tests/unity/test/tests/testunity.c::testFail::192",
+   "label_source": "source_string_literal",
+   "query_id": "literal-002"
+  },
+  {
+   "category": "literal",
+   "query": "find the code that logs 'Should fail to parse incomplete JSON.'",
+   "relevance": {
+    "tests/parse_examples.c::test12_should_not_be_parsed::182": 2.0
+   },
+   "relevant_functions": [
+    "tests/parse_examples.c::test12_should_not_be_parsed::182"
+   ],
+   "seed": "tests/parse_examples.c::test12_should_not_be_parsed::182",
+   "label_source": "source_string_literal",
+   "query_id": "literal-003"
+  },
+  {
+   "category": "literal",
+   "query": "who is responsible for the message 'Invalid big number JSONs should not be parsed.'",
+   "relevance": {
+    "tests/misc_tests.c::cjson_parse_big_numbers_should_not_report_error::786": 2.0
+   },
+   "relevant_functions": [
+    "tests/misc_tests.c::cjson_parse_big_numbers_should_not_report_error::786"
+   ],
+   "seed": "tests/misc_tests.c::cjson_parse_big_numbers_should_not_report_error::786",
+   "label_source": "source_string_literal",
+   "query_id": "literal-004"
+  },
+  {
+   "category": "literal",
+   "query": "where does it print ', path, (const unsigned char*)'",
+   "relevance": {
+    "cJSON_Utils.c::create_patches::1141": 2.0
+   },
+   "relevant_functions": [
+    "cJSON_Utils.c::create_patches::1141"
+   ],
+   "seed": "cJSON_Utils.c::create_patches::1141",
+   "label_source": "source_string_literal",
+   "query_id": "literal-005"
+  },
+  {
+   "category": "literal",
+   "query": "which function outputs 'Too many pointers set'",
+   "relevance": {
+    "tests/unity/extras/fixture/src/unity_fixture.c::UnityPointer_Set::322": 2.0,
+    "tests/unity/extras/fixture/test/unity_fixture_Test.c::TEST_LeakDetection_PointerSettingMax_::462": 2.0
+   },
+   "relevant_functions": [
+    "tests/unity/extras/fixture/src/unity_fixture.c::UnityPointer_Set::322",
+    "tests/unity/extras/fixture/test/unity_fixture_Test.c::TEST_LeakDetection_PointerSettingMax_::462"
+   ],
+   "seed": "tests/unity/extras/fixture/src/unity_fixture.c::UnityPointer_Set::322",
+   "label_source": "source_string_literal",
+   "query_id": "literal-006"
+  },
+  {
+   "category": "literal",
+   "query": "find the code that logs 'add an object to itself should fail'",
+   "relevance": {
+    "tests/misc_tests.c::cjson_add_item_to_object_or_array_should_not_add_itself::624": 2.0
+   },
+   "relevant_functions": [
+    "tests/misc_tests.c::cjson_add_item_to_object_or_array_should_not_add_itself::624"
+   ],
+   "seed": "tests/misc_tests.c::cjson_add_item_to_object_or_array_should_not_add_itself::624",
+   "label_source": "source_string_literal",
+   "query_id": "literal-007"
+  },
+  {
+   "category": "literal",
+   "query": "who is responsible for the message 'add an array to itself should fail'",
+   "relevance": {
+    "tests/misc_tests.c::cjson_add_item_to_object_or_array_should_not_add_itself::624": 2.0
+   },
+   "relevant_functions": [
+    "tests/misc_tests.c::cjson_add_item_to_object_or_array_should_not_add_itself::624"
+   ],
+   "seed": "tests/misc_tests.c::cjson_add_item_to_object_or_array_should_not_add_itself::624",
+   "label_source": "source_string_literal",
+   "query_id": "literal-008"
+  },
+  {
+   "category": "literal",
+   "query": "where does it print 'Custom Setup Wasn't Run'",
+   "relevance": {
+    "tests/unity/test/testdata/testRunnerGenerator.c::custtest_ThisTestPassesWhenCustomSetupRan::98": 2.0,
+    "tests/unity/test/testdata/testRunnerGeneratorWithMocks.c::custtest_ThisTestPassesWhenCustomSetupRan::99": 2.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/testdata/testRunnerGenerator.c::custtest_ThisTestPassesWhenCustomSetupRan::98",
+    "tests/unity/test/testdata/testRunnerGeneratorWithMocks.c::custtest_ThisTestPassesWhenCustomSetupRan::99"
+   ],
+   "seed": "tests/unity/test/testdata/testRunnerGenerator.c::custtest_ThisTestPassesWhenCustomSetupRan::98",
+   "label_source": "source_string_literal",
+   "query_id": "literal-009"
+  },
+  {
+   "category": "literal",
+   "query": "which function outputs 'valuestring of reference object should not be changed'",
+   "relevance": {
+    "tests/misc_tests.c::cjson_set_valuestring_to_object_should_not_leak_memory::693": 2.0
+   },
+   "relevant_functions": [
+    "tests/misc_tests.c::cjson_set_valuestring_to_object_should_not_leak_memory::693"
+   ],
+   "seed": "tests/misc_tests.c::cjson_set_valuestring_to_object_should_not_leak_memory::693",
+   "label_source": "source_string_literal",
+   "query_id": "literal-010"
+  },
+  {
+   "category": "literal",
+   "query": "find the code that logs '), cJSON_GetObjectItem(root, '",
+   "relevance": {
+    "tests/old_utils_tests.c::json_pointer_tests::52": 2.0
+   },
+   "relevant_functions": [
+    "tests/old_utils_tests.c::json_pointer_tests::52"
+   ],
+   "seed": "tests/old_utils_tests.c::json_pointer_tests::52",
+   "label_source": "source_string_literal",
+   "query_id": "literal-011"
+  },
+  {
+   "category": "literal",
+   "query": "who is responsible for the message 'Failed to print string.'",
+   "relevance": {
+    "tests/print_string.c::assert_print_string::27": 2.0
+   },
+   "relevant_functions": [
+    "tests/print_string.c::assert_print_string::27"
+   ],
+   "seed": "tests/print_string.c::assert_print_string::27",
+   "label_source": "source_string_literal",
+   "query_id": "literal-012"
+  },
+  {
+   "category": "literal",
+   "query": "where does it print 'Unformatted array is not correct.'",
+   "relevance": {
+    "tests/print_array.c::assert_print_array::27": 2.0
+   },
+   "relevant_functions": [
+    "tests/print_array.c::assert_print_array::27"
+   ],
+   "seed": "tests/print_array.c::assert_print_array::27",
+   "label_source": "source_string_literal",
+   "query_id": "literal-013"
+  },
+  {
+   "category": "literal",
+   "query": "which function outputs 'The parsed result isn't as expected.'",
+   "relevance": {
+    "tests/parse_string.c::assert_parse_string::46": 2.0
+   },
+   "relevant_functions": [
+    "tests/parse_string.c::assert_parse_string::46"
+   ],
+   "seed": "tests/parse_string.c::assert_parse_string::46",
+   "label_source": "source_string_literal",
+   "query_id": "literal-014"
+  },
+  {
+   "category": "literal",
+   "query": "find the code that logs 'Failed to parse object.'",
+   "relevance": {
+    "tests/print_object.c::assert_print_object::27": 2.0
+   },
+   "relevant_functions": [
+    "tests/print_object.c::assert_print_object::27"
+   ],
+   "seed": "tests/print_object.c::assert_print_object::27",
+   "label_source": "source_string_literal",
+   "query_id": "literal-015"
+  },
+  {
+   "category": "literal",
+   "query": "who is responsible for the message 'sprintf failed.'",
+   "relevance": {
+    "tests/parse_hex4.c::parse_hex4_should_parse_all_combinations::31": 2.0
+   },
+   "relevant_functions": [
+    "tests/parse_hex4.c::parse_hex4_should_parse_all_combinations::31"
+   ],
+   "seed": "tests/parse_hex4.c::parse_hex4_should_parse_all_combinations::31",
+   "label_source": "source_string_literal",
+   "query_id": "literal-016"
+  },
+  {
+   "category": "literal",
+   "query": "where does it print 'This test leaks!'",
+   "relevance": {
+    "tests/unity/extras/fixture/src/unity_fixture.c::UnityMalloc_EndTest::144": 2.0,
+    "tests/unity/extras/fixture/test/unity_fixture_Test.c::TEST_LeakDetection_DetectsLeak_::367": 2.0
+   },
+   "relevant_functions": [
+    "tests/unity/extras/fixture/src/unity_fixture.c::UnityMalloc_EndTest::144",
+    "tests/unity/extras/fixture/test/unity_fixture_Test.c::TEST_LeakDetection_DetectsLeak_::367"
+   ],
+   "seed": "tests/unity/extras/fixture/src/unity_fixture.c::UnityMalloc_EndTest::144",
+   "label_source": "source_string_literal",
+   "query_id": "literal-017"
+  },
+  {
+   "category": "literal",
+   "query": "which function outputs 'Failed to read file.'",
+   "relevance": {
+    "tests/json_patch_tests.c::parse_test_file::32": 2.0
+   },
+   "relevant_functions": [
+    "tests/json_patch_tests.c::parse_test_file::32"
+   ],
+   "seed": "tests/json_patch_tests.c::parse_test_file::32",
+   "label_source": "source_string_literal",
+   "query_id": "literal-018"
+  },
+  {
+   "category": "literal",
+   "query": "find the code that logs ', NULL, false), '",
+   "relevance": {
+    "tests/parse_with_opts.c::parse_with_opts_should_handle_null::27": 2.0
+   },
+   "relevant_functions": [
+    "tests/parse_with_opts.c::parse_with_opts_should_handle_null::27"
+   ],
+   "seed": "tests/parse_with_opts.c::parse_with_opts_should_handle_null::27",
+   "label_source": "source_string_literal",
+   "query_id": "literal-019"
+  },
+  {
+   "category": "literal",
+   "query": "who is responsible for the message 'Formatted object is not correct.'",
+   "relevance": {
+    "tests/print_object.c::assert_print_object::27": 2.0
+   },
+   "relevant_functions": [
+    "tests/print_object.c::assert_print_object::27"
+   ],
+   "seed": "tests/print_object.c::assert_print_object::27",
+   "label_source": "source_string_literal",
+   "query_id": "literal-020"
+  },
+  {
+   "category": "literal",
+   "query": "where does it print 'Failed to fail on NULL pointer.'",
+   "relevance": {
+    "tests/misc_tests.c::cjson_get_object_item_case_sensitive_should_get_object_items::98": 2.0,
+    "tests/misc_tests.c::cjson_get_object_item_should_get_object_items::67": 2.0
+   },
+   "relevant_functions": [
+    "tests/misc_tests.c::cjson_get_object_item_case_sensitive_should_get_object_items::98",
+    "tests/misc_tests.c::cjson_get_object_item_should_get_object_items::67"
+   ],
+   "seed": "tests/misc_tests.c::cjson_get_object_item_case_sensitive_should_get_object_items::98",
+   "label_source": "source_string_literal",
+   "query_id": "literal-021"
+  },
+  {
+   "category": "literal",
+   "query": "which function outputs 'Should not continue after buffer_length is reached.'",
+   "relevance": {
+    "tests/parse_examples.c::test14_should_not_be_parsed::227": 2.0
+   },
+   "relevant_functions": [
+    "tests/parse_examples.c::test14_should_not_be_parsed::227"
+   ],
+   "seed": "tests/parse_examples.c::test14_should_not_be_parsed::227",
+   "label_source": "source_string_literal",
+   "query_id": "literal-022"
+  },
+  {
+   "category": "literal",
+   "query": "find the code that logs 'Internal malloc failed in Spy Create():'",
+   "relevance": {
+    "tests/unity/extras/fixture/test/unity_output_Spy.c::UnityOutputCharSpy_Create::20": 2.0
+   },
+   "relevant_functions": [
+    "tests/unity/extras/fixture/test/unity_output_Spy.c::UnityOutputCharSpy_Create::20"
+   ],
+   "seed": "tests/unity/extras/fixture/test/unity_output_Spy.c::UnityOutputCharSpy_Create::20",
+   "label_source": "source_string_literal",
+   "query_id": "literal-023"
+  },
+  {
+   "category": "literal",
+   "query": "who is responsible for the message 'Failed to parse value.'",
+   "relevance": {
+    "tests/print_value.c::assert_print_value::31": 2.0
+   },
+   "relevant_functions": [
+    "tests/print_value.c::assert_print_value::31"
+   ],
+   "seed": "tests/print_value.c::assert_print_value::31",
+   "label_source": "source_string_literal",
+   "query_id": "literal-024"
+  },
+  {
+   "category": "literal",
+   "query": "where does it print 'Compile with '-D UNITY_OUTPUT_CHAR=putcharSpy' to enable print testing'",
+   "relevance": {
+    "tests/unity/test/tests/testunity.c::testPrintNumbers32::3388": 2.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/tests/testunity.c::testPrintNumbers32::3388"
+   ],
+   "seed": "tests/unity/test/tests/testunity.c::testPrintNumbers32::3388",
+   "label_source": "source_string_literal",
+   "query_id": "literal-025"
+  },
+  {
+   "category": "literal",
+   "query": "which function outputs 'Mock Init Should Be Called Once Per Test Started'",
+   "relevance": {
+    "tests/unity/test/testdata/testRunnerGeneratorWithMocks.c::test_ShouldCallMockInitAndVerifyFunctionsForEachTest::184": 2.0
+   },
+   "relevant_functions": [
+    "tests/unity/test/testdata/testRunnerGeneratorWithMocks.c::test_ShouldCallMockInitAndVerifyFunctionsForEachTest::184"
+   ],
+   "seed": "tests/unity/test/testdata/testRunnerGeneratorWithMocks.c::test_ShouldCallMockInitAndVerifyFunctionsForEachTest::184",
+   "label_source": "source_string_literal",
+   "query_id": "literal-026"
+  },
+  {
+   "category": "literal",
+   "query": "find the code that logs 'Failed to print tree back to JSON.'",
+   "relevance": {
+    "tests/parse_examples.c::do_test::46": 2.0
+   },
+   "relevant_functions": [
+    "tests/parse_examples.c::do_test::46"
+   ],
+   "seed": "tests/parse_examples.c::do_test::46",
+   "label_source": "source_string_literal",
+   "query_id": "literal-027"
+  },
+  {
+   "category": "literal",
+   "query": "who is responsible for the message 'Some tests failed.'",
+   "relevance": {
+    "tests/json_patch_tests.c::cjson_utils_should_pass_json_patch_test_cjson_utils_tests::217": 2.0,
+    "tests/json_patch_tests.c::cjson_utils_should_pass_json_patch_test_spec_tests::200": 2.0,
+    "tests/json_patch_tests.c::cjson_utils_should_pass_json_patch_test_tests::183": 2.0
+   },
+   "relevant_functions": [
+    "tests/json_patch_tests.c::cjson_utils_should_pass_json_patch_test_cjson_utils_tests::217",
+    "tests/json_patch_tests.c::cjson_utils_should_pass_json_patch_test_spec_tests::200",
+    "tests/json_patch_tests.c::cjson_utils_should_pass_json_patch_test_tests::183"
+   ],
+   "seed": "tests/json_patch_tests.c::cjson_utils_should_pass_json_patch_test_cjson_utils_tests::217",
+   "label_source": "source_string_literal",
+   "query_id": "literal-028"
+  },
+  {
+   "category": "literal",
+   "query": "where does it print 'new valuestring shorter than old should not reallocate memory'",
+   "relevance": {
+    "tests/misc_tests.c::cjson_set_valuestring_to_object_should_not_leak_memory::693": 2.0
+   },
+   "relevant_functions": [
+    "tests/misc_tests.c::cjson_set_valuestring_to_object_should_not_leak_memory::693"
+   ],
+   "seed": "tests/misc_tests.c::cjson_set_valuestring_to_object_should_not_leak_memory::693",
+   "label_source": "source_string_literal",
+   "query_id": "literal-029"
+  },
+  {
+   "category": "literal",
+   "query": "which function outputs 'Error pointer is incorrect.'",
+   "relevance": {
+    "tests/parse_examples.c::file_test6_should_not_be_parsed::134": 2.0,
+    "tests/parse_examples.c::test12_should_not_be_parsed::182": 2.0
+   },
+   "relevant_functions": [
+    "tests/parse_examples.c::file_test6_should_not_be_parsed::134",
+    "tests/parse_examples.c::test12_should_not_be_parsed::182"
+   ],
+   "seed": "tests/parse_examples.c::file_test6_should_not_be_parsed::134",
+   "label_source": "source_string_literal",
+   "query_id": "literal-030"
+  }
+ ]
+}

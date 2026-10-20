@@ -1,0 +1,65 @@
+{
+  "name": "compiler_hybrid_rag",
+  "description": "Multi-representation dense+BM25 retrieval fused with RRF, bounded call-graph expansion and optional cross-encoder reranking.",
+  "base_json": "optima_outputs/base/chess-engine-in-cpp-master/base.json",
+  "enriched_json": "output/chess Engine/enhanced_qwen-qwen2.5-coder-14b-instruct-chess.json",
+  "enrichment_model": "qwen-qwen2.5-coder-14b-instruct-chess",
+  "embedding_model": "bge-base",
+  "top_k": 10,
+  "seed": 0,
+  "tags": [
+    "pipeline"
+  ],
+  "representation": {
+    "raw_max_chars": 2000,
+    "semantic_max_chars": 2000,
+    "compiler_max_chars": 1500,
+    "identity_header": true,
+    "missing_semantic": "identity"
+  },
+  "retrieval": {
+    "representations": [
+      "raw",
+      "semantic",
+      "compiler"
+    ],
+    "dense": true,
+    "bm25": true,
+    "exact_match": true,
+    "candidate_k": 50,
+    "rrf_k": 60,
+    "dense_weight": 1.0,
+    "bm25_weight": 1.0,
+    "exact_weight": 1.0,
+    "representation_weights": {},
+    "bm25_k1": 1.5,
+    "bm25_b": 0.75,
+    "query_prefix": "",
+    "document_prefix": ""
+  },
+  "graph": {
+    "enabled": true,
+    "relations": [
+      "callers",
+      "callees"
+    ],
+    "max_depth": 1,
+    "seed_k": 10,
+    "max_added": 20,
+    "max_neighbors_per_node": 20,
+    "graph_weight": 0.5
+  },
+  "rerank": {
+    "enabled": true,
+    "model": "ms-marco-minilm",
+    "pool_size": 30,
+    "batch_size": 16,
+    "device": "auto",
+    "max_length": 512,
+    "text_representations": [
+      "raw"
+    ],
+    "max_chars": 1500
+  },
+  "schema_version": 1
+}

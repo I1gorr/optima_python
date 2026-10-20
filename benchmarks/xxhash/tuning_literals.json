@@ -1,0 +1,418 @@
+{
+ "schema_version": 1,
+ "benchmark_id": "xxhash-literal-tuning",
+ "query_set_version": "tuning-1",
+ "ground_truth_version": "tuning-1",
+ "project": "xxHash-dev",
+ "base_sha256": "9915580aa9b2e76e48a5f913df641d8ee6feb0a4e36480e92cbc9738a35d5a46",
+ "labeling": {
+  "independence": "templated sentences + mechanical literal labels; TUNING ONLY, never reported as a result"
+ },
+ "categories": {
+  "literal": "message / string literal to code"
+ },
+ "unsupported_categories": {},
+ "counts": {
+  "literal": 30
+ },
+ "queries": [
+  {
+   "category": "literal",
+   "query": "where does it print 'xchg    edi, ebx'",
+   "relevance": {
+    "xxh_x86dispatch.c::XXH_cpuid::254": 2.0
+   },
+   "relevant_functions": [
+    "xxh_x86dispatch.c::XXH_cpuid::254"
+   ],
+   "seed": "xxh_x86dispatch.c::XXH_cpuid::254",
+   "label_source": "source_string_literal",
+   "query_id": "literal-001"
+  },
+  {
+   "category": "literal",
+   "query": "which function outputs 'AVX512F supported by the CPU, but not the OS.'",
+   "relevance": {
+    "xxh_x86dispatch.c::XXH_featureTest::343": 2.0
+   },
+   "relevant_functions": [
+    "xxh_x86dispatch.c::XXH_featureTest::343"
+   ],
+   "seed": "xxh_x86dispatch.c::XXH_featureTest::343",
+   "label_source": "source_string_literal",
+   "query_id": "literal-002"
+  },
+  {
+   "category": "literal",
+   "query": "find the code that logs 'hash size not supported'",
+   "relevance": {
+    "tests/collisions/main.c::getHtype_fromHbits::660": 2.0,
+    "tests/collisions/main.c::getNbBits_fromHtype::651": 2.0
+   },
+   "relevant_functions": [
+    "tests/collisions/main.c::getHtype_fromHbits::660",
+    "tests/collisions/main.c::getNbBits_fromHtype::651"
+   ],
+   "seed": "tests/collisions/main.c::getHtype_fromHbits::660",
+   "label_source": "source_string_literal",
+   "query_id": "literal-003"
+  },
+  {
+   "category": "literal",
+   "query": "who is responsible for the message 'xor     eax, dword ptr[esp]'",
+   "relevance": {
+    "xxh_x86dispatch.c::XXH_featureTest::343": 2.0
+   },
+   "relevant_functions": [
+    "xxh_x86dispatch.c::XXH_featureTest::343"
+   ],
+   "seed": "xxh_x86dispatch.c::XXH_featureTest::343",
+   "label_source": "source_string_literal",
+   "query_id": "literal-004"
+  },
+  {
+   "category": "literal",
+   "query": "where does it print 'xor     dword ptr[esp], 0x200000'",
+   "relevance": {
+    "xxh_x86dispatch.c::XXH_featureTest::343": 2.0
+   },
+   "relevant_functions": [
+    "xxh_x86dispatch.c::XXH_featureTest::343"
+   ],
+   "seed": "xxh_x86dispatch.c::XXH_featureTest::343",
+   "label_source": "source_string_literal",
+   "query_id": "literal-005"
+  },
+  {
+   "category": "literal",
+   "query": "which function outputs ', lineStatus == LineStatus_hashOk ? '",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_parseFile1::854": 2.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_parseFile1::854"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_parseFile1::854",
+   "label_source": "source_string_literal",
+   "query_id": "literal-006"
+  },
+  {
+   "category": "literal",
+   "query": "find the code that logs 'AVX512F not supported by CPU'",
+   "relevance": {
+    "xxh_x86dispatch.c::XXH_featureTest::343": 2.0
+   },
+   "relevant_functions": [
+    "xxh_x86dispatch.c::XXH_featureTest::343"
+   ],
+   "seed": "xxh_x86dispatch.c::XXH_featureTest::343",
+   "label_source": "source_string_literal",
+   "query_id": "literal-007"
+  },
+  {
+   "category": "literal",
+   "query": "who is responsible for the message 'not enough memory'",
+   "relevance": {
+    "tests/collisions/main.c::create_sampleFactory::271": 2.0,
+    "tests/collisions/main.c::main::1014": 2.0,
+    "tests/collisions/main.c::search_collisions::669": 2.0
+   },
+   "relevant_functions": [
+    "tests/collisions/main.c::create_sampleFactory::271",
+    "tests/collisions/main.c::main::1014",
+    "tests/collisions/main.c::search_collisions::669"
+   ],
+   "seed": "tests/collisions/main.c::create_sampleFactory::271",
+   "label_source": "source_string_literal",
+   "query_id": "literal-008"
+  },
+  {
+   "category": "literal",
+   "query": "where does it print '  -B#                  Block size to hash per benchmark iteration '",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_usage_advanced::1446": 2.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_usage_advanced::1446"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_usage_advanced::1446",
+   "label_source": "source_string_literal",
+   "query_id": "literal-009"
+  },
+  {
+   "category": "literal",
+   "query": "which function outputs 'SSE2 support detected.'",
+   "relevance": {
+    "xxh_x86dispatch.c::XXH_featureTest::343": 2.0
+   },
+   "relevant_functions": [
+    "xxh_x86dispatch.c::XXH_featureTest::343"
+   ],
+   "seed": "xxh_x86dispatch.c::XXH_featureTest::343",
+   "label_source": "source_string_literal",
+   "query_id": "literal-010"
+  },
+  {
+   "category": "literal",
+   "query": "find the code that logs 'AVX512F support detected.'",
+   "relevance": {
+    "xxh_x86dispatch.c::XXH_featureTest::343": 2.0
+   },
+   "relevant_functions": [
+    "xxh_x86dispatch.c::XXH_featureTest::343"
+   ],
+   "seed": "xxh_x86dispatch.c::XXH_featureTest::343",
+   "label_source": "source_string_literal",
+   "query_id": "literal-011"
+  },
+  {
+   "category": "literal",
+   "query": "who is responsible for the message 'XXH3_128bits streaming'",
+   "relevance": {
+    "tests/inlineDispatch.c::main::90": 2.0
+   },
+   "relevant_functions": [
+    "tests/inlineDispatch.c::main::90"
+   ],
+   "seed": "tests/inlineDispatch.c::main::90",
+   "label_source": "source_string_literal",
+   "query_id": "literal-012"
+  },
+  {
+   "category": "literal",
+   "query": "where does it print 'not enough memory for filter'",
+   "relevance": {
+    "tests/collisions/main.c::search_collisions::669": 2.0
+   },
+   "relevant_functions": [
+    "tests/collisions/main.c::search_collisions::669"
+   ],
+   "seed": "tests/collisions/main.c::search_collisions::669",
+   "label_source": "source_string_literal",
+   "query_id": "literal-013"
+  },
+  {
+   "category": "literal",
+   "query": "which function outputs 'not enough memory for threads'",
+   "relevance": {
+    "tests/collisions/main.c::main::1014": 2.0
+   },
+   "relevant_functions": [
+    "tests/collisions/main.c::main::1014"
+   ],
+   "seed": "tests/collisions/main.c::main::1014",
+   "label_source": "source_string_literal",
+   "query_id": "literal-014"
+  },
+  {
+   "category": "literal",
+   "query": "find the code that logs 'mov     edi, ebx'",
+   "relevance": {
+    "xxh_x86dispatch.c::XXH_cpuid::254": 2.0
+   },
+   "relevant_functions": [
+    "xxh_x86dispatch.c::XXH_cpuid::254"
+   ],
+   "seed": "xxh_x86dispatch.c::XXH_cpuid::254",
+   "label_source": "source_string_literal",
+   "query_id": "literal-015"
+  },
+  {
+   "category": "literal",
+   "query": "who is responsible for the message 'Invalid --threadlog value.'",
+   "relevance": {
+    "tests/collisions/main.c::main::1014": 2.0
+   },
+   "relevant_functions": [
+    "tests/collisions/main.c::main::1014"
+   ],
+   "seed": "tests/collisions/main.c::main::1014",
+   "label_source": "source_string_literal",
+   "query_id": "literal-016"
+  },
+  {
+   "category": "literal",
+   "query": "where does it print 'not enough memory to store candidates'",
+   "relevance": {
+    "tests/collisions/main.c::search_collisions::669": 2.0
+   },
+   "relevant_functions": [
+    "tests/collisions/main.c::search_collisions::669"
+   ],
+   "seed": "tests/collisions/main.c::search_collisions::669",
+   "label_source": "source_string_literal",
+   "query_id": "literal-017"
+  },
+  {
+   "category": "literal",
+   "query": "which function outputs 'too many threads requested'",
+   "relevance": {
+    "tests/collisions/main.c::main::1014": 2.0
+   },
+   "relevant_functions": [
+    "tests/collisions/main.c::main::1014"
+   ],
+   "seed": "tests/collisions/main.c::main::1014",
+   "label_source": "source_string_literal",
+   "query_id": "literal-018"
+  },
+  {
+   "category": "literal",
+   "query": "find the code that logs 'AVX2 support detected.'",
+   "relevance": {
+    "xxh_x86dispatch.c::XXH_featureTest::343": 2.0
+   },
+   "relevant_functions": [
+    "xxh_x86dispatch.c::XXH_featureTest::343"
+   ],
+   "seed": "xxh_x86dispatch.c::XXH_featureTest::343",
+   "label_source": "source_string_literal",
+   "query_id": "literal-019"
+  },
+  {
+   "category": "literal",
+   "query": "who is responsible for the message 'XXH3_64bits streaming'",
+   "relevance": {
+    "tests/inlineDispatch.c::main::90": 2.0
+   },
+   "relevant_functions": [
+    "tests/inlineDispatch.c::main::90"
+   ],
+   "seed": "tests/inlineDispatch.c::main::90",
+   "label_source": "source_string_literal",
+   "query_id": "literal-020"
+  },
+  {
+   "category": "literal",
+   "query": "where does it print 'sample size must be larger for this amount of hashes'",
+   "relevance": {
+    "tests/collisions/main.c::init_sampleFactory::256": 2.0
+   },
+   "relevant_functions": [
+    "tests/collisions/main.c::init_sampleFactory::256"
+   ],
+   "seed": "tests/collisions/main.c::init_sampleFactory::256",
+   "label_source": "source_string_literal",
+   "query_id": "literal-021"
+  },
+  {
+   "category": "literal",
+   "query": "which function outputs 'filter reduction failed'",
+   "relevance": {
+    "tests/collisions/main.c::search_collisions::669": 2.0
+   },
+   "relevant_functions": [
+    "tests/collisions/main.c::search_collisions::669"
+   ],
+   "seed": "tests/collisions/main.c::search_collisions::669",
+   "label_source": "source_string_literal",
+   "query_id": "literal-022"
+  },
+  {
+   "category": "literal",
+   "query": "find the code that logs 'Error: numeric value cannot be negative'",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_readU64FromChar::1543": 2.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_readU64FromChar::1543"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_readU64FromChar::1543",
+   "label_source": "source_string_literal",
+   "query_id": "literal-023"
+  },
+  {
+   "category": "literal",
+   "query": "who is responsible for the message ' Sorting candidates... '",
+   "relevance": {
+    "tests/collisions/main.c::search_collisions::669": 2.0
+   },
+   "relevant_functions": [
+    "tests/collisions/main.c::search_collisions::669"
+   ],
+   "seed": "tests/collisions/main.c::search_collisions::669",
+   "label_source": "source_string_literal",
+   "query_id": "literal-024"
+  },
+  {
+   "category": "literal",
+   "query": "where does it print 'and     eax, 0x200000'",
+   "relevance": {
+    "xxh_x86dispatch.c::XXH_featureTest::343": 2.0
+   },
+   "relevant_functions": [
+    "xxh_x86dispatch.c::XXH_featureTest::343"
+   ],
+   "seed": "xxh_x86dispatch.c::XXH_featureTest::343",
+   "label_source": "source_string_literal",
+   "query_id": "literal-025"
+  },
+  {
+   "category": "literal",
+   "query": "which function outputs ' Looking for duplicates: '",
+   "relevance": {
+    "tests/collisions/main.c::search_collisions::669": 2.0
+   },
+   "relevant_functions": [
+    "tests/collisions/main.c::search_collisions::669"
+   ],
+   "seed": "tests/collisions/main.c::search_collisions::669",
+   "label_source": "source_string_literal",
+   "query_id": "literal-026"
+  },
+  {
+   "category": "literal",
+   "query": "find the code that logs ' (cpuid_supported) :: '",
+   "relevance": {
+    "xxh_x86dispatch.c::XXH_featureTest::343": 2.0
+   },
+   "relevant_functions": [
+    "xxh_x86dispatch.c::XXH_featureTest::343"
+   ],
+   "seed": "xxh_x86dispatch.c::XXH_featureTest::343",
+   "label_source": "source_string_literal",
+   "query_id": "literal-027"
+  },
+  {
+   "category": "literal",
+   "query": "who is responsible for the message 'list of hashNames:'",
+   "relevance": {
+    "tests/collisions/main.c::help::987": 2.0
+   },
+   "relevant_functions": [
+    "tests/collisions/main.c::help::987"
+   ],
+   "seed": "tests/collisions/main.c::help::987",
+   "label_source": "source_string_literal",
+   "query_id": "literal-028"
+  },
+  {
+   "category": "literal",
+   "query": "where does it print 'Error: numeric value too large'",
+   "relevance": {
+    "cli/xxhsum.c::XSUM_readU32FromChar::1533": 2.0,
+    "cli/xxhsum.c::XSUM_readU64FromChar::1543": 2.0
+   },
+   "relevant_functions": [
+    "cli/xxhsum.c::XSUM_readU32FromChar::1533",
+    "cli/xxhsum.c::XSUM_readU64FromChar::1543"
+   ],
+   "seed": "cli/xxhsum.c::XSUM_readU32FromChar::1533",
+   "label_source": "source_string_literal",
+   "query_id": "literal-029"
+  },
+  {
+   "category": "literal",
+   "query": "which function outputs ');  /* do something with r to defeat compiler '",
+   "relevance": {
+    "cli/xsum_bench.c::XSUM_benchHash::228": 2.0
+   },
+   "relevant_functions": [
+    "cli/xsum_bench.c::XSUM_benchHash::228"
+   ],
+   "seed": "cli/xsum_bench.c::XSUM_benchHash::228",
+   "label_source": "source_string_literal",
+   "query_id": "literal-030"
+  }
+ ]
+}

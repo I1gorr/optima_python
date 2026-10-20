@@ -1,0 +1,90 @@
+{
+  "_comment": "Routed fusion-weight profiles, tuned on the v2/v1 structural benchmarks + generated literal tuning sets ONLY (benchmarks/*/developer_v1.json was never read). Coordinate descent, 2 passes, gain >= 0.003 MRR; dense_weight fixed at 1 (RRF weights are relative).",
+  "tuned_on": {
+    "chess": [
+      "benchmarks/chess/structural_v2.json",
+      "benchmarks/chess/tuning_literals.json"
+    ],
+    "cjson": [
+      "benchmarks/cjson/structural_v2.json",
+      "benchmarks/cjson/tuning_literals.json"
+    ],
+    "xxhash": [
+      "benchmarks/xxhash/structural_v1.json",
+      "benchmarks/xxhash/tuning_literals.json"
+    ]
+  },
+  "embeddings": [
+    "bge-small",
+    "bge-base",
+    "qwen3-0.6b"
+  ],
+  "objective": "mean MRR per query class, averaged over (dataset, embedding); coordinate descent, 2 passes, accept gain >= 0.003",
+  "tuning_mrr": {
+    "literal": {
+      "queries": 90,
+      "neutral": 0.4349,
+      "tuned": 0.6811
+    },
+    "structural": {
+      "queries": 278,
+      "neutral": 0.234,
+      "tuned": 0.6453
+    },
+    "symbol": {
+      "queries": 140,
+      "neutral": 0.6628,
+      "tuned": 0.7193
+    },
+    "natural": {
+      "queries": 270,
+      "neutral": 0.6116,
+      "tuned": 0.753
+    }
+  },
+  "profiles": {
+    "literal": {
+      "bm25_weight": 4,
+      "graph_weight": 0,
+      "representation_weights": {
+        "compiler": 0,
+        "raw": 2,
+        "semantic": 0
+      }
+    },
+    "structural": {
+      "exact_weight": 0,
+      "graph_weight": 2,
+      "bm25_weight": 0,
+      "representation_weights": {
+        "semantic": 0,
+        "raw": 0.5,
+        "compiler": 0
+      }
+    },
+    "symbol": {
+      "graph_weight": 0,
+      "bm25_weight": 4,
+      "representation_weights": {
+        "compiler": 0,
+        "raw": 2,
+        "semantic": 0
+      }
+    },
+    "natural": {
+      "bm25_weight": 0,
+      "graph_weight": 0,
+      "representation_weights": {
+        "semantic": 2,
+        "compiler": 0,
+        "raw": 0.5
+      }
+    }
+  },
+  "query_prefixes_used": {
+    "bge-small": "Represent this sentence for searching relevant passages: ",
+    "bge-base": "Represent this sentence for searching relevant passages: ",
+    "qwen3-0.6b": "Instruct: Given a question about source code, retrieve the function that implements or answers it\nQuery: "
+  },
+  "frozen": "2026-10-11"
+}
